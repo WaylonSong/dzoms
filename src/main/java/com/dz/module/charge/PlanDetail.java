@@ -2,6 +2,7 @@ package com.dz.module.charge;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author doggy
@@ -18,6 +19,8 @@ public class PlanDetail {
     private BigDecimal heton;
     private BigDecimal other;
     private BigDecimal total;
+    
+    private List<ChargePlan> plans;
 
     public int getContractId() {
         return contractId;
@@ -98,4 +101,12 @@ public class PlanDetail {
     public void setTotal(BigDecimal total) {
         this.total = total;
     }
+
+	public List<ChargePlan> getPlans() {
+		return plans;
+	}
+
+	public void setPlans(List<ChargePlan> plans) {
+		this.plans = plans;
+	}
 }

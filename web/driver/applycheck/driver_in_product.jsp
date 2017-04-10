@@ -120,7 +120,7 @@
                     </div></td>
                     <td colspan="4"><div align="center">
                       <p>&nbsp;</p>
-                      <p>有 □&nbsp;&nbsp;无 √
+                      <p>有 □&nbsp;&nbsp;无□
                       </p>
                     </div></td>
                     <td colspan="2"><div align="center">
@@ -129,7 +129,7 @@
                     </div></td>
                     <td colspan="2"><div align="center">
                       <p>&nbsp;</p>
-                      <p>有 □&nbsp;&nbsp;无 √
+                      <p>有 □&nbsp;&nbsp;无 □
                       </p>
                     </div></td>
                 </tr>
@@ -191,7 +191,7 @@
                       		 □
                       	</s:else>
                         
-共<u><s:if test="%{driver.taxiExperience}"></s:if><s:else><s:property value='%{driver.taxiExperienceYears}'/></s:else></u>年     否
+<s:if test="%{driver.taxiExperience}">共<u><s:property value='%{driver.taxiExperienceYears}'/></u>年</s:if>     否
 <s:if test="%{driver.taxiExperience}">
                       		 □
                       	</s:if>
@@ -408,8 +408,10 @@
                 </tr>
                 <tr></tr>
             </table>
-            <div align="left" style="float: left;">申请日期：<%=year%>年<%=month%>月<%=day%>日</div>
-            <div align="right">录入人：尹丽波</div>
+            <div style="height: 20px;"></div>
+            <div align="left" style="float: left;width: 300px;">申请日期：<%=year%>年<%=month%>月<%=day%>日</div>
+            <div align="center" style="float:left;width: 300px;" ><s:property value="%{driver.dept}"/></div>
+            <div align="right" style="float: right;">录入人：尹丽波</div>
  </div>
 </body>
 </html>

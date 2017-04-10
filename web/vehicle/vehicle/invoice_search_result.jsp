@@ -44,26 +44,15 @@ Page pg = (Page)request.getAttribute("page");
             }
         }
 
-        function call_update(val){
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+val;
-            //alert(url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
-            //$(window.top.document,"#main").attr("src",url);
-        }
-
         function _update(){
             var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆发票信息修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+            var url = "/DZOMS/vehicle/invoice_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2finvoice_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
         	 var selected_val = $("input[name='cbx']:checked").val();
             var url = "/DZOMS/vehicle/vehicleShow?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2finvoice_show.jsp";
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
             window.open(url,"车辆发票信息查看",'width=800,height=600,resizable=yes,scrollbars=yes');
         }
 
@@ -122,12 +111,12 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               		<s:if test="#session.roles.{?#this.rname=='发票修改权限'}.size>0">   	
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 			                                                           </s:if>
-		                                    <button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
+		                                    <!--<button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
 			                                                            导出</button>
 			                                  <button  onclick="_toPrint()" type="button" class="button icon-print text-green" style="line-height: 6px;">
-			                                                            打印</button>
+			                                                            打印</button>-->
                                      </div>
                                 </div>
           	        	</div>
@@ -141,11 +130,13 @@ Page pg = (Page)request.getAttribute("page");
 
                     <tr>
                         <th>选择</th>
+
 <th class="carframeNum selected_able">车架号</th>
 <th class="invoiceNumber selected_able">发票号</th>
 <th class="invoiceDate selected_able">开票日期</th>
 <th class="invoiceMoney selected_able">价税合计</th>
 <th class="purseFrom selected_able">销货单位名称</th>
+<th class="licenseNum selected_able">车牌号</th>
 <th class="invoiceRegister selected_able">登记人</th>
 <th class="invoiceRegistTime selected_able">登记时间</th>
                         
@@ -161,6 +152,7 @@ Page pg = (Page)request.getAttribute("page");
 <td class="invoiceDate 		selected_able"><s:property value="%{#v.invoiceDate 		}"/></td>
 <td class="invoiceMoney 	selected_able"><s:property value="%{#v.invoiceMoney 	}"/></td>
 <td class="purseFrom 		selected_able"><s:property value="%{#v.purseFrom 		}"/></td>
+<td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
 <td class="invoiceRegister 	selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.invoiceRegister).uname}"/></td>
 <td class="invoiceRegistTime selected_able"><s:property value="%{#v.invoiceRegistTime}"/></td>
  </tr>
@@ -199,9 +191,10 @@ Page pg = (Page)request.getAttribute("page");
         </div>
         <div class="panel-foot border-red-light bg-red-light">
             合计：<%=pg.getTotalCount() %>条记录。
-      <s:set name="sumHql" value="%{'select sum(invoiceMoney) from Vehicle where 1=1 '+#attr.condition}"></s:set>
+           <% request.setAttribute("q","'");%>
+      <s:set name="sumHql" value="%{'select sum(invoiceMoney) from Vehicle where 1=1 '+#attr.condition+'and dept like '+#request.q+'%'+vehicle.dept+'%'+#request.q}"></s:set>
       <s:set name="sumOfMoney" value="%{@com.dz.common.other.ObjectAccess@execute(#sumHql)}"></s:set>
-            合计金额：<s:property value="%{#sumOfMoney}"/>
+            合计金额：<s:property value="%{@java.lang.String@format('%6.2f',#sumOfMoney)}"/>
         </div>
     </div>
 </div>
@@ -219,6 +212,9 @@ Page pg = (Page)request.getAttribute("page");
 <label class="button active"><input type="checkbox" name="sbx" value="invoiceDate" checked="checked"><span class="icon icon-check text-green"></span>开票日期	</label>
 <label class="button active"><input type="checkbox" name="sbx" value="invoiceMoney" checked="checked"><span class="icon icon-check text-green"></span>价税合计	</label>
 <label class="button active"><input type="checkbox" name="sbx" value="purseFrom" checked="checked"><span class="icon icon-check text-green"></span>	销货单位名称</label>
+<label class="button active">
+                    <input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号
+                </label>
 <label class="button active"><input type="checkbox" name="sbx" value="invoiceRegister" checked="checked"><span class="icon icon-check text-green"></span>登记人		</label>
 <label class="button active"><input type="checkbox" name="sbx" value="invoiceRegistTime" checked="checked"><span class="icon icon-check text-green"></span>	登记时间	</label>
             </div>

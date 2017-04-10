@@ -48,31 +48,39 @@
 		<div class="panel-body">
 			 <table class="table table-hover table-bordered table-striped">
     <tr>
-      <th>单位</th>
-      <th>规格（张/卷）</th>
       <th>数量</th>
-      <th>数量2</th>
-      <th>金额</th>
       <th>年份</th>
       <th>号段</th>
       <th>经手人</th>
-      <th>操作</th>
+      <th style="display:none">操作</th>
     </tr>
-    <%Map<String,StorageItem> map = (Map)request.getAttribute("map");
+    <%Map<Integer,StorageItem> map = (Map)request.getAttribute("map");
       int totalAll = 0;
-      for(Map.Entry<String,StorageItem> entry:map.entrySet()){
+      for(Map.Entry<Integer,StorageItem> entry:map.entrySet()){
         int temp = 0;
     %>
       <tr>
-        <td>卷</td>
-        <td>100</td>
+        
         <%for(CountPass cp:entry.getValue().getCountPasses()){
           temp += cp.getNumber();
           totalAll += cp.getNumber();
         }%>
-        <td><%=temp%></td>
-        <td><%=temp/100%>箱</td>
-        <td><%=temp*3.6%></td>
+        <td>
+        <%
+        String txt="";
+        temp /=10;
+        if(temp/10>0){
+        	txt+=""+(temp/10)+"箱";
+        }
+        if(temp%10>0){
+        	txt+=""+(temp%10)+"袋";
+        }
+         %>
+        <%=txt%>
+        
+        </td>
+        
+        
         <td><%=entry.getValue().getRecordTime()%></td>
         <td>
           <%for(CountPass cp:entry.getValue().getCountPasses()){%>
@@ -80,7 +88,7 @@
           <%}%>
         </td>
         <td><%=entry.getValue().getRecorder()%></td>
-        <td><a class="button bg-main" onclick="showMessage('<%=entry.getValue().getProveNum()%>')">查看</a></td>
+        <td style="display:none"><a class="button bg-main" onclick="showMessage('<%=entry.getValue().getProveNum()%>')">查看</a></td>
       </tr>
     <%
       }
@@ -88,7 +96,17 @@
   </table>
 		</div>
 		<div class="panel-foot">
-			总数量：<%=totalAll%>卷    总价格：<%=totalAll*3.6%>元
+			总数量： <%
+        String txt="";
+        totalAll /=10;
+        if(totalAll/10>0){
+        	txt+=""+(totalAll/10)+"箱";
+        }
+        if(totalAll%10>0){
+        txt+=""+(totalAll%10)+"袋";
+        }
+         %>
+        <%=txt%> 
 		</div>
 	</div>
  

@@ -44,36 +44,6 @@ Page pg = (Page)request.getAttribute("page");
             }
         }
 
-        function _update(){
-        	//更新数据
-        	var carlist="";
-          $("input[name='cbx']:checked").each(function(){
-          	var $this = $(this);
-          	carlist+=","+$this.val();
-          });
-          
-          carlist=carlist.substr(1);
-          $.post("/DZOMS/vehicle/electricQuery",{"carList":carlist},function(data){
-          	if(data){
-          		document.vehicleSele.submit();
-          	}
-          });
-        }
-        
-        function _updateAll(){
-        	//更新所有数据
-          $.post("/DZOMS/vehicle/electricQueryAll",{"condition":$('[name="condition"]').val()},function(data){
-          	if(data){
-          		document.vehicleSele.submit();
-          	}
-          });
-        }
-        
-        function _selectAll(){
-        	 $("input[name='cbx']").each(function(){
-        	 	$(this).prop("checked",true);
-        	 });
-        }
 
 function toBeforePage(){
 		var currentPage = parseInt($("input[name='currentPage']").val());
@@ -128,6 +98,18 @@ $(document).ready(function(){
 		}
 	});
 });
+
+$(document).ready(function(){
+	//双击查看审批单详情
+	$("tr[checkType='0']").dblclick(function(){//开业审批单
+		window.parent.location.href = "/DZOMS/common/getObj?url=%2fvehicle%2fCreateApproval%2fvehicle_approval09.jsp&ids[0].id="+$(this).attr('checkId')+"&ids[0].className=com.dz.module.vehicle.VehicleApproval&ids[1].className=com.dz.module.contract.Contract&ids[1].id="+$(this).attr('cId');
+	});
+	
+	$("tr[checkType='1']").dblclick(function(){//废业审批单
+		window.parent.location.href = "/DZOMS/common/getObj?url=%2fvehicle%2fAbandonApproval%2fvehicle_abandon09.jsp&ids[0].id="+$(this).attr('checkId')+"&ids[0].className=com.dz.module.vehicle.VehicleApproval&ids[1].className=com.dz.module.contract.Contract&ids[1].id="+$(this).attr('cId');
+	});
+});
+
 </script>
   </head>
  <body>
@@ -139,13 +121,7 @@ $(document).ready(function(){
           	        	<div class="xm6 xm4-move">
           	        		       	<div class="button-toolbar">
 	                                   <div class="button-group">
-	                                   <!--<button onclick="_selectAll()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            本页全选</button>
-	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            更新所选车辆数据</button>
-			                                 <button onclick="_updateAll()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            更新所有车辆数据(含条件)</button>
-			                                      -->              
+	                                             
                                      </div>
                                 </div>
           	        	</div>
@@ -169,7 +145,7 @@ $(document).ready(function(){
         
         <s:iterator value="%{#request.list}" var="v">
                    
-<tr>
+<tr checkType="<s:property value="%{#v.checkType}"/>" checkId="<s:property value="%{#v.id}"/>" cId="<s:property value="%{#v.contractId}"/>" >
  <!--<td><input type="checkbox" name="cbx" value="<s:property value="%{#v.id}"/>" ></td>-->
  <s:set name="c" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.contract.Contract',#v.contractId)}"></s:set>
  <td class="type selected_able"><s:property value="%{#v.checkType==0?'开业审批':'废业审批'}"/></td>
@@ -179,54 +155,54 @@ $(document).ready(function(){
  <td class="licenseNum selected_able"><s:property value="%{#c.carNum}"/></td>
 <!-- <td class="state selected_able"><s:property value="%{#v.state}"/></td>
 --></tr>
-<tr>
+<tr checkType="<s:property value="%{#v.checkType}"/>" checkId="<s:property value="%{#v.id}"/>" cId="<s:property value="%{#v.contractId}"/>" >
 	<td colspan="5">
 		<s:if test="%{#v.checkType==0}">
 			<div class="step" status='<s:property value="%{#v.state}"/>'>
-			    <div class="step-bar" style="width: 14.28%;">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.branchManagerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point ">1</span><span class="step-text">承租人申请开业</span></span>
 			    </div>
-			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="click" data-place="top" title="<h2>提示信息</h2>">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.assurerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point tips" >2</span><span class="step-text">保险员审批</span>
 			    </div>
-			    <div class="step-bar" style="width: 14.28%;">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.managerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">3</span><span class="step-text">运营管理部经理审批</span>
 			    </div>
-			    <div class="step-bar" style="width: 14.28%;">
-			        <span class="step-point">4</span><span class="step-text">计财部经理审批</span>
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.financeManagerApprovalDate}" format="yyyy/MM/dd"/></h2>">
+			        <span class="step-point">4</span><span class="step-text">计财部收款</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
-			        <span class="step-point">5</span><span class="step-text">收款员收款</span>
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalFinanceDate}" format="yyyy/MM/dd"/></h2>">
+			        <span class="step-point">5</span><span class="step-text">计财部经理审批</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalDirectorDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">6</span><span class="step-text">主管副总经理审批</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalOfficeDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">7</span><span class="step-text">综合办公室审批</span>
 			    </div>
 			</div>
 		</s:if>
 		<s:else>
 			<div class="step" status='<s:property value="%{#v.state==1?#v.state:(#v.state-1)}"/>'>
-			    <div class="step-bar" style="width: 14.28%;">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.branchManagerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">1</span><span class="step-text">承租人申请废业</span></span>
 			    </div>
-			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="click" data-place="top" title="<h2>提示信息</h2>">
+			    <div class="step-bar tips" style="width: 14.28%;"  data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.assurerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point tips" >2</span><span class="step-text">保险员审批</span>
 			    </div>
-			    <div class="step-bar" style="width: 14.28%;">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.managerApprovalDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">3</span><span class="step-text">运营管理部经理审批</span>
 			    </div>
-			    <div class="step-bar" style="width: 14.28%;">
+			    <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalOfficeDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">4</span><span class="step-text">综合办公室审批</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
-			        <span class="step-point">5</span><span class="step-text">计财部经理审批</span>
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalFinanceDate}" format="yyyy/MM/dd"/></h2>">
+			        <span class="step-point">5</span><span class="step-text">计财部收款</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
-			        <span class="step-point">6</span><span class="step-text">计财部审核</span>
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.financeManagerApprovalDate}" format="yyyy/MM/dd"/></h2>">
+			        <span class="step-point">6</span><span class="step-text">计财部经理审批</span>
 			    </div>
-			     <div class="step-bar" style="width: 14.28%;">
+			     <div class="step-bar tips" style="width: 14.28%;" data-toggle="hover" data-place="top" title="<h2><s:date name="%{#v.approvalDirectorDate}" format="yyyy/MM/dd"/></h2>">
 			        <span class="step-point">7</span><span class="step-text">主管副总经理审批</span>
 			    </div>
 			</div>

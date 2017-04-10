@@ -8,6 +8,11 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="合同新增">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
+
 <!doctype html>
 <html lang="zh-cn">
 <head>

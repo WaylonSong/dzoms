@@ -21,7 +21,8 @@
 	idMap.put("driver","驾驶员");
 	idMap.put("finance","财务");
 	idMap.put("apply_manage","审批管理");
-	idMap.put("manage","个人管理");
+	idMap.put("manage","系统管理");
+	idMap.put("statistics","统计分析");
 %>
 <!DOCTYPE html>
 <html>
@@ -79,8 +80,57 @@
 	 	$("#body-right").height([size]);
 	 	$('[name="body"]',window.parent.document).height([size]);
 	 };
-	
-	
+
+function refreshMsgCount(){
+	$.post("/DZOMS/userMessageCount",{},function(data){
+		try{
+			var c = parseInt(data);
+			$("#msg_count").text(c);
+		}catch(e){
+			$("#msg_count").text(0);
+		}
+	});
+}
+
+var ck =0,ct=0;
+function setApprovalCount(){
+	if (ck >= 2) {
+		$("#approval_count").text(ct);
+	}
+}
+
+function refreshApprovalCount(){
+	ck =0;
+	ct=0;
+	$.post("/DZOMS/common/getWaitDealCount",{waitType:'废业审批'},function(data){
+		try{
+			var c = parseInt(data);
+			ct+=c;
+		}catch(e){
+			
+		}
+		ck++;
+		setApprovalCount();
+	});
+	$.post("/DZOMS/common/getWaitDealCount",{waitType:'开业审批'},function(data){
+		try{
+			var c = parseInt(data);
+			ct+=c;
+		}catch(e){
+			
+		}
+		ck++;
+		setApprovalCount();
+	});
+}
+
+
+$(document).ready(function(){
+	refreshMsgCount();
+	refreshApprovalCount();
+	setInterval(refreshMsgCount,10000);
+	setInterval(refreshApprovalCount,10000);
+});
 
   </script>
 </head>
@@ -105,7 +155,8 @@
     			<li><a href="/DZOMS/message.jsp" target="body-right">消息</a></li>
     			<li><a href="/DZOMS/userLogout" target="_top">登出</a></li>
     		</ul>
-    		
+    		<a id="msg_count" href="/DZOMS/message.jsp" class="button red" target="body-right">0</a>
+    		<a id="approval_count" href="/DZOMS/apply_manage/" class="button" target="body-right">0</a>
     		<div class="clearfix"></div>
   		</section> <!--! end of #login-details -->
     	

@@ -54,7 +54,7 @@ $(document).ready(function(){
 <body>
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;">
-			<li>个人管理</li>
+			<li>系统管理</li>
 			<li>权限管理</li>
 		</ul>
 	</div>
@@ -146,7 +146,16 @@ $(document).ready(function(){
 										审批
 									</a>
 								</li>
-								
+								<li>
+									<a href="#tab-permission">
+										系统管理
+									</a>
+								</li>
+								<li>
+									<a href="#tab-statistics">
+										统计分析
+									</a>
+								</li>
 							</ul>
 						</div>
 						<div class="tab-body">
@@ -227,6 +236,10 @@ $(document).ready(function(){
 												<td>
 													<input type="checkbox" name="roleIds" class="role72" value="72" />
 													新增保险信息
+												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role308" value="308" />
+													保险续保
 												</td>
 												<td>
 													<input type="checkbox" name="roleIds" class="role180" value="180" />
@@ -416,20 +429,41 @@ $(document).ready(function(){
 														电子违章：
 													</strong>
 												</td>
+												
+												<td>
+													<input type="checkbox" name="roleIds" class="role420" value="420" />
+													违章统计
+												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role171" value="171" />
+													电子违章查询
+												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role172" value="172" />
+													电子违章下载(旧)
+												</td>
 												<td>
 													<input type="checkbox" name="roleIds" class="role67" value="67" />
-													电子违章
+													单车查询
 												</td>
 											</tr>
 											<tr>
 												<td>
 													<strong>
-														车辆废业计划
+														车辆废业
 													</strong>
 												</td>
 												<td>
 													<input type="checkbox" name="roleIds" class="role100" value="100" />
-													车辆废业计划计划
+													车辆废业计划
+												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role422" value="422" />
+													车辆废业起始日期修改权限
+												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role423" value="423" />
+													车辆废业结束日期修改权限
 												</td>
 											</tr>
 										</table>
@@ -492,7 +526,7 @@ $(document).ready(function(){
 													申请登记
 												</td>
 												<td>
-													<input type="checkbox" name="roleIds" class="role71" value="71" />
+													<input type="checkbox" name="roleIds" class="role70" value="70" />
 													申请注销
 												</td>
 											</tr>
@@ -653,6 +687,10 @@ $(document).ready(function(){
 													<input type="checkbox" name="roleIds" class="role69" value="69" />
 													待岗记录查询
 												</td>
+												<td>
+													<input type="checkbox" name="roleIds" class="role421" value="421" />
+													待岗审批权限
+												</td>
 											</tr>
 											<!--晚上更新-->
 											<tr>
@@ -733,6 +771,10 @@ $(document).ready(function(){
 													<input type="checkbox" name="roleIds" class="role27" value="27" />
 													发票进货记录
 											</td>
+											<td>
+													<input type="checkbox" name="roleIds" class="role418" value="418" />
+													发票作废权限
+											</td>
 										</tr>
 										<tr>
 										    <td>计划管理：</td>
@@ -790,6 +832,11 @@ $(document).ready(function(){
 													<input type="checkbox" name="roleIds" class="role85" value="85" />
 													收费统计
 											</td>
+											
+											<td>
+													<input type="checkbox" name="roleIds" class="role424" value="424" />
+													银行导入查询
+											</td>
 										</tr>
 											<tr>
 												<td></td>
@@ -841,7 +888,55 @@ $(document).ready(function(){
 								</div>
 							</div>
 							
+							<div class="tab-panel" id="tab-permission">
+								<div class="panel">
+									<div class="panel-head">
+									   系统管理
+									</div>
+									<div class="panel-body">
+										<table class="table table-bordered">
+											
+											<tr>
+											    <td>
+														<input type="checkbox" name="roleIds" class="role201" value="201" />
+														添加用户
+												</td>
+												  <td>
+														<input type="checkbox" name="roleIds" class="role202" value="202" />
+														查询用户
+												</td>
+
+											</tr>
+											
+										</table>
+									</div>
+								</div>
+							</div>
 							
+							<div class="tab-panel" id="tab-statistics">
+								<div class="panel">
+									<div class="panel-head">
+									   统计分析
+									</div>
+									<div class="panel-body">
+										<table class="table table-bordered">
+											
+											<tr>
+											    <td>
+														<input type="checkbox" name="roleIds" class="role425" value="425" />
+														审批流程统计
+												</td>
+												 <td>
+														<input type="checkbox" name="roleIds" class="role426" value="426" />
+														财务统计
+												</td>
+
+											</tr>
+											
+										</table>
+									</div>
+								</div>
+							</div>
 							
 							
 						</div>

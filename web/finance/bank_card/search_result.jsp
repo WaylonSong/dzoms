@@ -200,8 +200,8 @@ Page pg = (Page)request.getAttribute("page");
 <th class="idNumber selected_able">身份证号码</th>
 <th class="cardClass selected_able">银行卡类别</th>
 <th class="cardNumber selected_able">银行卡号</th>
-<th class="isDefaultPay selected_able">是否为主支付卡</th>
-<th class="isDefaultRecive selected_able">是否为主回款卡</th>
+<!--<th class="isDefaultPay selected_able">是否为主支付卡</th>-->
+<!--<th class="isDefaultRecive selected_able">是否为主回款卡</th>-->
 <th class="operator selected_able">登记人</th>
 <th class="opeTime selected_able">操作时间</th>    
 
@@ -222,8 +222,8 @@ Page pg = (Page)request.getAttribute("page");
 <td class="idNumber selected_able"><s:property value="%{#v.idNumber}"/></td>
 <td class="cardClass selected_able"><s:property value="%{#v.cardClass}"/></td>
 <td class="cardNumber selected_able"><s:property value="%{#v.cardNumber}"/></td>
-<td class="isDefaultPay selected_able"><s:property value="%{#v.isDefaultPay?'是':'否'}"/></td>
-<td class="isDefaultRecive selected_able"><s:property value="%{#v.isDefaultRecive?'是':'否'}"/></td>
+<!--<td class="isDefaultPay selected_able"><s:property value="%{#v.isDefaultPay?'是':'否'}"/></td>
+<td class="isDefaultRecive selected_able"><s:property value="%{#v.isDefaultRecive?'是':'否'}"/></td>-->
 <td class="operator selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.operator).uname}"/></td>
 <td class="opeTime selected_able"><s:property value="%{#v.opeTime}"/></td>  
                         </tr>
@@ -274,8 +274,8 @@ Page pg = (Page)request.getAttribute("page");
 <label class="button active"><input type="checkbox" name="sbx" value="idNumber" checked="checked"><span class="icon icon-check text-green"></span>身份证号码</label>
 <label class="button active"><input type="checkbox" name="sbx" value="cardClass" checked="checked"><span class="icon icon-check text-green"></span>银行卡类别</label>
 <label class="button active"><input type="checkbox" name="sbx" value="cardNumber" checked="checked"><span class="icon icon-check text-green"></span>银行卡号</label>
-<label class="button active"><input type="checkbox" name="sbx" value="isDefaultPay" checked="checked"><span class="icon icon-check text-green"></span>是否为主支付卡</label>
-<label class="button active"><input type="checkbox" name="sbx" value="isDefaultRecive" checked="checked"><span class="icon icon-check text-green"></span>是否为主回款卡</label>
+<!--<label class="button active"><input type="checkbox" name="sbx" value="isDefaultPay" checked="checked"><span class="icon icon-check text-green"></span>是否为主支付卡</label>
+<label class="button active"><input type="checkbox" name="sbx" value="isDefaultRecive" checked="checked"><span class="icon icon-check text-green"></span>是否为主回款卡</label>-->
 <label class="button active"><input type="checkbox" name="sbx" value="operator" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
 <label class="button active"><input type="checkbox" name="sbx" value="opeTime" checked="checked"><span class="icon icon-check text-green"></span>操作时间</label>    
 
@@ -299,6 +299,12 @@ Page pg = (Page)request.getAttribute("page");
 <form action="/DZOMS/BankCardSearch" method="post" name="vehicleSele">
     <s:hidden name="beginDate" />
     <s:hidden name="endDate" />
+    <s:hidden name="bankCard.cardNumber" />
+    <s:hidden name="bankCard.idNumber" />
+    <s:hidden name="dept" />
+    <s:hidden name="bankCard.carNum" />
+    <s:hidden name="order" />
+    <s:hidden name="rank" />
     <s:hidden name="currentPage" value="%{#request.page.currentPage}" id="currentPage"></s:hidden>
 </form>
 

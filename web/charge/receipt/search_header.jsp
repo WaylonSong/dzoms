@@ -26,21 +26,25 @@
   <script type="text/javascript" src="/DZOMS/res/js/jquery.datetimepicker.js" ></script>
     <link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
     <script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
-  
+  <script>
+  function carFocus(){
+  	$("#carId").val("黑A");
+  }
+  </script>
 </head>
 <body>
 	<div class="margin-big-bottom">
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
                 <li>财务管理</li>
-                <li>发票销售</li>
+                <li>发票管理</li>
     </ul>
     </div>
 </div>
 <div class="line">
 	<div class="panel  margin-small" >
           	<div class="panel-head">
-          		发票进货
+          		查询条件
           	</div>
           	<div class="panel-body">
           		<form id="form" class="form-inline" action="/DZOMS/charge/receipt/searchRecords" method="post" target="show">
@@ -59,7 +63,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label"><label>车牌号</label></div>
-                        <div class="field"><input type="text" name="carId" value="黑A" class="input" id="carId"></div>
+                        <div class="field"><input type="text" name="carId" value="黑A" class="input" id="carId" onfocus="carFocus()"></div>
                     </div>
   <input type="submit" value="提交" class="button bg-main">
 </form>
@@ -68,7 +72,7 @@
 </div>
 	
 <div class="line">
-   <iframe name="show" width="100%" height="500px" id="result_form" style="overflow:none;">
+   <iframe name="show" width="100%" height="500px" id="result_form">
 
     </iframe>
 
@@ -93,7 +97,7 @@ if(ifm != null && subWeb != null) {
 }    
 
 $(document).ready(function(){
-	window.setInterval('iFrameHeight();',3600);
+	//window.setInterval('iFrameHeight();',3600);
 });
 </script>
 

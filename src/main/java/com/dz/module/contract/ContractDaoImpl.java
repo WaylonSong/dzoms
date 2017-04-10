@@ -4,6 +4,7 @@ import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.Page;
 import com.dz.module.driver.Driver;
 import com.dz.module.vehicle.Vehicle;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -264,6 +266,8 @@ public class ContractDaoImpl implements ContractDao {
 	 * @param iterators 要过滤的所有合同的迭代器.
      */
 	private void filterContractThatStateEq1Charge(Date currentClearTime, Iterator<Contract> iterators) {
+		
+		//相当于hql子句  and ((abandoned_final_time is null) or (YEAR(abandoned_final_time)*12+MONTH(abandoned_final_time)+(DAY(abandoned_final_time)>26)) >= (YEAR(:currentClearTime)*12+MONTH(:currentClearTime))))
 		while(iterators.hasNext()){
             Contract contract = iterators.next();
             if(contract.getState() == 1){
@@ -586,9 +590,65 @@ public class ContractDaoImpl implements ContractDao {
 		Contract c = null;
 		Session session = HibernateSessionFactory.getSession();
 		Query query = session.createQuery("from Contract where carframeNum = :id and state=0");
+		query.setMaxResults(1);
 		query.setString("id",id);
 		c = (Contract) query.uniqueResult();
 		HibernateSessionFactory.closeSession();
+		return c;
+	}
+
+	@Override
+	public Contract selectByCarId(String id, Date d) {
+		Contract c = null;
+		try{
+			Session session = HibernateSessionFactory.getSession();
+//			Query query = session.createQuery("from Contract where carframeNum = :id and state=0");
+			Query query = session.createQuery("from Contract where id=( select max(id) from Contract where carframeNum = :id and state!=3 and state!=2 and state>=0 ) ");
+			query.setString("id",id);
+			query.setMaxResults(1);
+			c = (Contract) query.uniqueResult();
+			
+			Calendar dt = Calendar.getInstance();
+			if(c!=null&&c.getContractBeginDate()!=null){
+				dt.setTime(c.getContractBeginDate());
+			}else{
+				return c;
+			}
+			
+			if(dt.get(Calendar.DATE)>26){
+				
+				dt.set(Calendar.DATE, 26);
+			}else{
+				dt.add(Calendar.MONTH, -1);
+				dt.set(Calendar.DATE, 26);
+			}
+			
+//			System.out.println("ContractDaoImpl.selectByCarId(),"+dt.toString());
+			
+			if(dt.getTime().before(d)){
+				return c;
+			}else{
+				while(c.getContractFrom()!=null){
+					Contract last = (Contract) session.get(Contract.class, c.getContractFrom());
+					if(last!=null) c = last;
+					else return c;
+					
+					dt.setTime(c.getContractBeginDate());
+					if(dt.get(Calendar.DATE)>26){
+						dt.add(Calendar.MONTH, 1);
+						dt.set(Calendar.DATE, 26);
+					}else{
+						dt.set(Calendar.DATE, 26);
+					}
+					
+					if(dt.getTime().before(d))
+						return c;
+				}
+			}
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+
 		return c;
 	}
 
@@ -805,6 +865,98 @@ public class ContractDaoImpl implements ContractDao {
 				tx.rollback();
 			}
 			return false;
+		} finally {
+			HibernateSessionFactory.closeSession();
+		}
+	}
+
+	@Override
+	public int contractSearchAllAvaliableCount(Date time, String dept,
+			String licenseNum) {
+		Session session = null;
+		Transaction tx = null;
+		try {
+			session = HibernateSessionFactory.getSession();
+			tx = (Transaction) session.beginTransaction();
+			Query query = null;
+			
+			String hql="select count(*) from Contract where state in (0,-1,1,4) and (abandonedFinalTime is null or (YEAR(abandonedFinalTime)*12+MONTH(abandonedFinalTime)+(case when DAY(abandonedFinalTime)>26 then 1 else 0 end) >= (YEAR(:currentClearTime)*12+MONTH(:currentClearTime))) )";
+			if (dept!=null&&!"全部".equals(dept)) {
+				hql+="and branchFirm = :dept ";
+			}
+			
+			if(!StringUtils.isEmpty(licenseNum)){
+				hql+="and carNum like :carNum ";
+			}
+			
+			query = session.createQuery(hql);
+			
+			if (dept!=null&&!"全部".equals(dept)) {
+				query.setString("dept",dept);
+			}
+			
+			if(!StringUtils.isEmpty(licenseNum)){
+				query.setString("carNum",licenseNum);
+			}
+			
+			query.setDate("currentClearTime", time);
+			
+			long count = (long) query.uniqueResult();
+			tx.commit();
+			return (int) count;
+		} catch (HibernateException e) {
+			e.printStackTrace();
+			if (tx != null) {
+				tx.rollback();
+			}
+			return 0;
+		} finally {
+			HibernateSessionFactory.closeSession();
+		}
+	}
+
+	@Override
+	public List<Contract> contractSearchAllAvilable(Date time, String dept,
+			String licenseNum, Page page) {
+		List<Contract> l = new ArrayList<Contract>();
+		Session session = null;
+		Transaction tx = null;
+		try {
+			session = HibernateSessionFactory.getSession();
+			tx = (Transaction) session.beginTransaction();
+			Query query = null;
+			
+			String hql="from Contract where state in (0,-1,1,4)  and (abandonedFinalTime is null or (YEAR(abandonedFinalTime)*12+MONTH(abandonedFinalTime)+(case when DAY(abandonedFinalTime)>26 then 1 else 0 end) >= (YEAR(:currentClearTime)*12+MONTH(:currentClearTime)) ))";
+			if (dept!=null&&!"全部".equals(dept)) {
+				hql+="and branchFirm = :dept ";
+			}
+			
+			if(!StringUtils.isEmpty(licenseNum)){
+				hql+="and carNum like :carNum ";
+			}
+			
+			query = session.createQuery(hql);
+			
+			if (dept!=null&&!"全部".equals(dept)) {
+				query.setString("dept",dept);
+			}
+			
+			if(!StringUtils.isEmpty(licenseNum)){
+				query.setString("carNum",licenseNum);
+			}
+			
+			query.setDate("currentClearTime", time);
+			
+			l = query.list();
+			
+			tx.commit();
+			return l;
+		} catch (HibernateException e) {
+			e.printStackTrace();
+			if (tx != null) {
+				tx.rollback();
+			}
+			return l;
 		} finally {
 			HibernateSessionFactory.closeSession();
 		}

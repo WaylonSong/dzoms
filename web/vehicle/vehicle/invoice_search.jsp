@@ -1,6 +1,7 @@
 <%@page import="com.dz.common.other.ObjectAccess"%>
 <%@page import="com.dz.module.vehicle.Vehicle"%>
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@page import="com.dz.module.user.User"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
@@ -56,9 +57,36 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				callback:refreshSearch
 			});
 			
+			$("#driver_name").bigAutocomplete({
+				url:"/DZOMS/select/driverByName",
+				callback:refreshSearch
+			});
+			
+			$("#license_num").bigAutocomplete({
+				url:"/DZOMS/select/vehicleByLicenseNum",
+				callback:refreshSearch
+			});
+			
 			$("[name='vehicle.invoiceNumber']").change(function(){
 				refreshSearch();
 			});
+			
+			
+			<%
+				User user = (User) session.getAttribute("user");
+        String position = user.getPosition();
+                            		String dept="";
+                            		
+                            		if(position==null)
+                            			dept="";
+                            		else if(position.contains("一"))
+                            			dept = "一部";
+                            		else if(position.contains("二"))
+                            			dept = "二部";
+                            		else if(position.contains("三"))
+                            			dept = "三部";
+      %>
+      $('select[name="vehicle.dept"]').val("<%=dept%>");
 			
 		});
 	</script>
@@ -88,8 +116,51 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 
         <div class="xm12 padding">
-         
-                    <table class="table table-bordered">
+         	<table class="table" style="border: 0px;">
+                        <tr>
+                            <td style="border-top: 0px;">承租人</td>
+                            <td style="border-top: 0px;"><input type="text" id="driver_name" name="driverName" class="input"/></td>
+
+                       
+                            <td style="border-top: 0px;">归属部门</td>
+                            <td style="border-top: 0px;"><select name="vehicle.dept" class="input">
+                            	<option value="">全部</option>
+                            	<option value="一部">一部</option>
+                            	<option value="二部">二部</option>
+                            	<option value="三部">三部</option>
+                            </select></td>
+                        
+                            <td style="border-top: 0px;">车辆识别代码/车架号</td>
+                            <td style="border-top: 0px;"><input type="text" id="carframe_num" name="vehicle.carframeNum" class="input" /></td>
+                        
+														<td style="border-top: 0px;">车牌号</td>
+                            <td style="border-top: 0px;"><input type="text" id="license_num" value="黑A" name="vehicle.licenseNum" class="input" /></td>
+                        
+                        		<td style="border-top: 0xp;">发票号</td>
+                            <td style="border-top: 0xp;"><input type="text" name="vehicle.invoiceNumber" class="input" /></td>
+                            <td style="border-top: 0xp;">是否已录入发票信息</td>
+                            <td style="border-top: 0xp;"><select id="alreadyInput">
+                            	<option> </option>
+                            	<option selected="selected">是</option>
+                            	<option>否</option>
+                            </select></td>
+                        
+                        	 <td style="border-top: 0px;"><input type="submit" value="查询"></td>
+                        </tr>
+                        <!--<tr>
+                            <td>车辆型号</td>
+                            <td><input type="text" id="vehicle.car_mode" name="vehicle.carMode" class="input"/></td>
+                        </tr>
+                        <tr>
+                            <td class="tableleft">合格证编号</td>
+                            <td><input type="text" id="vehicle.certify_num" name="vehicle.certifyNum" class="input"/></td>
+                        </tr>
+                        <tr>
+                            <td class="tableleft">车牌号</td>
+                            <td><input type="text" id="vehicle.license_num" name="vehicle.licenseNum" class="input" /></td>
+                        </tr>-->
+                    </table>
+                    <!--<table class="table table-bordered">
                         <tr>
                             <td style="border-top: 0xp;">车辆识别代码/车架号</td>
                             <td style="border-top: 0xp;"><input id="carframe_num" name="vehicle.carframeNum" class="input" /></td>
@@ -104,7 +175,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
                             	<option>否</option>
                             </select></td>
                         </tr>
-                    </table>
+                    </table>-->
             
             </div>
         </div>

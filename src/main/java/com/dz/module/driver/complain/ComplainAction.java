@@ -12,6 +12,7 @@ import com.opensymphony.xwork2.util.ArrayUtils;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.collections.*;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,17 +72,20 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
 	
 	public String addComplain(){
 		try {
-			if(!ArrayUtils.isEmpty(fileUploads)){
-				String basePath = session.getServletContext().getRealPath("/data/driver/complain");
-				int fileListNumber = fileAccessUtil.store(basePath, fileUploads, fileUploadsFileName);
-				complain.setComplainFile(fileListNumber);
-			}
-			
 			User user = (User) session.getAttribute("user");
 			complain.setRegistrant(user.getUid());
 			complain.setState(0);
+//			complain.setComplainTime(new Date());
 			
 			complainService.addComplain(complain);
+			
+			if(!ArrayUtils.isEmpty(fileUploads)){
+				String basePath = session.getServletContext().getRealPath("/data/driver/complain");
+				fileAccessUtil.store(basePath,""+complain.getId(), fileUploads, fileUploadsFileName);
+				//int fileListNumber = fileAccessUtil.store(basePath, fileUploads, fileUploadsFileName);
+				int fileListNumber = fileUploads==null?0:fileUploads.length;
+				complain.setComplainFile(fileListNumber);
+			}
 		} catch (IOException e) {
 				e.printStackTrace();
 				return ERROR;
@@ -161,12 +165,18 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
 			Complain oc = complainService.selectById(complain);
 			oc.setVisitBackResult(complain.getVisitBackResult());
 			oc.setVisitBackTime(complain.getVisitBackTime());
-			oc.setState(3);
+			//oc.setState(3);
 			
 			User user = (User) session.getAttribute("user");
 			oc.setVisitBackPerson(user.getUid());
+			
+			oc.setFinishTime(new Date());
+			oc.setState(4);
+
+			oc.setFinishPerson(user.getUid());
 
 			complainService.updateComplain(oc);
+			
 		}catch(Exception e){
 			e.printStackTrace();
 			return ERROR;
@@ -224,9 +234,10 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
 	public String deleteComplain(){
 		try {
 			Complain oc = complainService.selectById(complain);
-			int fileListNumber = oc.getComplainFile();
+			int fileListNumber = ObjectUtils.defaultIfNull(oc.getComplainFile(), 0);
 			if(fileListNumber!=0){
-				fileAccessUtil.removeList(fileListNumber);
+				String basePath = session.getServletContext().getRealPath("/data/driver/complain");
+				fileAccessUtil.remove(basePath, ""+complain.getId());
 			}
 			
 			complainService.deleteComplain(complain);
@@ -385,6 +396,16 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
 		pw.close();
 	}*/
 	
+	private String order,dept;
+	
+	public String getOrder() {
+		return order;
+	}
+
+	public void setOrder(String order) {
+		this.order = order;
+	}
+
 	public String searchComplain(){
 		int currentPage = 0;
         String currentPagestr = request.getParameter("currentPage");
@@ -411,8 +432,11 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
         	states = statelist.toArray(states);
         }
        //vehicle.setCarMode("123");
-       Page page = PageUtil.createPage(15, complainService.selectAllByStatesCount(beginDate,endDate,states), currentPage);
-		List<Complain> l = complainService.selectByStates(page, beginDate,endDate,states);
+        
+//        System.out.println("ComplainAction.searchComplain(),"+complain);
+        
+       Page page = PageUtil.createPage(15, complainService.selectAllByStatesCount(complain,beginDate,endDate,dept,states), currentPage);
+		List<Complain> l = complainService.selectByStates(page,complain, beginDate,endDate,dept,states,order);
 		request.setAttribute("list", l);
 		request.setAttribute("page", page);
 		return SUCCESS;
@@ -526,5 +550,15 @@ public class ComplainAction extends ActionSupport implements ServletRequestAware
 	public void setCompany(String company) {
 		this.company = company;
 	}
+
+	public String getDept() {
+		return dept;
+	}
+
+	public void setDept(String dept) {
+		this.dept = dept;
+	}
+	
+	
 	
 }

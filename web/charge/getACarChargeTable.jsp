@@ -7,7 +7,7 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="renderer" content="webkit">
-  <title>测试</title>
+  <title>单车收费查询</title>
   <link rel="stylesheet" href="/DZOMS/res/css/pintuer.css"/>
   <link rel="stylesheet" type="text/css" href="/DZOMS/res/css/jquery.datetimepicker.css"/>
 
@@ -36,6 +36,9 @@
           $("#form").attr("action","/DZOMS/charge/exportACarChargeTable");
           $("#form").submit();
       }
+      function carFocus(){
+      	$("#licenseNum").val("黑A");
+      }
   </script>
 </head>
 <body>
@@ -54,7 +57,7 @@
                     </label>
                 </div>
                 <div class="field">
-                    <input class="input input-auto" size="9" id="licenseNum" name="licenseNum" value="黑A"  onblur="setDept()"/>
+                    <input class="input input-auto" size="9" id="licenseNum" name="licenseNum" value="黑A"  onblur="setDept()" onfocus="carFocus()"/>
                 </div>
             </div>
 

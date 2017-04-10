@@ -63,7 +63,7 @@ public class TableListAction extends BaseAction {
 	
 /**
  * 根据列表名称，获取该列表的1级元素
- * @throws IOException
+ * @throws IOException 
  */
 	@SuppressWarnings("unchecked")
 	public void getList() throws IOException{
@@ -251,7 +251,7 @@ public class TableListAction extends BaseAction {
 	
 	/**
 	 * 此处为伪删除，实质为隐藏
-	 * @throws IOException
+	 * @throws IOException 
 	 */
 	public void deleteItem() throws IOException{
 		ServletActionContext.getResponse().setContentType("application/json");

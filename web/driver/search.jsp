@@ -8,6 +8,7 @@
 	String basePath = request.getScheme() + "://"
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
+	User user = (User) session.getAttribute("user");
 %>
 <!doctype html>
 <html lang="zh-cn">
@@ -32,6 +33,12 @@
 <script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
 	
 <script>
+$(document).ready(function(){
+	var iframe = window.parent.parent.document.getElementsByName("body")[0];
+	var iframeP = window.parent.document.getElementById("body-right");
+	$(iframe).css("height","2500");
+	$(iframeP).css("height","2500");
+});
 		$(document).ready(function(){
 			$("#search_form").find("select").change(function(){
 				$("#search_form").submit();
@@ -45,6 +52,20 @@
 					$("#search_form").submit();
 				}
 			});
+			<%
+        String position = user.getPosition();
+                            		String dept="";
+                            		
+                            		if(position==null)
+                            			dept="all";
+                            		else if(position.contains("一"))
+                            			dept = "一部";
+                            		else if(position.contains("二"))
+                            			dept = "二部";
+                            		else if(position.contains("三"))
+                            			dept = "三部";
+      %>
+      $('select[name="driver.dept"]').val("<%=dept%>");
 		});
 		
 		function resetName(select){
@@ -61,9 +82,9 @@
     <script>
 
 
-$(document).ready(function(){
-	window.setInterval('iFrameHeight();',1000);
-});
+//$(document).ready(function(){
+//	window.setInterval('iFrameHeight();',1000);
+//});
 
     </script>
 </head>
@@ -172,7 +193,7 @@ $('.datetimepicker').datetimepicker({
 		<!-- 主页面 -->
 		
 	<div class="line">
-    <iframe name="result_form" id="result_form" width="100%" height="800px" scrolling="no">
+    <iframe name="result_form" id="result_form" width="100%" height="1200px" scrolling="no">
 
     </iframe>
 

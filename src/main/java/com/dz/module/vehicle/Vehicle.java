@@ -70,11 +70,15 @@ public class Vehicle implements java.io.Serializable {
 	private Date operateCardRegistDate;
 	private Integer serviceRightRegister;
 	private Date serviceRightRegistDate;
-	private Integer businessLicenseId;
+	private String businessLicenseId;
 	private String businessLicenseComment;
 	private Integer seqVal;
 	private Date electricLastTime;
 	private Date getCarDate;
+	
+
+	@Column
+	private Boolean reused;
 
 	// Constructors
 
@@ -134,7 +138,7 @@ public class Vehicle implements java.io.Serializable {
 			Date twiceSupplyDate, Date nextSupplyDate, String moneyCountor,
 			Date moneyCountorTime, Date moneyCountorNextDate,
 			Integer operateCardRegister, Date operateCardRegistDate,
-			Integer businessLicenseId, String businessLicenseComment) {
+			String businessLicenseId, String businessLicenseComment) {
 		this.carframeNum = carframeNum;
 		this.engineNum = engineNum;
 		this.carMode = carMode;
@@ -609,12 +613,12 @@ public class Vehicle implements java.io.Serializable {
 		this.operateCardRegistDate = convertDate(operateCardRegistDate);
 	}
 
-	@Column(name = "business_license_id",length = 11)
-	public Integer getBusinessLicenseId() {
+	@Column(name = "business_license_id",length = 30)
+	public String getBusinessLicenseId() {
 		return this.businessLicenseId;
 	}
 
-	public void setBusinessLicenseId(Integer businessLicenseId) {
+	public void setBusinessLicenseId(String businessLicenseId) {
 		this.businessLicenseId = businessLicenseId;
 	}
 
@@ -681,6 +685,14 @@ public class Vehicle implements java.io.Serializable {
 
 	public void setServiceRightRegistDate(Date serviceRightRegistDate) {
 		this.serviceRightRegistDate = serviceRightRegistDate;
+	}
+
+	public Boolean getReused() {
+		return reused;
+	}
+
+	public void setReused(Boolean reused) {
+		this.reused = reused;
 	}
 	
 	

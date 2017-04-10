@@ -39,6 +39,8 @@ public class Insurance implements java.io.Serializable {
 	private String phone;
 	private String enterpriseID;
 	private String address;
+	@Column(length = 11)
+	private int state;
 
 	// Constructors
 
@@ -94,7 +96,7 @@ public class Insurance implements java.io.Serializable {
 		this.carframeNum = carframeNum;
 	}
 
-	@Column(name = "insurance_num", length = 30)
+	@Column(name = "insurance_num",unique = true, length = 30)
 	public String getInsuranceNum() {
 		return this.insuranceNum;
 	}
@@ -204,6 +206,14 @@ public class Insurance implements java.io.Serializable {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
 	}
 
 }

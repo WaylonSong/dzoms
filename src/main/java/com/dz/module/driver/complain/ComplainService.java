@@ -2,6 +2,7 @@ package com.dz.module.driver.complain;
 
 import com.dz.common.global.Page;
 import com.dz.module.driver.Driver;
+
 import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,14 +64,14 @@ public class ComplainService{
 	}
 
 	
-	public int selectAllByStatesCount(Date beginDate, Date endDate,
-			Short[] states) {
-		return complainDao.selectAllByStatesCount(beginDate, endDate, states);
+	public int selectAllByStatesCount(Complain complain, Date beginDate, Date endDate,
+			String dept, Short[] states) {
+		return complainDao.selectAllByStatesCount( complain,beginDate, endDate,dept, states);
 	}
 
-	public List<Complain> selectByStates(Page page, Date beginDate,
-			Date endDate, Short[] states) {
-		return complainDao.selectAllByStates(page, beginDate, endDate, states);
+	public List<Complain> selectByStates(Page page, Complain complain, Date beginDate,
+			Date endDate, String dept, Short[] states, String order) {
+		return complainDao.selectAllByStates(complain,page, beginDate, endDate,dept, states,order);
 	}
 
 }

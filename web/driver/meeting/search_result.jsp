@@ -124,8 +124,7 @@ Page pg = (Page)request.getAttribute("page");
 	                                     	<button onclick="_detail()" type="button" class="button icon-search text-blue" style="line-height: 6px;">
 	                               		签到</button>
 	                                    	<button onclick="_anaylse()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            统计</button>
-		                                   
+			                                                             查看</button>
                                      </div>
                                 </div>
           	        	</div>
@@ -146,8 +145,8 @@ Page pg = (Page)request.getAttribute("page");
 <th class="registrant		selected_able">制定人	 </th>
 <th class="registTime		selected_able">制定时间	 </th>
 <th class="meetingNum		selected_able">驾驶员数量</th>
-<th class="checkedNum		selected_able">已签到人数</th>
-<th class="uncheckedNum		selected_able">未签到人数</th>
+<!-- <th class="checkedNum		selected_able">已签到人数</th>
+<th class="uncheckedNum		selected_able">未签到人数</th> -->
                 </tr>
                 <s:if test="%{#request.list!=null}">
 
@@ -160,8 +159,8 @@ Page pg = (Page)request.getAttribute("page");
 <td class="registrant selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.registrant).uname}"/></td>
 <td class="registTime selected_able"><s:property value="%{#v.registTime}"/></td>
 <td class="meetingNum selected_able"><s:property value="%{#v.driverList}"/></td>
-<td class="checkedNum selected_able"><s:property value="%{#v.checkedNum}"/></td>
-<td class="uncheckedNum selected_able"><s:property value="%{#v.uncheckedNum}"/></td>
+<%-- <td class="checkedNum selected_able"><s:property value="%{#v.checkedNum}"/></td>
+<td class="uncheckedNum selected_able"><s:property value="%{#v.uncheckedNum}"/></td>--%>
                         </tr>
                     </s:iterator>
 
@@ -200,7 +199,7 @@ Page pg = (Page)request.getAttribute("page");
         </div>
 
     </div>
-    <div class="panel  margin-small" >
+    <div class="panel  margin-small" style="display: none;">
           	<div class="panel-head">
           	显示项
           		
@@ -214,9 +213,9 @@ Page pg = (Page)request.getAttribute("page");
 <label class="button active"><input type="checkbox" name="sbx" value="registrant" checked="checked"><span class="icon icon-check text-green"></span>制定人</label>
 <label class="button active"><input type="checkbox" name="sbx" value="registTime" checked="checked"><span class="icon icon-check text-green"></span>制定时间</label>
 <label class="button active"><input type="checkbox" name="sbx" value="meetingNum" checked="checked"><span class="icon icon-check text-green"></span>驾驶员数量</label>
-<label class="button active"><input type="checkbox" name="sbx" value="checkedNum" checked="checked"><span class="icon icon-check text-green"></span>已签到人数</label>
+<%-- <label class="button active"><input type="checkbox" name="sbx" value="checkedNum" checked="checked"><span class="icon icon-check text-green"></span>已签到人数</label>
 <label class="button active"><input type="checkbox" name="sbx" value="uncheckedNum" checked="checked"><span class="icon icon-check text-green"></span>未签到人数</label>
-            </div>
+  --%>           </div>
 
         </div>
 

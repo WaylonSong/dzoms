@@ -3,18 +3,34 @@ package com.dz.module.charge;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.apache.commons.lang3.math.NumberUtils;
+
 /**
  * @author doggy
  *         Created on 15-11-15.
  */
-public class CheckChargeTable {
+@Entity
+@Table(name="CheckChargeTable",catalog = "dzomsdb")
+public class CheckChargeTable implements java.io.Serializable {
+	@Id
+	@GeneratedValue
+	private int id;
+	
     private int contractId;
+    @Temporal(TemporalType.DATE)
     private Date time;
-    private String driverName;
-    private String carNumber;
-    private String driverId;
-    private String dept;
-
+    private String driverName;//由contractId获取
+    private String carNumber;//由contractId获取
+    private String driverId;//由contractId获取
+    private String dept;//由contractId获取
+    
     private BigDecimal planAll;
 
     private BigDecimal cash;
@@ -22,16 +38,16 @@ public class CheckChargeTable {
     private BigDecimal bank;
     private BigDecimal oilAdd;
     private BigDecimal insurance;
-    private BigDecimal total;
+    private BigDecimal total;//调用generated时生成
 
     //本月欠款(计划总额-收入合计)
-    private BigDecimal thisMonthOwe;
+    private BigDecimal thisMonthOwe;//调用generated时生成
     //上月累欠(上月存款)
-    private BigDecimal lastMonthOwe;
+    private BigDecimal lastMonthOwe;//调用generated时传入
     //本月存款(本月剩余)
-    private BigDecimal thisMonthLeft;
+    private BigDecimal thisMonthLeft;//调用generated时生成
     //本月累欠
-    private BigDecimal thisMonthTotalOwe;
+    private BigDecimal thisMonthTotalOwe;//调用generated时生成
 
     public BigDecimal getPlanAll() {
         return planAll;
@@ -163,12 +179,29 @@ public class CheckChargeTable {
     }
     //需要提前设置各项收入，与总计划
     public void generated(BigDecimal lastMonthOwe){
+    	//现在的 planAll = cash+bank+oilAdd+insurance+other+plan_*
+    	
+    	//total = cash+bank+oilAdd+insurance+other
         this.total = new BigDecimal(0);
         if(cash == null) cash = new BigDecimal(0.00);
         if(bank == null) bank = new BigDecimal(0.00);
         if(oilAdd == null) oilAdd = new BigDecimal(0.00);
         if(insurance == null) insurance = new BigDecimal(0.00);
         if(other == null) other = new BigDecimal(0.00);
+        
+//        this.total = this.total.add(cash).add(bank).add(oilAdd).add(insurance).add(other).setScale(0, BigDecimal.ROUND_HALF_EVEN);
+//        BigDecimal owe = this.total.subtract(this.planAll).add(lastMonthOwe).setScale(0, BigDecimal.ROUND_HALF_EVEN);
+//        //上月累欠
+//        this.lastMonthOwe = lastMonthOwe.setScale(0, BigDecimal.ROUND_HALF_EVEN);
+//        //本月欠款
+//        this.thisMonthOwe = owe.doubleValue() > 0?new BigDecimal(0.00):owe;
+//        //本月存款
+//        this.thisMonthLeft = owe.doubleValue() > 0?owe:new BigDecimal(0.00);
+//        //本月累欠
+//        this.thisMonthTotalOwe = owe.setScale(0, BigDecimal.ROUND_HALF_EVEN);
+//        
+//        this.planAll = this.planAll.setScale(0, BigDecimal.ROUND_HALF_EVEN);
+        
         this.total = this.total.add(cash).add(bank).add(oilAdd).add(insurance).add(other);
         BigDecimal owe = this.total.subtract(this.planAll).add(lastMonthOwe);
         //上月累欠
@@ -179,6 +212,9 @@ public class CheckChargeTable {
         this.thisMonthLeft = owe.doubleValue() > 0?owe:new BigDecimal(0.00);
         //本月累欠
         this.thisMonthTotalOwe = owe;
+
+//        BigDecimal lastleft;
+        
     }
 
     public String getDept() {
@@ -188,4 +224,42 @@ public class CheckChargeTable {
     public void setDept(String dept) {
         this.dept = dept;
     }
+
+	public CheckChargeTable() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	
+	public CheckChargeTable(Integer contractId, Date time,
+			Double bank,
+			Double cash,
+			Double insurance,
+			Double oilAdd, 
+			Double other ,
+			Double planAll,
+			String carNumber,String dept,String driverName,Double lastMonthOwe) {
+		super();
+		
+		if(contractId!=null)
+			this.contractId = contractId;
+		
+		this.time = time;
+		
+		this.planAll = planAll!=null?BigDecimal.valueOf(planAll):BigDecimal.valueOf(0);
+		this.cash = cash!=null?BigDecimal.valueOf(cash):BigDecimal.valueOf(0);
+		this.other = other!=null?BigDecimal.valueOf(other):BigDecimal.valueOf(0);
+		this.bank = bank!=null?BigDecimal.valueOf(bank):BigDecimal.valueOf(0);
+		this.oilAdd =oilAdd!=null?BigDecimal.valueOf(oilAdd):BigDecimal.valueOf(0);
+		this.insurance =insurance!=null?BigDecimal.valueOf(insurance):BigDecimal.valueOf(0);
+		
+		this.carNumber = carNumber;
+		this.dept  = dept;
+		this.driverName = driverName;
+		
+		this.lastMonthOwe = lastMonthOwe!=null?BigDecimal.valueOf(lastMonthOwe):BigDecimal.valueOf(0);
+		
+		this.generated(this.lastMonthOwe);
+	}
+    
+    
 }

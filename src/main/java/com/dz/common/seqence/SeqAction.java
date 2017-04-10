@@ -3,7 +3,6 @@ package com.dz.common.seqence;
 import com.dz.common.factory.HibernateSessionFactory;
 import com.opensymphony.xwork2.ActionSupport;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;

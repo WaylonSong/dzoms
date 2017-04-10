@@ -44,6 +44,23 @@ public class DateUtil {
         cal.set(Calendar.MONTH,month);
         return cal.getTime();
     }
+    
+    public static Date getlastMonth(){
+    	Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        int month = cal.get(Calendar.MONTH);
+        int year = cal.get(Calendar.YEAR);
+        if(month == 0){
+            year--;
+            month = 11;
+        }else {
+            month--;
+        }
+        cal.set(Calendar.YEAR,year);
+        cal.set(Calendar.MONTH,month);
+        return cal.getTime();
+    }
 
     //比较date1与date2的年月关系，如果date1大于等于date2的年月，返回true
     @SuppressWarnings("deprecation")

@@ -58,6 +58,10 @@ function loadTempPicture($seqToSet,$target){
 	$target.attr("src","/DZOMS/tmp/"+$seqToSet.val());
 }
 
+function loadThePicture(fi,img){
+    loadTempPicture($(fi),$(img));
+}
+
 function fileRefresh(){
 	$('.dz-file').each(function(){
 		var $this = $(this);

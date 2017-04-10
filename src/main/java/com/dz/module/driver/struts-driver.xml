@@ -135,6 +135,8 @@
                 		precheckMeeting
                 	</result>
                 </action>
+                
+                <action name="clearCheck" class="meetingAction" method="clearCheck"></action>
         </package>
         
          <package name="activity" namespace="/driver/activity" extends="struts-default">

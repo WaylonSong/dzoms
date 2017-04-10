@@ -44,19 +44,10 @@ Page pg = (Page)request.getAttribute("page");
             }
         }
 
-        function call_update(val){
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+val;
-            //alert(url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
-            //$(window.top.document,"#main").attr("src",url);
-        }
-
         function _update(){
             var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+            var url = "/DZOMS/vehicle/service_right_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2fservice_right_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
@@ -124,7 +115,7 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               		<s:if test="#session.roles.{?#this.rname=='营运证修改权限'}.size>0"> 
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 		                                </s:if>
                                      </div>
                                 </div>
@@ -135,11 +126,10 @@ Page pg = (Page)request.getAttribute("page");
 
                     <tr>
                         <th>选择</th>
-                        <th class="carframeNum			selected_able">车架号</th>
+<th class="carframeNum			selected_able">车架号</th>
 <th class="licenseNum			selected_able">车牌号</th>
 <th class="operateCard			selected_able">营运证号</th>
-<!--<th class="businessLicenseNum	selected_able">经营许可证号</th>
---><!--<th class="operateCardTime		selected_able">营运证发放日期</th>-->
+<th class="operateCardTime		selected_able">营运证发放日期</th>
 <th class="operateCardRegister 	selected_able">登记人</th>
 <th class="operateCardRegistDate selected_able">登记时间</th>
                     </tr>
@@ -152,9 +142,8 @@ Page pg = (Page)request.getAttribute("page");
 <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum}"/></td>
 <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
 <td class="operateCard selected_able"><s:property value="%{#v.operateCard}"/></td>
-<!--<td class="businessLicenseNum selected_able"><s:property value="%{#v.businessLicenseNum}"/></td>
---><!--<td class="operateCardTime selected_able"><s:property value="%{#v.operateCardTime}"/></td>
---><td class="operateCardRegister selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.serviceRightRegister).uname}"/></td>
+<td class="operateCardTime selected_able"><s:date name="%{#v.operateCardTime}" format="yyyy/MM/dd"/></td>
+<td class="operateCardRegister selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.serviceRightRegister).uname}"/></td>
 <td class="operateCardRegistDate selected_able"><s:property value="%{#v.serviceRightRegistDate}"/></td>
  </tr>
                     </s:iterator>
@@ -196,7 +185,7 @@ Page pg = (Page)request.getAttribute("page");
         </div>
     </div>
 </div>
-<div class="line">
+<div class="line" style="display: none;">
    	<div class="panel  margin-small" >
           	<div class="panel-head">
           		显示项
@@ -207,8 +196,7 @@ Page pg = (Page)request.getAttribute("page");
                 <label class="button active"><input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>车架号</label>
 <label class="button active"><input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号</label>
 <label class="button active"><input type="checkbox" name="sbx" value="operateCard" checked="checked"><span class="icon icon-check text-green"></span>营运证号</label>
-<!--<label class="button active"><input type="checkbox" name="sbx" value="businessLicenseNum" checked="checked"><span class="icon icon-check text-green"></span>经营许可证号</label><!--
---><label class="button active"><input type="checkbox" name="sbx" value="operateCardTime" checked="checked"><span class="icon icon-check text-green"></span>营运证发放日期</label>-->
+<label class="button active"><input type="checkbox" name="sbx" value="operateCardTime" checked="checked"><span class="icon icon-check text-green"></span>营运证发放日期</label>
 <label class="button active"><input type="checkbox" name="sbx" value="operateCardRegister" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
 <label class="button active"><input type="checkbox" name="sbx" value="operateCardRegistDate" checked="checked"><span class="icon icon-check text-green"></span>登记时间</label>
             </div>

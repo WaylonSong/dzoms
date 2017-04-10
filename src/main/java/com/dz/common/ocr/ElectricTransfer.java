@@ -4,8 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringBufferInputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -23,7 +26,9 @@ import com.dz.module.vehicle.electric.ElectricHistory;
 public class ElectricTransfer {
 
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Calendar ca = Calendar.getInstance();
+		ca.add(Calendar.MONTH, -3);
 		
 		List<ElectricFromHtml> list = ObjectAccess.query(ElectricFromHtml.class, " 1=1");
 		for (ElectricFromHtml electricFromHtml : list) {
@@ -55,14 +60,34 @@ public class ElectricTransfer {
 				//for (int i = 0x2400; i <= 0x243F; i++) {
 				//	strBuffer = ArrayUtils.removeElement(strBuffer, (byte)i);
 				//}
+				
+				
+//				if(str.equals(new String(str.getBytes("iso8859-1"), "iso8859-1")))
+//				{
+//					str=new String(str.getBytes("iso8859-1"),"utf-8");
+//				}else 
+//				if(str.equals(new String(str.getBytes("GB2312"), "GB2312")))
+//				{
+//					str=new String(str.getBytes("GB2312"),"utf-8");
+//				}
+				
 				str = new String(strBuffer);
 				str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + str;
 				
+//				System.out.println(str);
+				
+//				try {
+//					System.in.read();
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
+
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 
 			    DocumentBuilder builder;
 				try {
 					builder = factory.newDocumentBuilder();
-					Document document = builder.parse(new ByteArrayInputStream(str.getBytes()));
+					Document document = builder.parse(new ByteArrayInputStream(str.getBytes("utf-8")));
 					
 //					System.out.println(document.toString());
 					
@@ -80,7 +105,25 @@ public class ElectricTransfer {
 							history.setFecthId(0);
 							
 							history.setLicenseNum(tdlist.item(0).getTextContent());
-							history.setDate(tdlist.item(2).getTextContent());
+							
+							Date dt = null;
+							try {
+								dt = df.parse(tdlist.item(2).getTextContent());
+							} catch (DOMException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								continue;
+							} catch (ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								continue;
+							}
+							
+							if(dt==null || ca.getTime().after(dt)){
+								continue;
+							}
+							
+							history.setDate(dt);
 							history.setMoney(tdlist.item(3).getTextContent());
 							
 							history.setFen(tdlist.item(4).getTextContent());
@@ -92,10 +135,21 @@ public class ElectricTransfer {
 							history.setGovernment(tdlist.item(10).getTextContent());
 							
 							List<ElectricHistory> rh = ObjectAccess.query(ElectricHistory.class, " carframeNum='"+history.getCarframeNum()+"' "
-									+ "and date='"+history.getDate()+"' "
+									+ "and date='"+df.format(dt)+"' "
 									+ "and act='"+history.getAct()+"'");
 							if(rh==null||rh.size()==0)
 								ObjectAccess.saveOrUpdate(history);
+							else{
+								if(history.getHandled().equals("未处理")||history.getHandled().equals("0")){
+									continue;
+								}
+								for(ElectricHistory eh : rh){
+									if(eh.getHandled().equals("未处理")||eh.getHandled().equals("0")){
+										ObjectAccess.delete(eh);
+									}
+								}
+								ObjectAccess.saveOrUpdate(history);
+							}
 						}
 					}
 				} catch (ParserConfigurationException e) {

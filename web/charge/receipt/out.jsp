@@ -161,8 +161,9 @@
     function validate(){
 		var happenTime = $("#happenTime").val();
 		if(happenTime == ""||happenTime==undefined){
-			alert("年月不得为空");
-			return false;
+			//alert("年月不得为空");
+			//return false;
+			$("#happenTime").val($("#recordTime").val());
 		}
       var startNum = $("#startNum").val();
       var endNum = $("#endNum").val();
@@ -183,6 +184,9 @@
         }
       }
     }
+	function carFocus(){
+		$('input[name="rr.carId"]').val("黑A");
+	}
   </script>
     <style>
   	.label{
@@ -235,7 +239,7 @@
           		       	    	<s:textfield  value="%{#session.user.uname}" name="rr.recorder" cssClass="input input-auto" size="20" />
           		       	    </div>
           		       </div>
-          		       <div class="form-group">
+          		       <div class="form-group" style="display:none">
           		       	   <div class="label">
           		       	   	  <label>单据编号</label>
           		       	   </div>
@@ -261,7 +265,7 @@
 								<input type="text" class="input input-auto" size="20" readonly value="100">
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group" style="display:none">
 							<div class="label">
 								<label>单价</label>
 							</div>
@@ -280,7 +284,7 @@
           		       	   	  <label>车号</label>
           		       	   </div>
           		       	   <div class="field">
-          		       	   	 <input type="text" name="rr.carId" class="input input-auto" value="黑A" size="20" id="carId" onblur="setBase()">
+          		       	   	 <input type="text" name="rr.carId" class="input input-auto" value="黑A" size="20" id="carId" onblur="setBase()" onfocus="carFocus()">
 
           		       	   </div>
           		       </div>
@@ -341,7 +345,7 @@
 								<input type="text" id="numb" readonly class="input input-auto" size="20">
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group" style="display:none">
 							<div class="label">
 								<label>发放日期</label>
 							</div>
@@ -349,9 +353,9 @@
 								<input type="text" id="happenTime" name="rr.happenTime" class="input input-auto datetimepicker" size="20">
 							</div>
 						</div>
-				<br/>
+				<!-- <br/> -->
           		       
-          		       	  <div class="form-group">
+          		       	  <div class="form-group" style="display:none">
           		       	   <div class="label">
           		       	   	  <label>备注</label>
           		       	   </div>
@@ -364,7 +368,7 @@
 							<option value="发放" selected>发放</option>
 						</select>
           		       <br/>
-          		       <div class="form-group">
+          		       <div class="form-group" style="display:none">
           		       	   <div class="label">
           		       	   	  <label>合计金额</label>
           		       	   </div>

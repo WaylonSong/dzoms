@@ -66,9 +66,9 @@
                 		<tr>
                 				<td><s:property value="%{#m.type}"/></td>
                 				<td><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#m.idNum).name+'('+#m.idNum+')'}"/></td>
-                				<td><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#m.carframeNum).name+'('+#m.carframeNum+')'}"/></td>
+                				<td><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#m.carframeNum).licenseNum+'('+#m.carframeNum+')'}"/></td>
                 				<td><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#m.fromUser).uname}"/></td>
-                				<td><s:date name="m.time" format="yyyy/MM/dd HH:mm:ss"/></td>
+                				<td><s:date name="%{#m.time}" format="yyyy/MM/dd HH:mm:ss"/></td>
                 				<td><a href="javascript:loadToUrl('/DZOMS/messageInfo.jsp?id=<s:property value="%{#m.id}"/>')">详情</a></td>
                 		</tr>
                 		</s:iterator>

@@ -57,25 +57,10 @@ Page pg = (Page)request.getAttribute("page");
 		var selected_val = $("input[name='cbx']:checked").val();
 		if(selected_val==undefined)
 		alert('您没有选择任何一条数据');
-		var url = "/DZOMS/insurance/insurancePreupdate?insurance.id="+selected_val;
-		window.open(url,"保险修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+		var url = "/DZOMS/vehicle/insurance_revoke?insurance.id="+selected_val+"&url=%2fvehicle%2finsurance%2finsurance_add.jsp";;
+		window.parent.location.href=url;
 	}
 	
-	function _toExcel(){
-		var path = $("[name='vehicleSele']").attr("action");
-		var target = $("[name='vehicleSele']").attr("target");
-		
-		var url = "/DZOMS/driver/driverToExcel";
-		$("[name='vehicleSele']").attr("action",url).attr("target","_blank").submit();
-	}
-	
-	function _toPrint(){
-		var selected_val = $("input[name='cbx']:checked").val();
-		if(selected_val==undefined)
-		alert('您没有选择任何一条数据');
-		var url = "/DZOMS/driver/driverPreprint?driver.idNum="+selected_val;
-		window.open(url,"驾驶员打印",'width=800,height=600,resizable=yes,scrollbars=yes');
-	}
 	
 	function toBeforePage(){
 		var currentPage = parseInt($("input[name='currentPage']").val());
@@ -134,10 +119,10 @@ Page pg = (Page)request.getAttribute("page");
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
 			                                                            修改</button>
 			                                </s:if>
-		                                    <button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
+		                                    <!--<button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
 			                                                            导出</button>
 			                                  <button  onclick="_toPrint()" type="button" class="button icon-print text-green" style="line-height: 6px;">
-			                                                            打印</button>
+			                                                            打印</button>-->
                                      </div>
                                 </div>
           	        	</div>
@@ -148,9 +133,10 @@ Page pg = (Page)request.getAttribute("page");
 
                 <tr>
                     <th>选择</th>
-                    <th class="insuranceClass selected_able">保险类别</th>
+            <th class="insuranceClass selected_able">保险类别</th>
             <th class="insuranceNum selected_able">保单号</th>
             <th class="carframeNum selected_able">车架号</th>
+            <th class="licenseNum selected_able">车牌号</th>
             <th class="driverName selected_able">被保险人</th>
            <!-- <th class="driverPhone selected_able">被保险人联系电话</th>
             <th class="driverId selected_able">被保险人身份证号</th>-->
@@ -160,10 +146,11 @@ Page pg = (Page)request.getAttribute("page");
                <s:if test="%{#request.insurance!=null&&#request.insurance.size()!=0}">  
         <s:iterator value="%{#request.insurance}" var="v">
                         <tr>
-                            <td><input type="radio" name="cbx" value="<s:property value='%{#v.id}'/>" ></td>
-            <td class="insuranceClass selected_able"><s:property value="%{#v.insuranceClass}"/></td>
+<td><input type="radio" name="cbx" value="<s:property value='%{#v.id}'/>" ></td>
+<td class="insuranceClass selected_able"><s:property value="%{#v.insuranceClass}"/></td>
 <td class="insuranceNum selected_able"><s:property value="%{#v.insuranceNum}"/></td>
 <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum}"/></td>
+<td class="licenseNum selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#v.carframeNum).licenseNum}"/></td>
 <!--<td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).name}"/></td>
 <td class="driverPhone selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).phoneNum1}"/></td>-->
 <td class="driverName selected_able"><s:property value="%{#v.driverId}"/></td>
@@ -217,10 +204,10 @@ Page pg = (Page)request.getAttribute("page");
       	<s:set name="sumHql" value="%{#sumHql+' and insuranceNum='+#request.col+insurance.insuranceNum+#request.col}"></s:set>
       </s:if>
       <s:set name="sumOfMoney" value="%{@com.dz.common.other.ObjectAccess@execute(#sumHql)}"></s:set>
-            合计金额：<s:property value="%{#sumOfMoney}"/>
+            合计金额：<s:property value="%{@java.lang.String@format('%6.2f',#sumOfMoney)}"/>
         </div>
    </div>
-   <div class="line">
+   <div class="line" style="display: none;">
    	<div class="panel  margin-small" >
           	<div class="panel-head">
           		显示项
@@ -235,6 +222,9 @@ Page pg = (Page)request.getAttribute("page");
             </label>
             <label class="button active">
                 <input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>车架号
+            </label> 
+            <label class="button active">
+                <input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号
             </label>
             <label class="button active">
                 <input type="checkbox" name="sbx" value="driverName" checked="checked"><span class="icon icon-check text-green"></span>被保险人
@@ -265,6 +255,8 @@ Page pg = (Page)request.getAttribute("page");
 <form action="insuranceSele" method="post" name="vehicleSele">
     <s:hidden name="insurance.carframeNum" />
     <s:hidden name="insurance.insuranceNum" />
+    <s:hidden name="vehicle.licenseNum" />
+    <s:hidden name="insurance.insuranceClass" />
     <s:hidden name="currentPage" value="%{#request.page.currentPage}" id="currentPage"></s:hidden>
 </form>
 

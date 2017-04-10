@@ -17,6 +17,7 @@
         <script src="/DZOMS/res/js/jquery.js"></script>
         <script src="/DZOMS/res/js/pintuer.js"></script>
         <script src="/DZOMS/res/js/respond.js"></script>
+        
             <link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
             <script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
             <script src="/DZOMS/res/js/itemtool.js"></script>
@@ -401,14 +402,16 @@
                         </select><a class="icon icon-wrench" href="javascript:openItem('accDeal','事故处理')"></a>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="width: 340px;">
                     <div class="label padding">
                         <label>
                             保险公司
                         </label>
                     </div>
                     <div class="field">
-                        <input class="input" name="accident.insuCompany"/>
+                    	<select  class="input itemtool" style="width: 180px;" name="accident.insuCompany" id="insuranceCompany" item-key="insuranceCompany">
+                </select>
+                <a class="icon icon-wrench" href="javascript:openItem('insuranceCompany','保险公司')"></a>
                     </div>
                 </div>
                 <br>

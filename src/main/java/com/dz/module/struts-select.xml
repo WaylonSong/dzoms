@@ -14,6 +14,9 @@
             <action name="itemsOf*" class="objectAccess" method="optionByitems">
             	<param name="key">{1}</param>
             </action>
+            <action name="itemsDefaultOf*" class="objectAccess" method="itemsDefault">
+            	<param name="key">{1}</param>
+            </action>
             
             <action name="vehicleById" class="objectAccess" method="option">
             	<param name="className">Vehicle</param>

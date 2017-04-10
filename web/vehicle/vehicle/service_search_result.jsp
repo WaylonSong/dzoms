@@ -43,20 +43,11 @@ Page pg = (Page)request.getAttribute("page");
                 $("."+selects[i]).show();
             }
         }
-
-        function call_update(val){
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+val;
-            //alert(url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
-            //$(window.top.document,"#main").attr("src",url);
-        }
-
+        
         function _update(){
-            var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+           var selected_val = $("input[name='cbx']:checked").val();
+            var url = "/DZOMS/vehicle/service_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2fservice_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
@@ -124,7 +115,7 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               			<s:if test="#session.roles.{?#this.rname=='计价器修改权限'}.size>0"> 
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 		                                  </s:if>
                                      </div>
                                 </div>
@@ -135,11 +126,9 @@ Page pg = (Page)request.getAttribute("page");
 
                     <tr>
                         <th>选择</th>
-                        <th class="carframeNum			selected_able">车架号</th>
+<th class="carframeNum			selected_able">车架号</th>
 <th class="licenseNum			selected_able">车牌号</th>
-<!--<th class="operateCard			selected_able">营运证号</th>
-<th class="businessLicenseNum	selected_able">经营许可证号</th>
-<th class="operateCardTime		selected_able">营运证发放日期</th>-->
+<th class="moneyCountor			selected_able">计价器号</th>
 <th class="twiceSupplyDate		selected_able">二级维护日期</th>
 <th class="nextSupplyDate		selected_able">下次维护信息</th>
 <th class="moneyCountorTime		selected_able">计价器检测日期</th>
@@ -155,10 +144,8 @@ Page pg = (Page)request.getAttribute("page");
  <td><input type="radio" name="cbx" value="<s:property value="%{#v.carframeNum}"/>" ></td>
 <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum}"/></td>
 <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
-<!--<td class="operateCard selected_able"><s:property value="%{#v.operateCard}"/></td>
-<td class="businessLicenseNum selected_able"><s:property value="%{#v.businessLicenseNum}"/></td>
-<td class="operateCardTime selected_able"><s:property value="%{#v.operateCardTime}"/></td>
---><td class="twiceSupplyDate selected_able"><s:property value="%{#v.twiceSupplyDate}"/></td>
+<td class="moneyCountor selected_able"><s:property value="%{#v.moneyCountor}"/></td>
+<td class="twiceSupplyDate selected_able"><s:property value="%{#v.twiceSupplyDate}"/></td>
 <td class="nextSupplyDate selected_able"><s:property value="%{#v.nextSupplyDate}"/></td>
 <td class="moneyCountorTime selected_able"><s:property value="%{#v.moneyCountorTime}"/></td>
 <td class="moneyCountorNextDate selected_able"><s:property value="%{#v.moneyCountorNextDate}"/></td>
@@ -213,7 +200,9 @@ Page pg = (Page)request.getAttribute("page");
         <div class="panel-body">
         	 <div class="button-group checkbox bg-blue-light" id="show_div">
                 <label class="button active"><input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>车架号</label>
-<label class="button active"><input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号</label><!--
+<label class="button active"><input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号</label>
+<label class="button active"><input type="checkbox" name="sbx" value="moneyCountor" checked="checked"><span class="icon icon-check text-green"></span>计价器号</label>
+<!--
 <label class="button active"><input type="checkbox" name="sbx" value="operateCard" checked="checked"><span class="icon icon-check text-green"></span>营运证号</label>
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseNum" checked="checked"><span class="icon icon-check text-green"></span>经营许可证号</label>
 <label class="button active"><input type="checkbox" name="sbx" value="operateCardTime" checked="checked"><span class="icon icon-check text-green"></span>营运证发放日期</label>-->

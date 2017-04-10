@@ -103,7 +103,7 @@ $(document).ready(function(){
         <div class=" bg-main bg-inverse radius " id="nav-bg1">
             <ul class="nav nav-inline nav-menu clearfix  nav-tabs nav-big ">
                <li class="nav-head"></li>
-				<li><a href="WEB-INF/main.jsp" target="main" onclick="hideAll();menuactive(this)"  class="icon-home"> 首页</a></li>
+				<li><a href="main.jsp" target="main" onclick="hideAll();menuactive(this)"  class="icon-home"> 首页</a></li>
                 <%
                
                 if(menuItems.containsKey("合同")){
@@ -142,19 +142,19 @@ $(document).ready(function(){
             </ul>
         </div>
         
-        <jsp:include page="WEB-INF/main_menu.jsp">
+        <jsp:include page="main_menu.jsp">
         	<jsp:param value="contract" name="menu"/>
         </jsp:include>
-        <jsp:include page="WEB-INF/main_menu.jsp">
+        <jsp:include page="main_menu.jsp">
         	<jsp:param value="vehicle" name="menu"/>
         </jsp:include>
-        <jsp:include page="WEB-INF/main_menu.jsp">
+        <jsp:include page="main_menu.jsp">
         	<jsp:param value="driver" name="menu"/>
         </jsp:include>
-        <jsp:include page="WEB-INF/main_menu.jsp">
+        <jsp:include page="main_menu.jsp">
         	<jsp:param value="finance" name="menu"/>
         </jsp:include>
-        <jsp:include page="WEB-INF/main_menu.jsp">
+        <jsp:include page="main_menu.jsp">
         	<jsp:param value="apply_manage" name="menu"/>
         </jsp:include>
 <%--         <jsp:include page="menu_other.jsp"></jsp:include>

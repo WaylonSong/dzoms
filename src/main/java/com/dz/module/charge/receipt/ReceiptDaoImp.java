@@ -101,6 +101,7 @@ public class ReceiptDaoImp implements ReceiptDao {
         Session session = HibernateSessionFactory.getSession();
         Transaction trans = session.beginTransaction();
         try{
+        	rr.setYear(rr.getHappenTime().getYear()+1900);
             session.save(rr);
             trans.commit();
             return true;

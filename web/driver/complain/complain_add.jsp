@@ -19,11 +19,16 @@
 					<script src="/DZOMS/res/js/pintuer.js"></script>
 					<script src="/DZOMS/res/js/respond.js"></script>
 					<script src="/DZOMS/res/js/admin.js"></script>
+					<script src="/DZOMS/res/js/window.js"></script>
 
 					<script type="text/javascript" src="/DZOMS/res/js/JsonList.js"></script>
 					<script src="/DZOMS/res/js/itemtool.js"></script>
 					<script type="text/javascript" src="/DZOMS/res/js/TableList.js"></script>
 
+	<link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
+	<script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
+	
+	
 					<script>
 		var i =0;
         function addfilename(){
@@ -31,20 +36,26 @@
             $("#filename").append(txt)
         }
         function addfile(){
-            var txt='<input size="100" type="file" class="addFile" name="uploads" onchange="addfilename()" style="display:none"/>';
-            $(add).after(txt);
+            var txt='<input size="100" type="file" class="addFile" name="fileUploads" onchange="addfilename()" style="display:none"/>';
+            $("#add").after(txt);
             $(".addFile:first").click();
             i=i+1;
         }
         function delefile(){
             for(j=0;j<=i;j++){
-                if( $(".filename:selected").val()==$("input.addFile").eq(i).val()){
+                if( $(".filename:selected").val()==$(".filename").eq(j).val()){
                     $(".filename:selected").remove();
-                    $("input.addFile").eq(i).remove();
+                    $("input.addFile").eq(i-j-1).remove();
+                    i--;
+                    break;
                 }
-                else{
-                    file = $("file").next();
-                    i=i-1;
+            }
+        }
+        
+        function lookfile(){
+        	for(j=0;j<=i;j++){
+                if( $(".filename:selected").val()==$(".filename").eq(j).val()){
+                    showImage2($("input.addFile").eq(i-j-1));
                 }
             }
         }
@@ -61,44 +72,90 @@
 								
 							}
 						}
-						$(document).ready(function() {
-							getJsonList("/DZOMS/driver/complain/complain.json", [/*"complain.complainClass", "complain.complainType",*/ "complain.complainPersonSex"]);
-							getTableList("complain.complainObject", ["complainObject2", "complain.complainObject"]); //投诉项目
-							getSingleList("complain.complainFromIn", "complain.complainFromIn", ["complainFromIn3", "complainFromIn2"]);
-							var $licenseNumSelection = $('select[name="complain.vehicleId"]');
-							$licenseNumSelection.html("");
-							$.post("/DZOMS/vehicle/vehicleSearch", {
-								"vehicle.state": 1
-							}, function(data) {
-								$licenseNumSelection.append("<option></option>");
-								for (var i = 0; i < data.length; i++) {
-									var option = '<option value="' + data[i]["carframeNum"] + '">' + data[i]["licenseNum"] + '</option>';
-									$licenseNumSelection.append(option);
-								}
-							});
-							$licenseNumSelection.change(function() {
-								var $selected_option = $licenseNumSelection.find("option:selected");
-								var carframeNum = $selected_option.val();
-								$.post("/DZOMS/common/getObject", {
-									"className": "com.dz.module.vehicle.Vehicle",
-									"id": carframeNum,
-									"isString": true
-								}, function(data) {
-									var vehicle = data; //$.parseJSON(data);
-									var driverId = vehicle["driverId"];
-									$.post("/DZOMS/common/getObject", {
-										"className": "com.dz.module.driver.Driver",
-										"id": driverId,
-										"isString": true
-									}, function(data2) {
-										var driver = data2; //$.parseJSON(data2);
-										$('input[name="idNum"]').val(driver["name"]);
-										$('input[name="telephone"]').val(driver["phoneNum1"]);
-									});
-									$('input[name="company"]').val(vehicle["dept"]);
-								});
-							});
-						});
+						
+$(document).ready(function() {
+	getJsonList("/DZOMS/driver/complain/complain.json", [/*"complain.complainClass", "complain.complainType",*/ "complain.complainPersonSex"]);
+	//getTableList("complain.complainObject", ["complainObject2", "complain.complainObject"]); //投诉项目
+	getSingleList("complain.complainObject", "complain.complainObject", ["complainObject2","complain.grade"]);
+	getSingleList("complain.complainFromIn", "complain.complainFromIn", ["complainFromIn3", "complainFromIn2"]);
+//							var $licenseNumSelection = $('select[name="complain.vehicleId"]');
+//							$licenseNumSelection.html("");
+//							$.post("/DZOMS/vehicle/vehicleSearch", {
+//								"vehicle.state": 1
+//							}, function(data) {
+//								$licenseNumSelection.append("<option></option>");
+//								for (var i = 0; i < data.length; i++) {
+//									var option = '<option value="' + data[i]["carframeNum"] + '">' + data[i]["licenseNum"] + '</option>';
+//									$licenseNumSelection.append(option);
+//								}
+//							});
+//							$licenseNumSelection.change(function() {
+//								var $selected_option = $licenseNumSelection.find("option:selected");
+//								var carframeNum = $selected_option.val();
+//								$.post("/DZOMS/common/getObject", {
+//									"className": "com.dz.module.vehicle.Vehicle",
+//									"id": carframeNum,
+//									"isString": true
+//								}, function(data) {
+//									var vehicle = data; //$.parseJSON(data);
+//									var driverId = vehicle["driverId"];
+//									$.post("/DZOMS/common/getObject", {
+//										"className": "com.dz.module.driver.Driver",
+//										"id": driverId,
+//										"isString": true
+//									}, function(data2) {
+//										var driver = data2; //$.parseJSON(data2);
+//										$('input[name="idNum"]').val(driver["name"]);
+//										$('input[name="telephone"]').val(driver["phoneNum1"]);
+//									});
+//									$('input[name="company"]').val(vehicle["dept"]);
+//								});
+//							});
+
+	var $licenseNum = $('#licenseNum');
+	
+	function licenseNumChangeCallBack(){		
+		var condition1 = "from Vehicle where licenseNum ='" + $licenseNum.val() + "'";
+		
+		$.post("/DZOMS/common/doit",{"condition":condition1},function(data){
+			if (data!=undefined&&data["affect"]!=undefined) {
+				var vehicle = data["affect"];
+				
+				$('input[name="complain.vehicleId"]').val(vehicle["carframeNum"]);
+				
+				var driverId = vehicle["driverId"];
+				
+				$.post("/DZOMS/common/getObject", {
+					"className": "com.dz.module.driver.Driver",
+					"id": driverId,
+					"isString": true
+				}, function(data2) {
+					var driver = data2; //$.parseJSON(data2);
+					$('input[name="idNum"]').val(driver["name"]);
+					$('input[name="telephone"]').val(driver["phoneNum1"]);
+				});
+				$('input[name="company"]').val(vehicle["dept"]);
+			}
+		});
+	}
+	
+	$licenseNum.bigAutocomplete({
+		url:"/DZOMS/select/vehicleByLicenseNum",
+		callback:licenseNumChangeCallBack
+	});
+	
+	$licenseNum.bind("change",licenseNumChangeCallBack);
+
+$("#complainType").change(function(){
+	if ($("#complainType option:selected").text()=='违反营运规定') {
+		$(".complainFrom").hide();
+	}else{
+		$(".complainFrom").show();
+	}
+});
+
+
+});
 					</script>
 					<script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 					<style>
@@ -131,7 +188,7 @@
 <div class="panel margin-big">
 	<div class="panel-head">投诉添加</div>
 	<div class="panel-body">
-		<form class="form-inline form-tips" style="width: 100%;" name="addComplain" action="/DZOMS/driver/complain/addComplain" method="post">
+		<form class="form-inline form-tips" style="width: 100%;" name="addComplain" action="/DZOMS/driver/complain/addComplain" method="post" enctype="multipart/form-data">
         <table>
         	<tr>
         		<td style="width: 210px;">
@@ -141,7 +198,7 @@
 											投诉时间:</label>
 									</div>
 									<div class="field" style="width: 120px;">
-										<input class="datepick input setTimeToday" type="text" name="complain.complainTime" style="width: 120px;">
+										<input class="datetimepick input setTimeNow" type="text" name="complain.complainTime" style="width: 120px;">
 									</div>
 			       </div>
         		</td>
@@ -177,9 +234,10 @@
 										<label>投诉项目:</label>
 									</div>
 									<div class="field" style="width: 540px;">
-										<select class="input float-left" name="complainObject2" style="width: 120px;"></select>
+										<input class="input float-left" name="complainObject2" style="width: 120px;"></input>
 										<select class="input" name="complain.complainObject" style="width: 400px"></select>
-										<a class="icon icon-wrench" href="javascript:setTableList('complain.complainObject',2)"></a>
+										<!--<a class="icon icon-wrench" href="javascript:setTableList('complain.complainObject',2)"></a>-->
+										<a class="icon icon-wrench" href="javascript:setSingleList('complain.complainObject',['complain.complainObject','complainObject2','complain.grade'],['投诉项目','条款','分值'])"></a>
 									</div>
 					</div>
         		</td>
@@ -189,7 +247,7 @@
 										<label>分值:</label>
 									</div>
 									<div class="field" style="width: 120px;">
-										<input class="input" style="width:120px"/>
+										<input class="input" name="complain.grade" style="width:120px"/>
 									</div>
 								</div>
         		</td>
@@ -240,12 +298,67 @@
         	</tr>
         	<tr>
         		<td>
+        			<div class="form-group complainFrom" style="width: 210px;">
+									<div class="label" style="width: 80px;">
+										<label>投诉人:</label>
+									</div>
+									<div class="field" style="width: 120px;">
+									<input class="input hidden_input" name="complain.complainPersonName"  style="width: 120px;">
+									</div>
+								</div>
+        		</td>
+        		<td>
+        			<div class="form-group complainFrom" style="width: 210px;">
+									<div class="label" style="width: 80px;">
+										<label>性别:</label>
+									</div>
+									<div class="field" style="width: 120px;">
+									<select class="input hidden_input" name="complain.complainPersonSex" style="width: 80px;">
+									</select>
+									</div>
+								</div>
+        		</td>
+        		<td>
+        			<div class="form-group complainFrom" style="width: 210px;">
+									<div class="label" style="width: 80px;">
+										<label>电话:</label>
+									</div>
+									<div class="field" style="width: 120px;">
+									<input class="input hidden_input" name="complain.complainPersonPhone" style="width: 120px;" />
+									</div>
+								</div>
+        		</td>
+        		<td>
+        			<div class="form-group" style="width: 210px;">
+									<div class="label" style="width: 80px;">
+										<label>发票号:</label>
+									</div>
+									<div class="field" style="width: 120px;">
+									<input class="input" name="complain.ticketNumber"  style="width: 120px;" />
+									</div>
+								</div>
+        		</td>
+        	</tr>
+        	<tr>
+        		<td>
         			<div class="form-group" style="width: 210px;">
 									<div class="label" style="width: 80px;">
 										<label>车牌号:</label>
 									</div>
 									<div class="field" style="width: 120px;">
-										<select class="input" name="complain.vehicleId"style="width: 120px;"></select> 
+										<input class="input" id="licenseNum" style="width: 120px;" value="黑A" />
+										<input type="hidden" name="complain.vehicleId" />
+										<!--<select class="input" name="complain.vehicleId"style="width: 120px;"></select> -->
+									</div>
+								</div>
+        		</td>
+        		<td>
+        			<div class="form-group" style="width: 210px;">
+									<div class="label" style="width: 80px;">
+										<label>部门:</label>
+									</div>
+									<div class="field" style="width: 120px;">
+									<input class="input" name="company"   style="width: 120px;">
 									</div>
 								</div>
         		</td>
@@ -269,60 +382,9 @@
 									</div>
 								</div>
         		</td>
-        		<td>
-        			<div class="form-group" style="width: 210px;">
-									<div class="label" style="width: 80px;">
-										<label>分公司归属:</label>
-									</div>
-									<div class="field" style="width: 120px;">
-									<input class="input" name="company"   style="width: 120px;">
-									</div>
-								</div>
-        		</td>
+        		
         	</tr>
-        	<tr>
-        		<td>
-        			<div class="form-group" style="width: 210px;">
-									<div class="label" style="width: 80px;">
-										<label>投诉人姓名:</label>
-									</div>
-									<div class="field" style="width: 120px;">
-									<input class="input hidden_input" name="complain.complainPersonName"  style="width: 120px;">
-									</div>
-								</div>
-        		</td>
-        		<td>
-        			<div class="form-group" style="width: 210px;">
-									<div class="label" style="width: 80px;">
-										<label>投诉人性别:</label>
-									</div>
-									<div class="field" style="width: 120px;">
-									<select class="input hidden_input" name="complain.complainPersonSex" style="width: 80px;">
-									</select>
-									</div>
-								</div>
-        		</td>
-        		<td>
-        			<div class="form-group" style="width: 210px;">
-									<div class="label" style="width: 80px;">
-										<label>投诉人电话:</label>
-									</div>
-									<div class="field" style="width: 120px;">
-									<input class="input hidden_input" name="complain.complainPersonPhone" style="width: 120px;" />
-									</div>
-								</div>
-        		</td>
-        		<td>
-        			<div class="form-group" style="width: 210px;">
-									<div class="label" style="width: 80px;">
-										<label>发票号:</label>
-									</div>
-									<div class="field" style="width: 120px;">
-									<input class="input" name="complain.ticketNumber"  style="width: 120px;" />
-									</div>
-								</div>
-        		</td>
-        	</tr>
+        	
         	<tr>
         		<td colspan="3">
         			<div  style="width: 100%">
@@ -337,9 +399,10 @@
             					  <div class="margin-small">
                                    <div class="margin-small">
                                          <a id="add" class="button input-file" href="javascript:addfile();">添加</a>
-                                    </div>
-                                    <div class="margin-small">
-                                           <a  class="button input-file" href="javascript:void(0);" onclick="delefile()">删除</a>
+                                    
+                                         <a id="look" class="button input-file" href="javascript:lookfile();">查看</a>
+                                    
+                                         <a  class="button input-file" href="javascript:void(0);" onclick="delefile()">删除</a>
                                      </div>
                               </div>
         		</td>

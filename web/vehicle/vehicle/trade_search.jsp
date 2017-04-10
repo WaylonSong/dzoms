@@ -31,11 +31,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		var alreadyInput = $("#alreadyInput").val().trim();
 		var condition;
 		if (alreadyInput.length==0) {
-			$("input[name='condition']").val("");
+			$("input[name='condition']").val(" and state in (0,1) ");
 		} else{
 			condition = (alreadyInput=="是" ?" and businessLicenseId is not null ":" and businessLicenseId is null ");
-			$("input[name='condition']").val(condition);
+			$("input[name='condition']").val(" and state in (0,1) "+condition);
 		}
+		$("input[name='condition']").val($("input[name='condition']").val()+" order by licenseNum");
 		$("[name='vehicleSele']").submit();
 	}
 	

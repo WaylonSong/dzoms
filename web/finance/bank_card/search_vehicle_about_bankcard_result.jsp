@@ -102,8 +102,9 @@ Page pg = (Page)request.getAttribute("page");
         	
         	var driverId = $("input[name='cbx']:checked").attr("driverId");
         	var bid = $("input[name='cbx']:checked").attr("bid");
+        	var isSameDriver = $("input[name='cbx']:checked").attr("isSameDriver");
         	
-        	if (bid.length!=0) {
+        	if (bid.length!=0&&isSameDriver=='true') {
         		alert('该车已有银行卡！');
         		return;
         	}
@@ -241,11 +242,11 @@ function toBeforePage(){
  	 
 <tr style='<s:property value="%{#request.isSameDriver!=true?'background-color: red;':''}"/>' >
 	
-<td><input type="radio" name="cbx" value="<s:property value='%{#v.carframeNum}'/>" driverId="<s:property value='%{#v.driverId}'/>" bid='<s:property value="%{#request.b.id}" />' ></td>
+<td><input type="radio" name="cbx" value="<s:property value='%{#v.carframeNum}'/>" driverId="<s:property value='%{#v.driverId}'/>" bid='<s:property value="%{#request.b.id}" />' isSameDriver='<s:property value="%{#request.isSameDriver?'true':'false'}" />' ></td>
  <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
  <td class="dept selected_able"><s:property value="%{#v.dept}"/></td>
  <td class="driverId selected_able"><s:property value="%{#v.driverId}"/></td>
- <td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).name}"/></td>
+ <td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#request.b.idNumber).name}"/></td>
  <td class="state selected_able">
  	<s:if test="%{#v.state==0}">
  		新车待开业

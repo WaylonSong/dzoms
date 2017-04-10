@@ -386,7 +386,7 @@ function beforeSubmit(){
                     </label>
                 </div>
                 <div class="field">
-                    <s:textfield cssClass="input input-auto" size="5" maxlength="5" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" readonly="true"></s:textfield>元
+                    <s:textfield cssClass="input input-auto" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" readonly="true"></s:textfield>元
                 </div>
             </div>
             </s:if>
@@ -395,7 +395,7 @@ function beforeSubmit(){
             <div class="form-group">
                 <div class="label padding" cssStyle="width: 260px">
                     <label class="">
-                        每年补交保费
+                        补交保费
                     </label>
                 </div>
                 <div class="field">

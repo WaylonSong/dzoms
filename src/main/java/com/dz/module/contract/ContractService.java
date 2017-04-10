@@ -278,4 +278,10 @@ public class ContractService implements WaitToDo{
 	public boolean addRentFirstDivide(RentFirstDivide rentFirstDivide){
 		return contractDao.addRentFirstDivide(rentFirstDivide);
 	}
+
+	public int searchAllAvaliableCount(Date time, String department,
+			String licenseNum) {
+		
+		return contractDao.contractSearchAllAvaliableCount(time,department,licenseNum);
+	}
 }

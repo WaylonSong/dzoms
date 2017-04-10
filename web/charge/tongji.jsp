@@ -37,6 +37,9 @@
           $("#currentMonth3").html("<strong>"+"三部:"+"</strong>"+data["ItemTool"]);
         });
       });
+      function carFocus(){
+      	$("input[name='licenseNum']").val("黑A");
+      }
   </script>
 </head>
 <body>
@@ -89,6 +92,7 @@
                             <option value="1">正常</option>
                             <option value="2">未交</option>
                             <option value="3">已交</option>
+                            <option value="4" selected="selected">全部</option>
                         </select>
                     </div>
                 </div>
@@ -100,7 +104,7 @@
                         </label>
                     </div>
                     <div class="field">
-                        <input class="input input-auto" value="黑A" name="licenseNum"/>
+                        <input class="input input-auto" value="黑A" name="licenseNum" onfocus="carFocus()"/>
                     </div>
                 </div>
 

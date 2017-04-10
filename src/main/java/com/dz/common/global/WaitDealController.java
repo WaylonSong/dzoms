@@ -1,9 +1,14 @@
 package com.dz.common.global;
 
-import com.dz.common.test.DataTrackFilter;
-import com.dz.module.user.Role;
-import com.opensymphony.xwork2.ActionContext;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -18,12 +23,9 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import com.dz.common.test.DataTrackFilter;
+import com.dz.module.user.Role;
+import com.opensymphony.xwork2.ActionContext;
 
 @Controller
 @Scope("prototype")

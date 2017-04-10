@@ -24,6 +24,9 @@
                 url:"/DZOMS/select/VehicleBylicenseNum"
             });
         });
+      function carFocus(){
+      	$("#licenseNum").val("黑A");
+      }
     </script>
 </head>
 <body>
@@ -34,7 +37,8 @@
     </ul>
 </div>
 <form method="post" action="/DZOMS/charge/searchBPS" target="iframe">
-    <label style="margin-left: 40px;">车牌号:</label><input type="text" name="licenseNum" class="input input-auto" size="10" value="黑A" id="licenseNum">
+    <label style="margin-left: 40px;">车牌号:</label>
+    <input type="text" name="licenseNum" class="input input-auto" size="10" value="黑A" id="licenseNum" onfocus="carFocus()">
     <input type="submit" class="button bg-main">
 </form>
 <iframe name="iframe" style="width: 100%;height:800px;" scrolling="yes" ></iframe>

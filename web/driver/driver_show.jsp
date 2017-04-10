@@ -6,6 +6,10 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="驾驶员查看,驾驶员登记,驾驶员修改权限" any="true">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE html>
 <html lang="zh-cn">
@@ -144,7 +148,12 @@ function CheckImgExists(imgurl) {
                             </label>
                         </div>
                         <div class="field">
-                            <s:textfield cssClass="input" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle', vehicle.carframeNum).licenseNum}" />
+                        	<s:if test="%{driver.carframeNum!=null&&driver.carframeNum!=''}">
+                        		<s:textfield cssClass="input" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle', driver.carframeNum).licenseNum}" />
+                        	</s:if>
+                            <s:else>
+                            	<s:textfield cssClass="input" value="%{driver.applyLicenseNum}" />
+                            </s:else>
                         </div>
                     </div>
                 </td>

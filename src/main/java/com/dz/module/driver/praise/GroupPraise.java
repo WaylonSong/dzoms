@@ -24,7 +24,7 @@ public class GroupPraise implements java.io.Serializable {
 	 */
 	private static final long serialVersionUID = 7948289864104920342L;
 	private Integer id;
-	private Integer praiseClass;
+	private String praiseClass;
 	private Integer msgFrom;
 	private Integer fileInfo;
 	private String praiseReason;
@@ -40,7 +40,7 @@ public class GroupPraise implements java.io.Serializable {
 	}
 
 	/** full constructor */
-	public GroupPraise(Integer praiseClass, Integer msgFrom, Integer fileInfo,
+	public GroupPraise(String praiseClass, Integer msgFrom, Integer fileInfo,
 			String praiseReason, Integer driverList, Date praiseTime,
 			Float grade, String registrant) {
 		this.praiseClass = praiseClass;
@@ -66,11 +66,11 @@ public class GroupPraise implements java.io.Serializable {
 	}
 
 	@Column(name = "praise_class")
-	public Integer getPraiseClass() {
+	public String getPraiseClass() {
 		return this.praiseClass;
 	}
 
-	public void setPraiseClass(Integer praiseClass) {
+	public void setPraiseClass(String praiseClass) {
 		this.praiseClass = praiseClass;
 	}
 

@@ -58,17 +58,17 @@ public interface DriverDao {
 	
 	public void addDriverInCarRecord(Driverincar record);
 	@Deprecated
-	public int selectDriverInCarByConditionCount(Date beginDate, Date endDate, Vehicle vehicle, Driver driver);
+	public int selectDriverInCarByConditionCount(Date beginDate, Date endDate, Vehicle vehicle, Driver driver, String operation, Boolean finished);
 	@Deprecated
-	public List<Driverincar> selectDriverInCarByCondition(Page page, Date beginDate, Date endDate, Vehicle vehicle, Driver driver);
+	public List<Driverincar> selectDriverInCarByCondition(Page page, Date beginDate, Date endDate, Vehicle vehicle, Driver driver, String operation, Boolean finished);
 
 	void addLeaveRecord(Driverleave record);
 
 	int selectDriverLeaveByConditionCount(Date beginDate, Date endDate,
-										  Vehicle vehicle, Driver driver);
+										  Vehicle vehicle, Driver driver, Boolean finished, String operation);
 
 	List<Driverleave> selectDriverLeaveByCondition(Page page, Date beginDate,
-												   Date endDate, Vehicle vehicle, Driver driver);
+												   Date endDate, Vehicle vehicle, Driver driver, Boolean finished, String operation);
 
 	Driver selectById(String idNum) throws HibernateException;
 

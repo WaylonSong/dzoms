@@ -1,6 +1,8 @@
 package com.dz.module.user;
 
 import com.dz.common.factory.HibernateSessionFactory;
+
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -94,38 +96,16 @@ public class ManagerDaoImp implements ManagerDao{
     }
 
     @Override
-    public void addRelationUr(RelationUr relationUr) {
-        Session session = null;
-        Transaction transaction = null;
-        try{
-            session = HibernateSessionFactory.getSession();
-            transaction = session.beginTransaction();
-            session.save(relationUr);
-            transaction.commit();
-        }catch (Exception e){
-            e.printStackTrace();
-            transaction.rollback();
-        }finally {
-            HibernateSessionFactory.closeSession();
-        }
+    public void addRelationUr(RelationUr relationUr) throws HibernateException {
+    	Session session = HibernateSessionFactory.getSession();
+        session.save(relationUr);
     }
 
     @Override
-    public void deleteRelationUrs(User user) {
-        Session session = null;
-        Transaction transaction = null;
-        try{
-            session = HibernateSessionFactory.getSession();
-            transaction = session.beginTransaction();
-            Query query = session.createQuery("delete from RelationUr where uid = :uid");
-            query.setInteger("uid",user.getUid());
-            query.executeUpdate();
-            transaction.commit();
-        }catch (Exception e){
-            e.printStackTrace();
-            transaction.rollback();
-        }finally {
-            HibernateSessionFactory.closeSession();
-        }
+    public void deleteRelationUrs(User user) throws HibernateException {
+    	 Session session = HibernateSessionFactory.getSession();
+         Query query = session.createQuery("delete from RelationUr where uid = :uid");
+         query.setInteger("uid",user.getUid());
+         query.executeUpdate();
     }
 }

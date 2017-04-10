@@ -3,6 +3,7 @@ package com.dz.common.other;
 import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.BaseAction;
 import com.dz.common.global.Page;
+import com.dz.module.driver.meeting.MeetingCheck;
 import com.dz.module.vehicle.Vehicle;
 
 import net.sf.json.JSONArray;
@@ -38,7 +39,7 @@ public class ObjectAccess extends BaseAction {
 	private String key;
 	private Boolean withoutPage;
 	private Integer pageSize;
-	
+		
 	public void get() throws IOException{
 		Object obj=null;
 		if(BooleanUtils.isNotTrue(isString)){
@@ -279,10 +280,14 @@ public class ObjectAccess extends BaseAction {
         Session session = null;
 		try {	
 			session = HibernateSessionFactory.getSession();
-			String hql = "from ItemTool where key = :key and value like :value";
+			String hql = "from ItemTool where key like :key and value like :value and key not like '%.default' ";
+			
+			if(StringUtils.isNotEmpty(condition)){
+				hql+=" and "+condition;
+			}
 			
 			Query query = session.createQuery(hql);
-			query.setString("key",key);
+			query.setString("key",key+"%");
 			query.setString("value",keyword+"%");
 			
 			List l = query.list();
@@ -303,6 +308,40 @@ public class ObjectAccess extends BaseAction {
 			out.flush();
 			out.close();
 		}catch(HibernateException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			e.printStackTrace();
+		} finally {			
+			HibernateSessionFactory.closeSession();
+		}
+	}
+	
+	public void itemsDefault()throws IOException{
+		ServletActionContext.getResponse().setContentType("application/json");
+		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		        
+        Session session = null;
+		try {	
+			session = HibernateSessionFactory.getSession();
+			String hql = "select value from ItemTool where key = :key ";
+			
+			Query query = session.createQuery(hql);
+			query.setString("key",key+".default");
+			query.setMaxResults(1);
+			
+			Object value = query.uniqueResult();
+			String str = "";
+			if(value!=null){
+				str = (String) value;
+			}
+		
+			JSONObject json = new JSONObject();
+			json.accumulate("data", str);
+		
+			out.print(json.toString());
+		
+			out.flush();
+			out.close();
+		}catch(HibernateException e) {
 			e.printStackTrace();
 		} finally {			
 			HibernateSessionFactory.closeSession();
@@ -351,6 +390,49 @@ public class ObjectAccess extends BaseAction {
 		return "selectToUrl";
 	}
 	
+	public String selectJoin(){
+		int currentPage = 0;
+        String currentPagestr = request.getParameter("currentPage");
+        if(currentPagestr == null || "".equals(currentPagestr)){
+        	currentPage = 1;
+        }else{
+        	currentPage=Integer.parseInt(currentPagestr);
+        }
+        
+        String hql = " ";
+        
+        if(StringUtils.isNotEmpty(condition)){
+			hql+=condition;
+		}
+        
+        long count = ObjectAccess.execute("select count(*) "+ hql);
+        
+        Page page;
+        
+        if (BooleanUtils.isTrue(withoutPage)) {
+        	page = PageUtil.createPage((int)count,(int)count, 0);
+		} else {
+			page = PageUtil.createPage((pageSize==null||pageSize<=0)?15:pageSize,(int)count, currentPage);
+		}
+        
+        Session session = HibernateSessionFactory.getSession();
+		Query query = session.createQuery("select " + column + " "+ hql);
+		
+		query.setFirstResult(page.getBeginIndex());
+		query.setMaxResults(page.getEveryPage());
+		
+		List<?> l = query.list();
+		request.setAttribute("list", l);
+		//request.setAttribute("currentPage", currentPage);
+		request.setAttribute("page", page);
+		HibernateSessionFactory.closeSession();
+        
+        if(StringUtils.isEmpty(url))
+			return ERROR;
+		
+		return "selectToUrl";
+	}
+	
 	public void doit() throws IOException{
 		ServletActionContext.getResponse().setContentType("application/json");
 		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
@@ -367,6 +449,12 @@ public class ObjectAccess extends BaseAction {
 		out.close();
 	}
 	
+	public String doitToUrl() throws IOException{
+		Object exec = execute(condition);
+		request.setAttribute("affect", exec);
+		return "selectToUrl";
+	}
+	
 	public static <T> void saveOrUpdate(T t){
 		Session session = null;
 		Transaction trans = null;
@@ -374,7 +462,7 @@ public class ObjectAccess extends BaseAction {
 		try {	
 			session = HibernateSessionFactory.getSession();
 			
-			 trans = session.beginTransaction();
+			trans = session.beginTransaction();
 			
 			session.saveOrUpdate(t);
 			
@@ -484,6 +572,10 @@ public class ObjectAccess extends BaseAction {
 
 	public void setPageSize(Integer pageSize) {
 		this.pageSize = pageSize;
+	}
+
+	public static<T> void delete(T obj) {
+		HibernateSessionFactory.getSession().delete(obj);
 	}
 	
 	

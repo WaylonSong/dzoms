@@ -30,6 +30,7 @@
             if(files.length>0)
             {
                 var file = files[0];
+                $("input[name='filename']").val(file.name);
                 var reader = new FileReader();
                 reader.onload = function(){
                     $("#txt").val(this.result);
@@ -52,6 +53,11 @@
                 li["cardNum"]=columns[2];
                 li["Money"]=columns[3];
                 lst.push(li);
+            }
+            
+            var lastline = lst.pop();
+            if (lastline["licenseNum"].startWith("黑")) {
+            	lst.push(lastline);
             }
 
             var jsonStr=$.toJSON(lst);
@@ -101,7 +107,7 @@
 		      <span class="close rotate-hover"></span><strong>操作结果：</strong><%=message.toString()%></div>
         <%}%>
 <div class="line">
-    <div class="xm6">
+    <div class="xm5">
         <div class="panel margin-small" style="height: 800px" >
           	<div class="panel-head">
           		加载文件
@@ -111,6 +117,7 @@
                 <input type="file" id="inputFile" onchange="loadFile(this.files)" />
             </a>
             <br/>
+            
             <textarea id="txt" rows="28" class="input" readonly="readonly" ></textarea>
 
             <form method="post" id="fm" action="/DZOMS/charge/analyseFile" class="form-inline form-tips">
@@ -135,11 +142,12 @@
                     <div class="field">
                         <input type="text" name="recorder" class="input" value="<%=((User)session.getAttribute("user")).getUname()%>" readonly="readonly">
                         <input type="hidden" name="jsonStr" />
+                        <input type="hidden" name="filename" />
                     </div>
                 </div>
                 <br>
 
-                <div class="xm10-move">
+                <div class="xm8-move">
                     <a href="javascript:anaylse()" class="button bg-green">录入</a>
                 </div>
             </form>
@@ -147,7 +155,7 @@
          </div>
     </div>
 
-    <div class="xm5">
+    <div class="xm6">
     	<div class="tab panel margin-small"  style="height: 800px;">
 	       <div class="tab-head">
 		         <ul class="tab-nav">

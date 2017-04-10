@@ -50,12 +50,12 @@ public class ExcelOutputUtil extends BaseAction {
 			try (OutputStream os = new FileOutputStream(file)) {
 	            Context context = new Context();
 	            
-	            System.out.println(datasrc);
-	            System.out.println(datalist);
+//	            System.out.println(datasrc);
+//	            System.out.println(datalist);
 	            for (int i = 0; i < datasrc.size(); i++) {
 	            	context.putVar(datasrc.get(i), (List)datalist.get(i));
 				}
-	            System.out.println(context);
+//	            System.out.println(context);
 	            
 	            AreaBuilder areaBuilder = new XlsCommentAreaBuilder();
 	            
@@ -77,6 +77,8 @@ public class ExcelOutputUtil extends BaseAction {
 	            transformer.write();
 	            
 	            this.setExcelStream(new FileInputStream(file));
+	            
+	            this.outputName = new String(outputName.getBytes(),"iso8859-1");
 	        } catch (IOException e) {
 				// TODO 自动生成的 catch 块
 				e.printStackTrace();
@@ -141,6 +143,16 @@ public class ExcelOutputUtil extends BaseAction {
 			return ObjectAccess.getObject(classname, id);
 		}
 		
+		private int seq=0;
+		public int initSeq(){
+			seq=0;
+			return seq;
+		}
+		
+		public int geneSeq(int step){
+			seq+=step;
+			return seq;
+		}
 		
 	}
 }

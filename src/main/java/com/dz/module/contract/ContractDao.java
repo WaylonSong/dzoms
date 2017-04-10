@@ -20,6 +20,7 @@ public interface ContractDao {
 	public List<Contract> contractSearchAllAvilable() throws HibernateException;
 	public List<Contract> contractSearchAllAvilable(Date time);
 	public List<Contract> contractSearchAllAvilable(Date time, String dept, Page page);
+	public List<Contract> contractSearchAllAvilable(Date time, String dept, String licenseNum, Page page);
 	public long contractSearchAllAvaliableCount(Date time, String dept);
 	public Contract contractShow(String id) throws HibernateException;
 	public boolean contractRevise(Contract c) throws HibernateException;
@@ -30,7 +31,8 @@ public interface ContractDao {
 	public Contract contractSearchRentAvaliable(String carfarameNum);
 	
 	Contract selectByCarId(String id);
-//	List<String> selectDriverByCar(Vehicle vehicle);
+public Contract selectByCarId(String carframeNum, Date d);
+	//	List<String> selectDriverByCar(Vehicle vehicle);
 	int contractSearchConditionTotal(Integer contractid, String contractor,
 									 Long rent, Boolean isabandoned, String sort, String desc)
 			throws HibernateException;
@@ -46,4 +48,6 @@ public interface ContractDao {
 	public int selectAllByStatesCount(Contract contract, Vehicle vehicle, Driver driver, Date beginDate, Date endDate, Short[] states);
 	public List<Contract> selectAllByStates(Page page, Contract contract, Vehicle vehicle, Driver driver, Date beginDate, Date endDate, Short[] states);
 	boolean addRentFirstDivide(RentFirstDivide rentFirstDivide);
+	public int contractSearchAllAvaliableCount(Date time, String department,
+											   String licenseNum);
 }

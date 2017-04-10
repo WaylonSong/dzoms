@@ -103,6 +103,26 @@ function checkByFileSubmit(){
 	document.checkByFile.submit();
 }
 
+function clearCheck(){
+	var idNum = $("input[name='cbx']:checked").val();
+	$("input[name='idNum']").val(idNum);
+	document.clearCheck.submit();
+}
+
+var times = 0;
+function refreshAll(){
+	//var inner = $("iframe[name='hid1']").html().trim();
+
+	//if (inner.length>5) {
+	//	alert(inner);
+		if(times>0)
+			document.pageForm.submit();
+		else
+			times++;
+	//}
+	
+}
+
 </script>
 
 <style>
@@ -122,8 +142,6 @@ function checkByFileSubmit(){
 </head>
 
 <body>
-	
-
 	<form method="post" action="manmalCheck" name="manmalCheck" style="width: 100%;">
 		<s:hidden name="meeting.id"></s:hidden>
 		<s:hidden name="meetingId" value="%{meeting.id}"></s:hidden>
@@ -134,29 +152,39 @@ function checkByFileSubmit(){
 		<s:hidden name="nowPage"></s:hidden>
 	</form>
 	
+	<form method="post" action="clearCheck" name="clearCheck" target="hid1">
+		<s:hidden name="meeting.id"></s:hidden>
+		<s:hidden name="meetingId" value="%{meeting.id}"></s:hidden>
+		<s:hidden name="idNum"></s:hidden>
+	</form>
+	<iframe name="hid1" style="display:none" onload="refreshAll()" ></iframe>
+	
 	<form  style="width: 100%;" method="post" action="checkByFile" name="checkByFile" class="form-inline form-tips" enctype="multipart/form-data">
 		<s:hidden name="meeting.id"></s:hidden>
 	    
 		<div class="line">
 	         <div class="panel  margin-small" >
                 	<div class="panel-head">签到
-                			<div class="line">
+                		<div class="line">
 			
-				<div class="xm1 xm9-move" id="manmalCheckDiv">
+				<div class="xm1 xm7-move" id="manmalCheckDiv">
 					<a  class="button dialogs bg-gray margin" data-toggle="click" data-target="#mydialog" data-mask="1" data-width="50%">
-				   	<i class="icon-pencil" style="font-size: 20px;"></i>
             	     <span class="h6"><strong>手工</strong></span>
 				   </a>
 		         </div>
 		         <div class="xm1">
 		         	<a  class="button  bg-gray margin" onclick="$('#m_file').click()">
-				   	<i class="icon-file-archive-o" style="font-size: 20px;"></i>
+				   
             	     <span class="h6"><strong>导入</strong></span>
 				   </a>
 		         	<input type="file" id="m_file" name="fileCheck" onchange="checkByFileSubmit()" hidden="hidden"/>
 		         </div>
 			
-			 
+			 	<div class="xm2">
+		         	<a  class="button  bg-gray margin" href="javascript:clearCheck()">
+            	     <span class="h6"><strong>清除签到</strong></span>
+				   </a>
+		         </div>
 			
 		    </div>
           		
@@ -170,7 +198,8 @@ function checkByFileSubmit(){
 					<s:if test="%{checkList!=null}">
                     <s:iterator value="%{checkList}" var="v">
                     <tr ondblclick="hand_check(this)" class="<s:property value="%{#v.isChecked?'bg-green-light':'bg-red-light'}" />">
-<td><input type="radio" name="cbx" value="<s:property value="%{#v.idNum}" />" <s:property value="%{#v.isChecked?'disabled=\"true\"':''}" /> /></td>
+<%--<td><input type="radio" name="cbx" value="<s:property value="%{#v.idNum}" />" <s:property value="%{#v.isChecked?'disabled=\"true\"':''}" /> /></td> --%>
+<td><input type="radio" name="cbx" value="<s:property value="%{#v.idNum}" />" /></td>
 <s:set name="t_driver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.idNum)}" />
 <s:set name="t_meeting" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.meeting.Meeting',#v.meetingId)}" />
 <td><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#t_driver.carframeNum).licenseNum}"/></td>
@@ -265,7 +294,10 @@ function checkByFileSubmit(){
           			<select  class="input checkType">
            			 <option>指纹模糊</option>
            			 <option>未按规定日期参加例会</option>
-           			 <option>特殊情况未参加例会</option>
+           			 <option>特殊情况</option>
+           			 <option>补会</option>
+           			 <option>迟到</option>
+           			 <option>收卡</option>
        			   </select>
           			<strong>签到时间</strong>
           			<input  class="datepick input checkTime"/>

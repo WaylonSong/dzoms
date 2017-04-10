@@ -85,7 +85,7 @@ Page pg = (Page)request.getAttribute("page");
 	
 	function doApply(){
 		$.post(applyUrl,{},function(data){
-			document.vehicleSele.submit();
+			$("[name='vehicleSele']").submit();
 		});
 	}
 	
@@ -158,8 +158,10 @@ Page pg = (Page)request.getAttribute("page");
 	                                   <div class="button-group">
 	                                     	<!--<button onclick="_detail()" type="button" class="button icon-search text-blue" style="line-height: 6px;">
 	                               		查看</button>-->
+	                               		<s:if test="#session.roles.{?#this.rname=='待岗审批权限'}.size>0">
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
 			                                                            审批</button>
+			                                                            </s:if>
 <button id="show_dialog_but" class="button button-big bg-main dialogs" data-toggle="click" style="display: none;" data-target="#mydialog" data-mask="1" data-width="50%"> 弹出对话框</button>
                                      </div>
                                 </div>
@@ -276,8 +278,10 @@ Page pg = (Page)request.getAttribute("page");
     <form action="/DZOMS/driver/leave/searchRecord" method="post" name="vehicleSele">
         <s:hidden name="beginDate" />
         <s:hidden name="endDate" />
-        <s:hidden name="idNum"/>
-        <s:hidden name="isInCar"/>
+        <s:hidden name="vehicle.licenseNum"/>
+        <s:hidden name="driver.idNum"/>
+        <s:hidden name="finished"/>
+        <s:hidden name="operation"/>
         <s:hidden name="currentPage" value="%{#request.page.currentPage}" id="currentPage" />
     </form>
 

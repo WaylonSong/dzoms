@@ -22,8 +22,8 @@ public class InsuranceDaoImpl implements InsuranceDao {
 		try {	
 			session = HibernateSessionFactory.getSession();
 			tx = (Transaction) session.beginTransaction();
-			
-			session.save(insurance);
+			insurance.setInsuranceNum(StringUtils.upperCase(insurance.getInsuranceNum()));
+			session.saveOrUpdate(insurance);
 			tx.commit();
 		} catch (HibernateException e) {
 			if (tx != null) {
@@ -43,7 +43,7 @@ public class InsuranceDaoImpl implements InsuranceDao {
 		try {	
 			session = HibernateSessionFactory.getSession();
 			tx = (Transaction) session.beginTransaction();
-			
+			insurance.setInsuranceNum(StringUtils.upperCase(insurance.getInsuranceNum()));
 			session.update(insurance);
 			tx.commit();
 		} catch (HibernateException e) {
@@ -83,7 +83,7 @@ public class InsuranceDaoImpl implements InsuranceDao {
 		Session session = null;
 		try {
 			session = HibernateSessionFactory.getSession();
-			Query query = session.createQuery("from Insurance ");
+			Query query = session.createQuery("from Insurance where state>0 ");
 			return query.list();
 			
 		} catch (HibernateException e) {
@@ -99,7 +99,7 @@ public class InsuranceDaoImpl implements InsuranceDao {
 		Session session = null;
 		try {
 			session = HibernateSessionFactory.getSession();
-			Query query = session.createQuery("from Insurance where carframeNum=:carframeNum");
+			Query query = session.createQuery("from Insurance where state>0 and carframeNum=:carframeNum");
 			query.setString("carframeNum", vehicle.getCarframeNum());
 			return query.list();
 			
@@ -116,7 +116,7 @@ public class InsuranceDaoImpl implements InsuranceDao {
 		Session session = null;
 		try {
 			session = HibernateSessionFactory.getSession();
-			Query query = session.createQuery("from Insurance where driverId=:driverId");
+			Query query = session.createQuery("from Insurance where state>0 and driverId=:driverId");
 			query.setString("driverId", driver.getIdNum());
 			return query.list();
 			
@@ -128,28 +128,49 @@ public class InsuranceDaoImpl implements InsuranceDao {
 	}
 
 	@Override
-	public int selectByConditionCount(Insurance insurance) {
+	public int selectByConditionCount(Insurance insurance, Vehicle vehicle) {
 		Session session = null;
 		try {
 			session = HibernateSessionFactory.getSession();
-			String sql="select count(*) from Insurance where 1=1 ";
+			String sql="select count(*) from Insurance where state>0 ";
 			
 			
 			if(!StringUtils.isEmpty(insurance.getCarframeNum())){
-				sql+="and carframeNum=:carframeNum ";
+				sql+="and carframeNum like :carframeNum ";
 			}
 			
 			if(!StringUtils.isEmpty(insurance.getInsuranceNum())){
-				sql+="and insuranceNum=:insuranceNum ";
+				sql+="and insuranceNum like :insuranceNum ";
 			}
+			
+			if(!StringUtils.isEmpty(insurance.getInsuranceClass())){
+				sql+="and insuranceClass like :insuranceClass ";
+			}
+			
+			if(vehicle!=null){
+				if(!StringUtils.isEmpty(vehicle.getLicenseNum())){
+					sql+="and carframeNum in (select carframeNum from Vehicle where licenseNum  like :licenseNum ) ";
+				}
+			}
+			
 			Query query = session.createQuery(sql);
 			
 			if(!StringUtils.isEmpty(insurance.getCarframeNum())){
-				query.setString("carframeNum", insurance.getCarframeNum());
+				query.setString("carframeNum", "%"+insurance.getCarframeNum()+"%");
 			}
 			
 			if(!StringUtils.isEmpty(insurance.getInsuranceNum())){
-				query.setString("insuranceNum", insurance.getInsuranceNum());
+				query.setString("insuranceNum", "%"+insurance.getInsuranceNum()+"%");
+			}
+			
+			if(!StringUtils.isEmpty(insurance.getInsuranceClass())){
+				query.setString("insuranceClass", "%"+insurance.getInsuranceClass()+"%");
+			}
+			
+			if(vehicle!=null){
+				if(!StringUtils.isEmpty(vehicle.getLicenseNum())){
+					query.setString("licenseNum", "%"+vehicle.getLicenseNum()+"%");
+				}
 			}
 			return Integer.parseInt(query.uniqueResult().toString());
 			
@@ -162,29 +183,51 @@ public class InsuranceDaoImpl implements InsuranceDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Insurance> selectByCondition(Page page, Insurance insurance) {
+	public List<Insurance> selectByCondition(Page page, Insurance insurance, Vehicle vehicle) {
 		Session session = null;
 		try {
 			session = HibernateSessionFactory.getSession();
-			String sql="from Insurance where 1=1 ";
+			String sql="from Insurance where state>0 ";
 			
 			
 			if(!StringUtils.isEmpty(insurance.getCarframeNum())){
-				sql+="and carframeNum=:carframeNum ";
+				sql+="and carframeNum like :carframeNum ";
 			}
 			
 			if(!StringUtils.isEmpty(insurance.getInsuranceNum())){
-				sql+="and insuranceNum=:insuranceNum ";
+				sql+="and insuranceNum like :insuranceNum ";
 			}
+			
+			if(!StringUtils.isEmpty(insurance.getInsuranceClass())){
+				sql+="and insuranceClass like :insuranceClass ";
+			}
+			
+			if(vehicle!=null){
+				if(!StringUtils.isEmpty(vehicle.getLicenseNum())){
+					sql+="and carframeNum in (select carframeNum from Vehicle where licenseNum  like :licenseNum ) ";
+				}
+			}
+			
 			Query query = session.createQuery(sql);
 			
 			if(!StringUtils.isEmpty(insurance.getCarframeNum())){
-				query.setString("carframeNum", insurance.getCarframeNum());
+				query.setString("carframeNum","%"+ insurance.getCarframeNum()+"%");
 			}
 			
 			if(!StringUtils.isEmpty(insurance.getInsuranceNum())){
-				query.setString("insuranceNum", insurance.getInsuranceNum());
+				query.setString("insuranceNum","%"+ insurance.getInsuranceNum()+"%");
 			}
+			
+			if(!StringUtils.isEmpty(insurance.getInsuranceClass())){
+				query.setString("insuranceClass", "%"+insurance.getInsuranceClass()+"%");
+			}
+			
+			if(vehicle!=null){
+				if(!StringUtils.isEmpty(vehicle.getLicenseNum())){
+					query.setString("licenseNum", "%"+vehicle.getLicenseNum()+"%");
+				}
+			}
+			
 			query.setFirstResult(page.getBeginIndex());
 			query.setMaxResults(page.getEveryPage());
 			return query.list();

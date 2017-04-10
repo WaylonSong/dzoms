@@ -13,6 +13,10 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+
+<s:set name="driver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#request.affect.idNumber)}"></s:set>
+<s:set name="vehicle" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#request.affect.carframeNum)}"></s:set>
+
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
@@ -35,28 +39,55 @@
 <script src="/DZOMS/res/js/window.js"></script>
 <script type="text/javascript" src="/DZOMS/res/js/JsonList.js" ></script>
 <script type="text/javascript" src="/DZOMS/res/js/fileUpload.js" ></script>
+<link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
+<script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
 <script>
-	  function refresh(){
-        	document.driverBusinessApply.action = "/DZOMS/driver/driverInCar/businessReciveSelect";
-        	document.driverBusinessApply.submit();
-        }
+function refresh(){
+	var name = $('[name="driver.name"]').val().trim();
+    if (name.length==0) {
+    	return false;
+    }
+    var url = "/DZOMS/common/doitToUrl?"
+    	+"url=%2fdriver%2fdriverInCar%2fbusiness_recive.jsp&"
+    	+"condition="
+    	+ encodeURI("from Driverincar where operation='证照申请' and finished=false and idNumber in"
+    	+"(select idNum from Driver where name='"+name+"')");
+    	
+    document.location.href = url;
+}
         
-        function refresh2(){
-        	if ($('[name="driver.name"]').val().trim().length==0) {
-        		return false;
-        	}
-        	document.driverBusinessApply.action = "/DZOMS/driver/driverInCar/businessReciveSelect2";
-        	document.driverBusinessApply.submit();
-        }
+$(document).ready(function(){
+
+$("[name='driver.name']").bigAutocomplete({
+	url:"/DZOMS/select/driverByName",
+	condition:" idNum in (select idNumber from Driverincar where finished=false and operation='证照申请') ",
+	callback:function(){
+		refresh();
+	}
+});
+});
+
+//$(document).ready(function(){
+//	var licenseNum = $('[name="vehicle.licenseNum"]').val();
+//	if (licenseNum.length==0) {
+//		$('[name="vehicle.licenseNum"]').val("黑A");
+//	}
+//});
+
+
+
 </script>
 	   <style>
-	   	.form-group{
-	   		width: 400px;
-	   	}
         .label{
-            width: 140px;
+            width: 130px;
             text-align: right;
         }
+        .field{
+        	width: 200px;
+        }
+        .form-group{
+    		width: 340px;
+    	}
     </style>
 <body>
 <div class="margin-big-bottom">
@@ -69,229 +100,211 @@
         </div>
 </div>
 <div class="container">
-    <form action="businessRecive" name="driverBusinessApply" method="post"
+    <form action="/DZOMS/driver/driverInCar/businessRecive.action" name="driverBusinessApply" method="post"
     	style="width: 100%;" class="form-inline form-tips" >
+<div class="line">
+	
 
-        <div class="panel">
+        <div class="panel xm12">
             <div class="panel-head">
                 <strong>证照信息</strong>
             </div>
             <div class="panel-body">
-            <div class="form-group">
-                <div class="label padding">
-                    <label>
-                        车牌号
-                    </label>
-                </div>
-                <s:hidden name="vehicle.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
-                <s:hidden name="driver.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
-                <div class="field" >
-                <s:if test="%{vehicle.licenseNum!=null}">
-                	<s:textfield name="vehicle.licenseNum" cssClass="input"/>
-                </s:if>
-                <s:else>
-                <%! List<String> vmstr; %>
-				<%  
-					ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());    
-  					VehicleService vms = ctx.getBean(VehicleService.class);
-  					
-  					List<Vehicle> vml = vms.selectAll();
-  					
-					vmstr = (List<String>)CollectionUtils.collect(vml, new Transformer(){
-  						@Override
-  						public Object transform(Object obj) {
-               				Vehicle vm = (Vehicle) obj;
-                			return vm.getLicenseNum();
-           				}
-  					});
-  					
-  					vmstr.add(0, "");
-  					
-  					request.setAttribute("vmstr",vmstr);
-  				%>
-                	<s:select list="#request.vmstr" cssClass="input" name="vehicle.licenseNum" onchange="refresh()"></s:select>
-                </s:else>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="label padding">
-                    <label>
-                        承租人
-                    </label>
-                </div>
-                <div class="field" >
-                	<s:set name="driverId" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',vehicle.carframeNum).driverId}"></s:set>
-                    <s:textfield value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#driverId).name}" cssClass="input"  readonly="true"/>
-                </div>
-            </div>
-            <br>
-            <div class="form-group">
-                <div class="label padding">
-                    <label>
-                        驾驶员姓名
-                    </label>
-                </div>
-                <div class="field" >
-
-                	<s:if test="%{vehicle.licenseNum!=null}">
-                		<s:if test="%{driver.name==null||driver.name==''}">
-                		<%--
-                		<s:set name="firstDriver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',vehicle.firstDriver)}"></s:set>
-                			
-                		<s:if test="%{#firstDriver==null||#firstDriver.isInCar}">
-                			<s:set name="firstDriverName" value="%{''}"></s:set>
-                		</s:if>
-                		<s:else>
-                			<s:set name="firstDriverName" value="%{#firstDriver.name==null?'':#firstDriver.name}"></s:set>
-                		</s:else>
-                		
-                		
-                		<s:set name="secondDriver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',vehicle.secondDriver)}"></s:set>
-                			
-                		<s:if test="%{#secondDriver==null||#secondDriver.isInCar}">
-                			<s:set name="secondDriverName" value="%{''}"></s:set>
-                		</s:if>
-                		<s:else>
-                			<s:set name="secondDriverName" value="%{#secondDriver.name==null?'':#secondDriver.name}"></s:set>
-                		</s:else>
-                		--%>
-<%
-ValueStack vs = (ValueStack) request.getAttribute("struts.valueStack"); 
-Vehicle vehicle = (Vehicle)vs.findValue("vehicle");
-String hql = "carframeNum='"+vehicle.getCarframeNum()+"' and finished=false and operation='证照申请'";      		
-List<Driverincar> list = ObjectAccess.query(Driverincar.class, hql);
-
-List<String> names = (List<String>)CollectionUtils.collect(list, new Transformer(){
-  						@Override
-  						public Object transform(Object obj) {
-               				Driverincar vm = (Driverincar) obj;
-               				Driver d = ObjectAccess.getObject(Driver.class, vm.getIdNumber());
-                			return d.getName();
-           				}
-  					});
-  					
-  					names.add(0, "");
-  	
-request.setAttribute("names",names);
-%>
-                		<s:select cssClass="input" list="%{#request.names}" name="driver.name" onchange="refresh2()"></s:select>
-                		</s:if>
-                		<s:else>
-                			<s:textfield cssClass="input"  name="driver.name" />
-                		</s:else>
-                	</s:if>
-                	<s:else>
-                		<s:textfield cssClass="input"  name="driver.name" />
-                	</s:else>
-                </div>
-            </div>
-            
-            
-                <div class="form-group">
-                    <div class="label padding">
-                        <label>
-                            身份证号
-                        </label>
-                    </div>
-                    <div class="field">
-                        <s:textfield cssClass="input"  name="driver.idNum"  readonly="true"/>
-                    </div>
-                </div>
-                <br/>
-
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            申请时间
-                        </label>
-                    </div>
-                    <div class="field">
-                        <s:textfield cssClass="input"  name="driver.businessApplyTime"  readonly="true"></s:textfield>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            发证时间
-                        </label>
-                    </div>
-                    <div class="field">
-                        <s:textfield cssClass="input"  name="driver.businessReciveTime" readonly="readonly"></s:textfield>
-                    </div>
-                </div>
-                <br/>
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            驾驶员属性
-                        </label>
-                    </div>
-                    <div class="field">
-                    	<s:textfield cssClass="input"  name="driver.businessApplyDriverClass" readonly="readonly"></s:textfield>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            作息时间
-                        </label>
-                    </div>
-                    <div class="field">
-                    	<s:textfield cssClass="input"  name="driver.restTime" readonly="readonly"></s:textfield>
-                    </div>
-                </div>
-                <br>
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            录入人
-                        </label>
-                    </div>
-                    <div class="field">
-                        <input class="input" type="text" readonly="readonly" value="<%=((User)session.getAttribute("user")).getUname()%>">
-                        <input type="hidden" name="driver.businessReciveRegistrant" value="<%=((User)session.getAttribute("user")).getUid()%>"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="label padding" >
-                        <label>
-                            登记时间
-                        </label>
-                    </div>
-                    <div class="field">
-                        <input  class="input" readonly="readonly" name="driver.businessReciveRegistTime" value="<%=(new  java.text.SimpleDateFormat("yyyy/MM/dd")).format(new java.util.Date()) %>"/>
-                       
-                    </div>
-                </div>
-            </div>
-             <div class="form-group">
-            	 <div class="label padding" >
-                        <label>
-                        </label>
-                    </div>
-            	<div class="field">
-            		
+            	<div class="line">
+            		<div class="xm2">
+            			 <div class="padding">
+					    	<strong>驾驶员照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+#driver.idNum+'/photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{#driver.idNum}'/>/photo.jpg" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:else>
+				        		
+				        	</div>
+				            <br/>
+				            <div class="container">
+				                <a class="button input-file input-file1">
+				                    装入<input class="dz-file" id="readyimg1" name="drive_photo" data-target=".input-file1" sessuss-function="loadThePicture('#readyimg1','#headimg1');">
+				                </a>
+				                 <a class="button input-file delebutton2" data-width="50%" data-mask="1">清空</a>
+				            </div>
+				        	<strong>人车照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+#driver.idNum+'/drive_vehicle_photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{#driver.idNum}'/>/drive_vehicle_photo.jpg" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;">
+    	</s:else>
+				        	</div>
+				            <br/>
+				            <div class="container">
+				                <a class="button input-file bg-green input-file2">
+				                    装入<input class="dz-file" id="oldimg" name="drive_vehicle_photo" data-target=".input-file2" sessuss-function="loadThePicture('#oldimg','#headimg');">
+				                </a>
+				                 <a class="button input-file delebutton1" data-width="50%" data-mask="1">清空</a>
+				            </div>
+		                 </div>
+            		</div>
+            		<div class="xm10">
+            			   
+            			   	<div class="form-group">
+					                <div class="label padding">
+					                    <label>
+					                        驾驶员姓名
+					                    </label>
+					                </div>
+					                <div class="field" >
+					                	<s:textfield cssClass="input"  name="driver.name" value="%{#driver.name}" />
+					                </div>
+					            </div>
+					            
+					            
+					                <div class="form-group">
+					                    <div class="label padding">
+					                        <label>
+					                            身份证号
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <s:textfield cssClass="input"  name="driver.idNum" value="%{#driver.idNum}"  readonly="true"/>
+					                    </div>
+					                </div>
+					                <br/>
+					                <div class="form-group">
+					                <div class="label padding">
+					                    <label>
+					                        车牌号
+					                    </label>
+					                </div>                
+					                <div class="field" >
+					                	<s:textfield name="vehicle.licenseNum" cssClass="input" value="%{#vehicle.licenseNum}"/>
+					                	<s:hidden name="driver.carframeNum" value="%{#vehicle.carframeNum}"></s:hidden>
+					                </div>
+					            </div>
+					            <div class="form-group">
+					                <div class="label padding">
+					                    <label>
+					                        承租人
+					                    </label>
+					                </div>
+					                <div class="field" >
+					                    <s:textfield id="vehicleOwner" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#vehicle.driverId).name}" cssClass="input"  readonly="true"/>
+					                </div>
+					            </div>
+					            <br>
+					            
+					
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            申请时间
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <s:textfield cssClass="input"  name="driver.businessApplyTime" value="%{#driver.businessApplyTime}"  readonly="true"></s:textfield>
+					                    </div>
+					                </div>
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            发证时间
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <s:textfield cssClass="input datepick"  name="driver.businessReciveTime" value="%{#driver.businessReciveTime}"></s:textfield>
+					                    </div>
+					                </div>
+					                <br/>
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            驾驶员属性
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                    	<s:textfield cssClass="input"  name="driver.businessApplyDriverClass" readonly="readonly" value="%{#driver.businessApplyDriverClass}"></s:textfield>
+					                    </div>
+					                </div>
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            作息时间
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                    	<s:textfield cssClass="input"  name="driver.restTime" readonly="readonly" value="%{#driver.restTime}"></s:textfield>
+					                    </div>
+					                </div>
+					                <br>
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            工牌号
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <s:textfield cssClass="input"  name="driver.employeeNum" data-validate="required:必填" value="%{#driver.employeeNum}"></s:textfield>
+					                    </div>
+					                </div>
+					                <br />
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            录入人
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <input class="input" type="text" readonly="readonly" value="<%=((User)session.getAttribute("user")).getUname()%>">
+					                        <input type="hidden" name="driver.businessReciveRegistrant" value="<%=((User)session.getAttribute("user")).getUid()%>"/>
+					                    </div>
+					                </div>
+					                <div class="form-group">
+					                    <div class="label padding" >
+					                        <label>
+					                            登记时间
+					                        </label>
+					                    </div>
+					                    <div class="field">
+					                        <input  class="input" readonly="readonly" name="driver.businessReciveRegistTime" value="<%=(new  java.text.SimpleDateFormat("yyyy/MM/dd")).format(new java.util.Date()) %>"/>
+					                       
+					                    </div>
+					                </div>
+					            </div>
+					             <div class="form-group">
+					            	 <div class="label padding" >
+					                        <label>
+					                        </label>
+					                    </div>
+					            	<div class="field">
+					            		
+					            	</div>
+					             </div>
+					            <div class="form-group">
+					            	 <div class="label padding" >
+					                        <label>
+					                        </label>
+					                    </div>
+					            	<div class="field">
+					            		 <input type="button" class="button bg-green submitbutton margin-big-left" value="提交">
+					            	</div>
+					             </div>
+            		</div>
             	</div>
-             </div>
-            <div class="form-group">
-            	 <div class="label padding" >
-                        <label>
-                        </label>
-                    </div>
-            	<div class="field">
-            		 <input type="button" class="button bg-green submitbutton margin-big-left" value="提交">
-            	</div>
-             </div>
+         
+        </div>
         </div>
     </form>
     <script>
     
 function beforeSubmit(){
-	var rawFirstDriver='<s:property value="%{vehicle.firstDriver}"/>';
-	var rawSecondDriver='<s:property value="%{vehicle.secondDriver}"/>';
-	var rawThirdDriver='<s:property value="%{vehicle.thirdDriver}"/>';
-	var rawTempDriver='<s:property value="%{vehicle.tempDriver}"/>';
-	var newIdNum='<s:property value="%{driver.idNum}"/>';
+	var rawFirstDriver='<s:property value="%{#vehicle.firstDriver}"/>';
+	var rawSecondDriver='<s:property value="%{#vehicle.secondDriver}"/>';
+	var rawThirdDriver='<s:property value="%{#vehicle.thirdDriver}"/>';
+	var rawTempDriver='<s:property value="%{#vehicle.tempDriver}"/>';
+	var newIdNum='<s:property value="%{#driver.idNum}"/>';
 	
 	var rawIdNum='';
 	var driverClass=$('[name="driver.businessApplyDriverClass"]').val();

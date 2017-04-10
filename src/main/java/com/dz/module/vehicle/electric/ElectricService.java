@@ -7,6 +7,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import net.sf.json.JSONArray;
@@ -49,6 +52,8 @@ public class ElectricService {
 		String resultStr  = post(postUrl, content);
 		
         System.out.println(resultStr);
+        
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         	
         	JSONObject object = JSONObject.fromObject(resultStr);
             if(object.getInt("error_code")==0){
@@ -64,7 +69,12 @@ public class ElectricService {
                 	history.setLicenseNum(vehicle.getLicenseNum());
                 	history.setCode(jres.getString("code"));
                 	history.setArea(jres.getString("area"));
-                	history.setDate(jres.getString("date"));
+                	try {
+						history.setDate(df.parse(jres.getString("date")));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
                 	history.setAct(jres.getString("act"));
                 	history.setFen(jres.getString("fen"));
                 	history.setMoney(jres.getString("money"));
@@ -82,11 +92,12 @@ public class ElectricService {
 	}
 	
 	public void addHistory(ElectricHistory history){
-		String date = history.getDate();
-		if(StringUtils.isNotEmpty(date)||history.getCarframeNum()!=null||history.getCode()!=null){
+		Date date = history.getDate();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		if(date!=null||history.getCarframeNum()!=null||history.getCode()!=null){
 			long count = ObjectAccess.execute(
 					"select count(*) from ElectricHistory "
-					+ "where date='"+date+"'"
+					+ "where date='"+df.format(date)+"'"
 					+ " and carframeNum='"+history.getCarframeNum()+"' "
 					+ " and code='"+history.getCode()+"'"
 					+ " and act='"+history.getAct()+"'");

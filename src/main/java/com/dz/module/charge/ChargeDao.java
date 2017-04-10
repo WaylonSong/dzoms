@@ -3,6 +3,9 @@ package com.dz.module.charge;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+
 /**
  * @author doggy
  *         Created on 15-11-12.
@@ -12,6 +15,12 @@ public interface ChargeDao {
     boolean deleteBatchPlan(BatchPlan batchPlan);
     boolean addChargePlan(ChargePlan chargePlan);
     boolean deleteChargePlan(ChargePlan chargePlan);
+    /**
+     * 获取当月该合同所有计划，date 的日期部分将被忽略
+     * @param contractId
+     * @param date
+     * @return
+     */
     List<ChargePlan> getAllRecords(int contractId, Date date);
     List<ChargePlan> getUnclears(int contractId, Date date);
     List<ChargePlan> getACarRecords(int contractId);
@@ -45,4 +54,8 @@ public interface ChargeDao {
      * @param time
      */
     void addAndDiv(int cid, Date time);
+	void addAndDiv(int cid, Date time, Session session)
+			throws HibernateException;
+	void setCleared(int srcId, Date beginDate, Session session)
+			throws HibernateException;
 }

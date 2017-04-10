@@ -38,7 +38,7 @@
 <div class="line">
   <div class="panel  margin-small" >
     <div class="panel-head">
-                      发票进货
+                     查询条件
     </div>
     <div class="panel-body">
       <form id="form" class="form-inline" action="/DZOMS/charge/receipt/searchRemoves" method="post" target="show">

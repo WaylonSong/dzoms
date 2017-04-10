@@ -134,31 +134,37 @@ function setTheIframeH(size){
 			</a>
 		</li>
 		<%-- <% } %> --%>
-		<%-- <% if(menuItems.containsKey("综合查询")){ %> --%>
+		<% if(menuItems.containsKey("统计分析")){ %>
 		<li>
-			<a href="javascript:void(0);">
+			<a href="demoleft.jsp?menu=statistics" onclick="setTheIframeH(800)" target="body">
 				<img src="/DZOMS/res/mainPage/img/icons/packs/crystal/48x48/apps/xmag.png">
 									统计分析
 			</a>
 		</li>
-		<%-- <% } %> --%>
+		<% } %>
 		<%-- <% if(menuItems.containsKey("数据分析")){ %> --%>
-		<% if(menuItems.containsKey("个人管理")){ %><li>
+		<% if(menuItems.containsKey("系统管理")){ %><li>
 			<a href="demoleft.jsp?menu=manage" onclick="setTheIframeH(1350)" target="body">
 				<img src="/DZOMS/res/mainPage/img/icons/packs/crystal/48x48/apps/personal.png">
-									个人管理
+									系统管理
 			</a>
 		</li><% } %>
 	
 		<%-- <% } %> --%>
 		<%-- <% if(menuItems.containsKey("系统管理")){ %> --%>
 		<li>
-			<a href="javascript:void(0);">
+			<a href="chart.html" target="body">
 				<img src="/DZOMS/res/mainPage/img/icons/packs/crystal/48x48/apps/systemtray.png">
-									系统管理
+									个人管理
 			</a>
 		</li>
 		<%-- <% } %> --%>
+		<li>
+			<a href="/DZOMS/userLogout">
+				<img src="/DZOMS/res/mainPage/img/icons/packs/crystal/48x48/apps/logout.png">
+									退出登陆
+			</a>
+		</li>
 	</ul>
     </header>
     

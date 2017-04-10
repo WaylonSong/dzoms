@@ -3,12 +3,30 @@ package com.dz.common.other;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.joda.time.DateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.dz.common.factory.HibernateSessionFactory;
+import com.dz.module.vehicle.Vehicle;
+import com.dz.module.vehicle.electric.ElectricHistory;
+import com.dz.module.vehicle.electric.Synrecord;
 import com.opensymphony.xwork2.ActionContext;
 
 @Component
@@ -92,5 +110,170 @@ public class Timer {
 		}
 	}
 	
+	@Scheduled(cron="0 0 0 0/3 * ?")
+	public void synVehicle(){
+		JSONArray jarr = new JSONArray();
+		Session session = HibernateSessionFactory.getSession();
+		Query query = session.createQuery("from Vehicle where state=1");
+		List<Vehicle> vehicles = query.list();
+		for (Vehicle vehicle : vehicles) {
+			JSONObject json = new JSONObject();
+			json.put("carframeNum", vehicle.getCarframeNum());
+			json.put("dept", vehicle.getDept());
+			json.put("licenseNum", vehicle.getLicenseNum());
+			jarr.add(json);
+		}
+		
+		Properties elecConf = new Properties();
+		try {
+			elecConf.load(Timer.class.getResourceAsStream("Electric.properties"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String ip = elecConf.getProperty("ip");
+		String port = elecConf.getProperty("port");
+		
+		if (ip==null) {
+			ip="125.211.198.176";
+		}
+		if (port==null) {
+			port="8080";
+		}
+		
+		String url = "http://"+ip+":"+port+"/DzElectric/synVehicle";
+		
+		//TODO　Post to remote electric vehicle list
+		HttpClient httpClient = new HttpClient();
+		PostMethod postMethod = new PostMethod(url);
+		
+		postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET,"utf-8");
+		
+		postMethod.addParameter("jsonStr", jarr.toString());
+		
+		try {
+			int result = httpClient.executeMethod(postMethod);
+			if(result==200){
+	        	InputStream input2 = postMethod.getResponseBodyAsStream();
+		        
+	        	StringBuffer sb = new StringBuffer();
+		        int l;
+		        byte[] tmp = new byte[65536];
+		       // System.out.println();
+		        while ((l = input2.read(tmp)) > 0) {
+		        	sb.append(new String(tmp,0,l,"utf-8"));
+		        }
+		        String ss = sb.toString();
+		        
+		        JSONObject jobj = JSONObject.fromObject(ss);
+		        
+		        if ("success".equals(jobj.getString("status"))) {
+		        	System.out.println("违章系统，车辆信息同步成功！共同步"+jobj.getInt("number")+"条数据、");
+		        	Synrecord syn = new Synrecord();
+		        	syn.setType("车辆信息");
+		        	syn.setSynCount(jobj.getInt("number"));
+		        	syn.setSynTime(new Date());
+		        	syn.setSynDetail("同步成功");
+		        	ObjectAccess.saveOrUpdate(syn);
+					return;
+				}else{
+					System.err.println("违章系统，车辆信息同步失败！原因是："+jobj.getString("reason"));
+					Synrecord syn = new Synrecord();
+		        	syn.setType("车辆信息");
+		        	syn.setSynCount(0);
+		        	syn.setSynTime(new Date());
+		        	syn.setSynDetail(jobj.getString("reason"));
+		        	ObjectAccess.saveOrUpdate(syn);
+					return;
+				}
+		        
+			}
+		} catch (HttpException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e){
+			Synrecord syn = new Synrecord();
+        	syn.setType("车辆信息");
+        	syn.setSynCount(0);
+        	syn.setSynTime(new Date());
+        	syn.setSynDetail(e.getMessage());
+        	ObjectAccess.saveOrUpdate(syn);
+		}
+	}
 	
+	@Scheduled(cron="0 0 0 0/3 * ?")
+	public void synHistory(){
+		Properties elecConf = new Properties();
+		try {
+			elecConf.load(Timer.class.getResourceAsStream("Electric.properties"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String ip = elecConf.getProperty("ip");
+		String port = elecConf.getProperty("port");
+		
+		if (ip==null) {
+			ip="125.211.198.176";
+		}
+		if (port==null) {
+			port="8080";
+		}
+		
+		String url = "http://"+ip+":"+port+"/DzElectric/synHistory";
+		HttpClient httpClient = new HttpClient();
+		PostMethod postMethod = new PostMethod(url);
+		
+		postMethod.addParameter("after",new DateTime().toString("yyyy-MM-dd"));
+		
+		try {
+			int result = httpClient.executeMethod(postMethod);
+			if(result==200){
+	        	InputStream input2 = postMethod.getResponseBodyAsStream();
+		        
+	        	StringBuffer sb = new StringBuffer();
+		        int l;
+		        byte[] tmp = new byte[65536];
+		       // System.out.println();
+		        while ((l = input2.read(tmp)) > 0) {
+		        	sb.append(new String(tmp,0,l,"utf-8"));
+		        }
+		        String ss = sb.toString();
+		        
+		        JSONArray jarr = JSONArray.fromObject(ss);
+		        
+		        for (int i = 0; i < jarr.size(); i++) {
+		        	JSONObject jobj = jarr.getJSONObject(i);
+					ElectricHistory history =(ElectricHistory) JSONObject.toBean(jobj,ElectricHistory.class);
+					ObjectAccess.saveOrUpdate(history);
+				}
+		        System.out.println("违章系统，违章记录信息同步成功！共同步"+jarr.size()+"条数据、");
+		        Synrecord syn = new Synrecord();
+	        	syn.setType("违章记录信息");
+	        	syn.setSynCount(jarr.size());
+	        	syn.setSynTime(new Date());
+	        	syn.setSynDetail("同步成功");
+	        	ObjectAccess.saveOrUpdate(syn);
+			}
+		} catch (HttpException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e){
+			Synrecord syn = new Synrecord();
+        	syn.setType("违章记录信息");
+        	syn.setSynCount(0);
+        	syn.setSynTime(new Date());
+        	syn.setSynDetail(e.getMessage());
+        	ObjectAccess.saveOrUpdate(syn);
+		}
+		
+	}
 }

@@ -102,6 +102,10 @@ public class BankCardAction extends ActionSupport implements ServletRequestAware
 			currentPage = 1;
 		}
 		
+		if(bankCard==null){
+			bankCard = new BankCard();
+		}
+		
 		String hql = "from BankCard where 1=1 ";
 		
 		if (!StringUtils.isEmpty(dept)&&!dept.startsWith("all")) {
@@ -132,7 +136,7 @@ public class BankCardAction extends ActionSupport implements ServletRequestAware
         
         long count = (long)query2.uniqueResult();
         
-        Page page = PageUtil.createPage(PageUtil.PAGE_SIZE, (int)count, currentPage);
+        Page page = PageUtil.createPage(30, (int)count, currentPage);
         
         query.setFirstResult(page.getBeginIndex());
 		query.setMaxResults(page.getEveryPage());

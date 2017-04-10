@@ -20,6 +20,7 @@ public class StringResult extends StrutsResultSupport {
 	protected void doExecute(String arg0, ActionInvocation arg1)
 			throws Exception {
 		res = ServletActionContext.getResponse();
+		res.setContentType("text/plain");
 		res.setCharacterEncoding("utf-8");
 		String ajax_message = (String)arg1.getStack().findValue("ajax_message");
 		PrintWriter pw = res.getWriter();

@@ -1,5 +1,7 @@
 package com.dz.module.charge;
 
+import java.util.Date;
+
 /**
  * @author doggy
  *         Created on 15-11-20.
@@ -7,5 +9,5 @@ package com.dz.module.charge;
 
 public interface BankFileDao {
     boolean isFileImported(String md5);
-    boolean importFile(String md5);
+    int importFile(String md5, Date date);
 }

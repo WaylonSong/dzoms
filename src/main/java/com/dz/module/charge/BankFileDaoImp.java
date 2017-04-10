@@ -1,6 +1,9 @@
 package com.dz.module.charge;
 
+import java.util.Date;
+
 import com.dz.common.factory.HibernateSessionFactory;
+
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -27,20 +30,22 @@ public class BankFileDaoImp implements BankFileDao{
     }
 
     @Override
-    public boolean importFile(String md5) {
+    public int importFile(String md5,Date insertMonth) {
         Session session = null;
         Transaction trans = null;
         try{
             session = HibernateSessionFactory.getSession();
             trans = session.beginTransaction();
             BankFile bf = new BankFile();
+            bf.setInsertMonth(insertMonth);
+            bf.setInsertTime(new Date());
             bf.setMd5(md5);
             session.save(bf);
             trans.commit();
-            return true;
+            return bf.getId();
         }catch (Exception e){
             trans.rollback();
-            return false;
+            return -1;
         }finally {
             HibernateSessionFactory.closeSession();
         }

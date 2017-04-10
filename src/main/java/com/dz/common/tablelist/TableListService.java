@@ -1,5 +1,7 @@
 package com.dz.common.tablelist;
 
+import net.sf.json.JSONObject;
+
 import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -73,6 +75,11 @@ public class TableListService{
 		List<String> ls = tls.getFathersValue(id);
 		String str = ls.toString();
 		return str.substring(1, str.length()-1);
+	}
+	
+	public static String getValueOfJson(String jsonStr,String key){
+		JSONObject json = JSONObject.fromObject(jsonStr);
+		return json.getString(key);
 	}
 	
 	public ListValue getListValue(int id){

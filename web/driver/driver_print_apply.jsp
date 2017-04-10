@@ -10,7 +10,7 @@
 <script>
 $(document).ready(function(){
 	window.print();
-    setTimeout("window.close();",1000);
+	setTimeout("window.close();",1000);
 });
 </script>
 </head>
@@ -18,7 +18,7 @@ $(document).ready(function(){
 .table-d table{border:1px solid;border-collapse: collapse}
 .table-d table td{border:1px solid ;}
   p{margin:0px}
-  td{height:46px;}
+  td{height:45px;}
   
 </style>
 <body style="font-size:18px;">
@@ -29,7 +29,7 @@ $(document).ready(function(){
 <h1 align="center">聘用出租车驾驶员申请表</h1>
  <table width="100%" border="1" align="center" cellpadding="0" cellspacing="0"> 
   <tr >
-    <td colspan="2" style="border:0px">部门：</td>
+    <td colspan="2" style="border:0px">部门：<s:property value="%{driver.dept}"/></td>
     <td colspan="2" style="border:0px"><div align="right">申请日期：<%=year%>年<%=month%>月<%=day%>日</div></td>
     </tr>
   <tr>
@@ -105,7 +105,7 @@ $(document).ready(function(){
       <p>
      新包车<s:if test="driver.applyMatter=='新包车'"> <span style="font-size: 22px;">☑</span></s:if><s:else> <span style="font-size: 22px;">□</span></s:else>&nbsp;&nbsp;
        转租<s:if test="driver.applyMatter=='转租'"> <span style="font-size: 22px;">☑</span></s:if><s:else> <span style="font-size: 22px;">□</span></s:else>&nbsp;&nbsp;
-	驾驶员<s:if test="driver.applyMatter=='驾驶员'"> <span style="font-size: 22px;">☑</span></s:if><s:else> <span style="font-size: 22px;">□</span></s:else>&nbsp;&nbsp;
+	驾驶员<s:if test="driver.applyMatter=='驾驶员'||driver.applyMatter=='临驾'"> <span style="font-size: 22px;">☑</span></s:if><s:else> <span style="font-size: 22px;">□</span></s:else>&nbsp;&nbsp;
       </p>
     </div></td>
     </tr>
@@ -121,7 +121,7 @@ $(document).ready(function(){
         副驾
        <span style="font-size: 22px;"> □</span>
 临时 
-<span style="font-size: 22px;">□</span>
+<span style="font-size: 22px;"><s:if test="driver.applyMatter=='临驾'">☑</s:if><s:else>□</s:else></span>
       </p>
     </div></td>
     </tr>
@@ -186,7 +186,7 @@ $(document).ready(function(){
       </p>
     </div></td>
   </tr>
-  <tr style="height: 300px;">
+  <tr style="height: 260px;">
     <td><div align="center">
       <p>&nbsp;</p>
       <p>家庭成员</p>
@@ -261,7 +261,7 @@ $(document).ready(function(){
     </div></td>
     <td colspan="3">&nbsp;</td>
     </tr>
-  <tr style="height: 150px;">
+  <tr style="height: 100px;">
     <td><div align="center">
       <p>&nbsp;</p>
       <p>分部经理意见</p>

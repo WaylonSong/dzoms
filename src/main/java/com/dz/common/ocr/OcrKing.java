@@ -19,29 +19,36 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 public class OcrKing {
-
-	public static void main(String[] args) {
+	final static String apiKeys[]={
+		"27f1a47f860b19d55fx3OtrTTIGKyQApk1GxBQ3ml54K9vhYr1GxS26DSEB6vg6ecm5haKqK8ZrQ",
+		"005e5859fe4351c3deJntwBz396GLoFuXwinlfVlLFkb3qjBvo1Is8wzTeK6r0W7TArhFktuPXCg",
+		"5d9f4b66f7d8978e78ZnRQM34iDIEBSwIFyTOtgUbuISiFDLU3xIffT2keqRfpCOGQ42jDAovrOFH7UvPEEv5W"};
+	
+	public static void main(String[] args) throws Exception {
 		// the url below can not be changed !!
 		//url=&service=OcrKingForCaptcha&language=eng&charset=7&apiKey=你的key
-		String filePath="C:\\Users\\Xiaoyao\\Desktop\\项目\\电子违章\\yzm\\yzm.exp-006.tif";	
+		String filePath="E:\\result\\Test\\yzm0.jpg";	
 		String ret = ocr(filePath);
 		System.out.println(ret);
 	}
+	
+	private static int count=0;
 
-	public static String ocr(String filePath) {
+	public static String ocr(String filePath) throws OcrTimesOutOfStackException {
 		String apiUrl = "http://lab.ocrking.com/ok.html";
-		String apiKey = "27f1a47f860b19d55fx3OtrTTIGKyQApk1GxBQ3ml54K9vhYr1GxS26DSEB6vg6ecm5haKqK8ZrQ";
+		String apiKey = apiKeys[count++%3];
 
 		Map<String, String> dataMap = new HashMap<String, String>();
 
 		// you need to modify parameters according to OcrKing Api Document 
 		dataMap.put("service", "OcrKingForCaptcha");
 		dataMap.put("language", "eng");
-		dataMap.put("charset", "5");
+		dataMap.put("charset", "7");
 		// 如果不传递原始url到type或乱传一个地址到type 结果很可能就是错的
 		// 如果想禁止后台做任何预处理  type可以设为 http://www.nopreprocess.com
 		// 如果确实不确定验证码图片的原url  type可以设为 http://www.unknown.com  此时后台只进行常用预处理
@@ -53,7 +60,7 @@ public class OcrKing {
 		fileMap.put("ocrfile", filePath);
 		String ret = postMultipart(apiUrl, dataMap, fileMap);
 		
-		//System.out.println(ret);
+		System.out.println("OcrKing.ocr(),line 56,result:"+ret);
 		
 		String result = null;
 		
@@ -67,6 +74,15 @@ public class OcrKing {
 			if(nl.getLength()>0){
 				result = nl.item(0).getTextContent();
 			}
+			NodeList nl2 = document.getElementsByTagName("Status");
+			if(nl2.getLength()>0){
+				String status = nl2.item(0).getTextContent();
+				if(StringUtils.equals(status, "false")){
+					throw new OcrTimesOutOfStackException(result);
+				}
+			}
+			
+			
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -101,6 +117,7 @@ public class OcrKing {
 					conn.setDoInput(true);
 					conn.setUseCaches(false);
 					conn.setRequestMethod("POST");
+					conn.setRequestProperty("Accept-Charset", "UTF-8");
 					conn.setRequestProperty("Connection", "Keep-Alive");
 					conn.setRequestProperty("Referer", "http://lab.ocrking.com/?javaclient0.1)");
 					conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 5.1; zh-CN; rv:1.9.1.3) Gecko/20100101 Firefox/8.0");

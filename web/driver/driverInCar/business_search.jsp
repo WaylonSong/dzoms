@@ -30,11 +30,18 @@
 
 <script>
 $(document).ready(function(){
-			$("#search_form").find("input,select").change(function(){
+			$("#search_form").find("select").change(function(){
 				$("#search_form").submit();
 			});
 			
 			$("#search_form").submit();
+			
+			$("[name='idNum']").bigAutocomplete({
+				url:"/DZOMS/select/driverById",
+				callback:function(){
+					$("#search_form").submit();
+				}
+			});
 		});
 		
 		function resetName(select){
@@ -62,34 +69,62 @@ $(document).ready(function(){
 	 <div class="panel  margin-small" >
           	<div class="panel-head">
           		查询条件
-          		
-          	
-          		
           	</div>
           	  <div class="panel-body">
-          	  	<form method="post" style="width: 100%;" class="definewidth m20" id="search_form" action="/DZOMS/driver/driverInCar/searchLicense" target="result_form">
-			<table class="table">
-				<tr>
-					<td class="tableleft" style="border-top: 0px;">身份证号</td>
-                    <td style="border-top: 0px;"><input type="text" name="idNum" class="input"/></td>
-                    
-					<td class="tableleft" style="border-top: 0px;">是否在车</td>
-					<td style="border-top: 0px;"> 
-						<select onchange="resetName(this)">
+          	  	<form method="post" style="width: 100%;" class="definewidth m20 form-inline" id="search_form" action="/DZOMS/driver/driverInCar/searchLicense" target="result_form">
+			<div class="form-group padding">
+				<div class="label">
+					<label>姓名</label>
+				</div>
+				<div class="field">
+					<input type="text" class="input input-auto" size="20" name="name"/>
+				</div>
+			</div>
+			<div class="form-group padding">
+				<div class="label">
+					<label>身份证号</label>
+				</div>
+				<div class="field">
+					<input type="text" class="input input-auto" size="20" name="idNum"/>
+				</div>
+			</div>
+			<div class="form-group padding">
+				<div class="label">
+					<label>是否在车</label>
+				</div>
+				<div class="field">
+					<select onchange="resetName(this)" class="input">
 							<option value="null">全部</option>
 							<option value="true">是</option>
 							<option value="false">否</option>
 						</select>
-					</td>
-					
-                    <td class="tableleft" style="border-top: 0px;">开始日期</td>
-                    <td style="border-top: 0px;"><input type="text" name="beginDate" class="datetimepicker input"/></td>
-                    
-                    <td class="tableleft" style="border-top: 0px;">结束日期</td>
-                    <td style="border-top: 0px;"><input type="text" name="endDate" class="datetimepicker input"/></td>
-<!--                    <td colspan="2"><input type="button" value="查询" onclick="search()"></td>
--->				</tr>
-			</table>
+				</div>
+			</div>
+			
+			<div class="form-group padding">
+							<div class="label"><label>部门</label></div>
+							<div class="field">
+							<select name="driver.dept" class="input">
+          		      	 		<option value="all">全部</option>
+          		      	 		<option value="一部">一部</option>
+          		      	 		<option value="二部">二部</option>
+          		      	 		<option value="三部">三部</option>
+          		      	 	</select>
+							</div>
+						</div>
+          		 
+          		        <div class="form-group padding">
+          		      	 <div class="label">
+          		      	 	 <label>车牌号</label>
+          		      	 </div>
+          		      	 <div class="field">
+          		      	 	<input type="text"  name="licenseNum" class="input" value="黑A"/>
+          		      	 </div>
+          		       </div>
+          		       
+          	<div class="form-group padding">
+          		<input type="submit" value="查询" />
+          		</div>
 		</form>
           	  </div>
    </div>
@@ -97,7 +132,7 @@ $(document).ready(function(){
 </div>
 		
 <div>
-    <iframe name="result_form" width="100%" height="800px" id="result_form" scrolling="no">
+    <iframe name="result_form" width="100%" height="1800px" id="result_form" scrolling="no">
 
     </iframe>
 

@@ -1,6 +1,7 @@
 <%@page import="com.dz.common.other.ObjectAccess"%>
 <%@page import="com.dz.module.vehicle.Vehicle"%>
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";

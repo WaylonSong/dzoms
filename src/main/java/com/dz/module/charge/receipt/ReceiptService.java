@@ -38,7 +38,7 @@ public class ReceiptService {
     }
     public boolean addRecord(ReceiptRecord receiptRecord){
         if("进货".equals(receiptRecord.getStyle())){
-            if(!rollDao.addFromSeg(receiptRecord.getStartNum(),receiptRecord.getEndNum()))
+            if(!rollDao.addFromSeg(receiptRecord.getStartNum(),receiptRecord.getEndNum(),new Date().getYear()+1900))
                 return false;
             else{
                 receiptRecord.setStorage(rollDao.getStorage());
@@ -76,8 +76,8 @@ public class ReceiptService {
     public boolean validateIn(int start,int end){
         return rollDao.isValidForIn(start,end);
     }
-    public boolean validateSoled(int start,int end){
-        return rollDao.isValidForSold(start, end);
+    public boolean validateSoled(int start,int end,int year){
+        return rollDao.isValidForSold(start, end,year);
     }
     public boolean outRemove(int id,int startNum,int endNum,String reason){
         removeRecordDao.addOne(transfer(receiptDao.getRecord(id),reason));

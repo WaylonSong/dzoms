@@ -55,6 +55,9 @@ public class Contract implements java.io.Serializable {
 	private String photoGuarantor;
 	private Date abandonedTime;
 	private Date abandonedFinalTime;
+	@Temporal(TemporalType.DATE)
+	@Column
+	private Date abandonedChargeTime;
 	private String abandonReason;
 	private String abandonRequest;
 	private String abandonedUser;
@@ -513,5 +516,13 @@ public class Contract implements java.io.Serializable {
 
 	public void setPlanList(String planList) {
 		this.planList = planList;
+	}
+
+	public Date getAbandonedChargeTime() {
+		return abandonedChargeTime;
+	}
+
+	public void setAbandonedChargeTime(Date abandonedChargeTime) {
+		this.abandonedChargeTime = abandonedChargeTime;
 	}
 }

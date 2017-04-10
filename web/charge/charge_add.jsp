@@ -16,7 +16,7 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="renderer" content="webkit">
-  <title>测试</title>
+  <title>单车收款</title>
   <link rel="stylesheet" href="/DZOMS/res/css/pintuer.css"/>
   <link rel="stylesheet" type="text/css" href="/DZOMS/res/css/jquery.datetimepicker.css"/>
 
@@ -122,6 +122,10 @@ function setDept(){
       });
     });
   }
+  
+  if ($("#time").val().length!=0) {
+  	showAll();
+  }
 }
     $(document).ready(function (){
       showAll();
@@ -143,6 +147,9 @@ function setDept(){
           $("#currentMonth3").html("<strong>"+"三部:"+"</strong>"+data["ItemTool"]);
         });
       });
+      function carFocus(){
+      	$("#licenseNum").val("黑A");
+      }
   </script>
     <style>
         .label{
@@ -180,7 +187,7 @@ function setDept(){
                         </label>
                     </div>
                     <div class="field">
-                        <s:textfield value="黑A%{licenseNum}" cssClass="input"   name="licenseNum" placeholder="车牌号" id="licenseNum" onblur="setDept();"/>
+                        <s:textfield value="%{licenseNum}" cssClass="input"   name="licenseNum" placeholder="车牌号" id="licenseNum" onblur="setDept();" onfocus="carFocus()"/>
                     </div>
                 </div>
 
@@ -192,7 +199,7 @@ function setDept(){
                         </label>
                     </div>
                     <div class="field">
-                        <s:textfield value="%{chargePlan.getTime()}" cssClass="input datetimepicker"  name="chargePlan.time"  id="time" onblur="showAll();"/>
+                        <s:textfield value="%{chargePlan.getTime()}" cssClass="input datetimepicker"  name="chargePlan.time"  id="time" onblur="showAll();" onchange="showAll();"/>
                     </div>
                 </div>
 
@@ -298,7 +305,7 @@ function setDept(){
        
 		</div>
 		<div class="tab-panel" id="tab-css2">
-		  <form id="form1" action="/DZOMS/charge/getACarAndAMonthCheckTable" method="post" target="records_show">
+<form id="form1" action="/DZOMS/charge/getACarAndAMonthCheckTable" method="post" target="records_show">
     <input type="hidden" name="licenseNum" id="show_licenseNum">
     <input type="hidden" name="time" id="show_time" >
 </form>

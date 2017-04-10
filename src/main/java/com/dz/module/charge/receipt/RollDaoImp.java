@@ -1,6 +1,9 @@
 package com.dz.module.charge.receipt;
 
+import java.util.Date;
+
 import com.dz.common.factory.HibernateSessionFactory;
+
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -13,7 +16,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RollDaoImp implements RollDao {
     @Override
-    public boolean addFromSeg(int startNum, int endNum) {
+    public boolean addFromSeg(int startNum, int endNum,int year) {
         Session session = HibernateSessionFactory.getSession();
         Transaction trans = session.beginTransaction();
         try{
@@ -24,6 +27,7 @@ public class RollDaoImp implements RollDao {
                 roll.setSolded(0);
                 roll.setStartNum(start);
                 roll.setEndNum(end);
+                roll.setYear(year);
                 start += 100;
                 end += 100;
                 session.save(roll);
@@ -97,9 +101,10 @@ public class RollDaoImp implements RollDao {
         Session session = HibernateSessionFactory.getSession();
         Transaction trans = session.beginTransaction();
         try{
-            Query query = session.createQuery("select count(*) from Roll where ( startNum between :start and :end) or (endNum between :start and :end)");
+            Query query = session.createQuery("select count(*) from Roll where year=:year and ( startNum between :start and :end) or (endNum between :start and :end)");
             query.setLong("start",startNum);
             query.setLong("end",endNum);
+            query.setInteger("year", new Date().getYear()+1900);
             long x = (Long)query.uniqueResult();
             System.out.println(x);
             if(x == 0){
@@ -137,13 +142,14 @@ public class RollDaoImp implements RollDao {
     }
 
     @Override
-    public boolean isValidForSold(int startNum, int endNum) {
+    public boolean isValidForSold(int startNum, int endNum,int year) {
         Session session = HibernateSessionFactory.getSession();
         Transaction trans = session.beginTransaction();
         try{
-            Query query = session.createQuery("select count(*) from Roll where(startNum between :start and :end) and (endNum between :start and :end) and solded = 0");
+            Query query = session.createQuery("select count(*) from Roll where year=:year and (startNum between :start and :end) and (endNum between :start and :end) and solded = 0");
             query.setLong("start",startNum);
             query.setLong("end", endNum);
+            query.setInteger("year", year);
             long x = (Long)query.uniqueResult();
             if(x == (endNum-startNum+1)/100){
                 return true;

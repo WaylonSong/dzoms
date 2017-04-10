@@ -29,6 +29,14 @@ public class BankCardDaoImpl implements BankCardDao {
 			session = HibernateSessionFactory.getSession();
 			tx = (Transaction) session.beginTransaction();
 			
+			String hql = "from BankCard where cardNumber=:cid and carNum in (select carframeNum from Vehicle where state!=1) ";
+			Query query = session.createQuery(hql);
+			query.setString("cid", card.getCardNumber());
+			List<BankCard> list = query.list();
+			if(list!=null)
+				for(BankCard cd : list)
+					session.delete(cd);
+			
 			session.save(card);
 			tx.commit();
 			flag = true;
@@ -36,6 +44,7 @@ public class BankCardDaoImpl implements BankCardDao {
 			if (tx != null) {
 				tx.rollback();
 			}
+			e.printStackTrace();
 			throw e;
 		} finally {			
 			HibernateSessionFactory.closeSession();
@@ -210,6 +219,50 @@ public class BankCardDaoImpl implements BankCardDao {
 			HibernateSessionFactory.closeSession();
 			if(bankCards == null || bankCards.size()==0) return null;
 		}
+		return bankCards.get(0);
+	}
+
+	@Override
+	public BankCard getBankCardForPayByDriverIdWithoutCloseSession(
+			String driverId, String carNum) {
+		List<BankCard> bankCards = null;
+		Session session;
+		Query query;
+		
+		if(StringUtils.isEmpty(carNum)){
+			bankCards = Arrays.asList();
+		}else{
+			session = HibernateSessionFactory.getSession();
+			query = session.createQuery("from BankCard where idNumber=:driverId and carNum=:carNum");
+			query.setString("driverId", driverId);
+			query.setString("carNum", carNum);
+			bankCards = query.list();
+		}
+
+		if(bankCards.size()>0){
+			for (BankCard bankCard : bankCards) {
+				if(bankCard.getIsDefaultPay())
+					return bankCard;
+			}
+			return bankCards.get(0);
+		}
+		
+		{
+			session = HibernateSessionFactory.getSession();
+			query = session.createQuery("from BankCard where carNum=:carNum");
+			query.setString("carNum", carNum);
+			bankCards = query.list();
+			if(bankCards == null || bankCards.size()==0) return null;
+		}
+
+//		{
+//			session = HibernateSessionFactory.getSession();
+//			query = session.createQuery("from BankCard where idNumber=:driverId and isDefaultPay=true");
+//			query.setString("driverId", driverId);
+//			bankCards = query.list();
+//			HibernateSessionFactory.closeSession();
+//			if(bankCards == null || bankCards.size()==0) return null;
+//		}
 		return bankCards.get(0);
 	}
 }

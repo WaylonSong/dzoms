@@ -39,8 +39,10 @@ import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -117,104 +119,105 @@ public class ContractAction extends BaseAction {
 		String planList = request.getParameter("planList");
 		contract.setPlanList(planList);
 
-		boolean flag = contractService.contractWrite(contract);
-		if(!flag){
-			return ERROR;
-		}
-		contractService.changeState(contract,0);
-
-
-		Vehicle vehicle = new Vehicle();
-		vehicle.setCarframeNum(contract.getCarframeNum());
-
-		vehicle = vehicleService.selectById(vehicle);
-		vehicle.setState(1);
-
-		vehicle.setDriverId(contract.getIdNum());
-
-		flag &= vehicleService.updateVehicle(vehicle);
-
-		int y = 0;
-		int m = 0;
-		Date contractBeginDate = contract.getContractBeginDate();
-		Calendar contractBeginDate_calendar = Calendar.getInstance();
-		contractBeginDate_calendar.setTime(contractBeginDate);
-		y = contractBeginDate_calendar.get(Calendar.YEAR);
-		m = contractBeginDate.getMonth();
-
-		if(contractBeginDate.getDate()>26){
-			if(m==11){
-				y++;
-				m=0;
-			}else{
-				m++;
+		Session hsession = HibernateSessionFactory.getSession();
+		Transaction tx = null;
+		
+		try{
+			tx=hsession.beginTransaction();
+			
+//			hsession.save(contract);
+			
+			contract.setState((short)0);
+			Vehicle vehicle = (Vehicle) hsession.get(Vehicle.class, contract.getCarframeNum());
+			if(vehicle!=null){
+				vehicle.setState(1);
+				vehicle.setDriverId(contract.getIdNum());
+				hsession.update(vehicle);
 			}
-		}
-		/**原车剩余的当月费用处理*/
-		Contract contract_old = ObjectAccess.getObject(Contract.class,contract.getContractFrom());
-		chargeService.addAndDiv(contract_old.getId(),contract.getContractBeginDate());
-		chargeService.setCleared(contract_old.getId(), DateUtil.getNextMonth(contract.getContractBeginDate()));
+			hsession.update(contract);
+			
+			int y = 0;
+			int m = 0;
+			Date contractBeginDate = contract.getContractBeginDate();
+			Calendar contractBeginDate_calendar = Calendar.getInstance();
+			contractBeginDate_calendar.setTime(contractBeginDate);
+			y = contractBeginDate_calendar.get(Calendar.YEAR);
+			m = contractBeginDate.getMonth();
 
-		User user  = (User) session.getAttribute("user");
-		for(int i=0 ;i<jarray.size();i++){
-			ChargePlan chargePlan = new ChargePlan();
-			chargePlan.setFeeType("plan_base_contract");
-			chargePlan.setIsClear(false);
-			chargePlan.setRegister(user.getUname());
-			chargePlan.setContractId(contract.getId());
-			chargePlan.setFee(BigDecimal.valueOf(Double.parseDouble(jarray.get(i).toString())));
-			if(m>=12){
-				y++;
-				m=0;
+			if(contractBeginDate.getDate()>26){
+				if(m==11){
+					y++;
+					m=0;
+				}else{
+					m++;
+				}
 			}
+			
+			/**原车剩余的当月费用处理*/
+			Contract contract_old = (Contract) hsession.get(Contract.class,contract.getContractFrom());
+			
+			Calendar oldEndDate = Calendar.getInstance();
+			oldEndDate.setTime(contractBeginDate);
+			oldEndDate.add(Calendar.DATE, -1);
+			contract_old.setAbandonedFinalTime(oldEndDate.getTime());
+			
+			chargeService.addAndDiv(contract_old.getId(),contract.getContractBeginDate(),hsession);
+			chargeService.setCleared(contract_old.getId(), contract.getContractBeginDate(),hsession);
+			
+			hsession.update(contract_old);
+			
+			User user  = (User) session.getAttribute("user");
+			
 			Calendar calendar = Calendar.getInstance();
 			calendar.set(y, m, 1);
-			chargePlan.setTime(calendar.getTime());
-			m++;
-			if(i == 0){
+			
+			//首月计算 计入原合同中
+			if(jarray.size()>0)
+			{
+				ChargePlan chargePlan = new ChargePlan();
+				chargePlan.setFeeType("plan_base_contract");
+				chargePlan.setIsClear(false);
+				chargePlan.setRegister(user.getUname());
 				chargePlan.setContractId(contract_old.getId());
+				chargePlan.setFee(BigDecimal.valueOf(Double.parseDouble(jarray.get(0).toString())));
+				
+				chargePlan.setTime(calendar.getTime());
+				
+				calendar.add(Calendar.MONTH, 1);
+				
+//				chargeService.addChargePlan(chargePlan,hsession);
+		        hsession.save(chargePlan);
 			}
-			flag &= chargeService.addChargePlan(chargePlan);
-
-		}
-
-
-		if(!flag){
-			contractService.changeState(contract,3);
+			
+			for(int i=1 ;i<jarray.size();i++){
+				ChargePlan chargePlan = new ChargePlan();
+				chargePlan.setFeeType("plan_base_contract");
+				chargePlan.setIsClear(false);
+				chargePlan.setRegister(user.getUname());
+				chargePlan.setContractId(contract.getId());
+				chargePlan.setFee(BigDecimal.valueOf(Double.parseDouble(jarray.get(i).toString())));
+				
+				chargePlan.setTime(calendar.getTime());
+				
+				calendar.add(Calendar.MONTH, 1);
+				
+//				chargeService.addChargePlan(chargePlan,hsession);
+		        hsession.save(chargePlan);
+			}
+			
+			Query q_move = hsession.createQuery("update ChargePlan set contractId=:nid where contractId=:oid and isClear=false");
+			q_move.setInteger("nid", contract.getId());
+			q_move.setInteger("oid", contract_old.getId());
+			q_move.executeUpdate();
+			
+			tx.commit();
+		}catch(HibernateException ex){
+			ex.printStackTrace();
+			if(tx!=null)
+				tx.rollback();
 			return ERROR;
-		}
-
-		if(contract.getContractFrom()==null){
-			//自动导入或新车开业   需生成 首付摊销
-			try{
-				int rentFirst_Month = Integer.parseInt(request.getParameter("rentFirst_Month"));
-
-				BigDecimal rentFirst_MonthEach = BigDecimal.valueOf(Double.parseDouble( request.getParameter("rentFirst_MonthEach")));
-				for(int i=0;i<rentFirst_Month;i++){
-					y = contractBeginDate_calendar.get(Calendar.YEAR);
-					m = contractBeginDate.getMonth();
-
-					RentFirstDivide divide = new RentFirstDivide();
-					divide.setCarframeNum(vehicle.getCarframeNum());
-					divide.setMoney(rentFirst_MonthEach);
-					divide.setRegister(user.getUid());
-					divide.setRegTime(new Date());
-
-					if(m>=12){
-						y++;
-						m=0;
-					}
-					Calendar calendar = Calendar.getInstance();
-					calendar.set(y, m, 1);
-					divide.setMonth(calendar.getTime());
-
-					contractService.addRentFirstDivide(divide);
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-				contractService.changeState(contract,3);
-				return ERROR;
-			}
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
 
 		return SUCCESS;

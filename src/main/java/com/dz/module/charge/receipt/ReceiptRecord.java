@@ -49,6 +49,8 @@ public class ReceiptRecord implements Comparable<ReceiptRecord>{
     private String recorder;
     @Temporal(TemporalType.TIMESTAMP)
     private Date recordTime;
+    
+    private int year;
 
     public int getId() {
         return id;
@@ -210,4 +212,12 @@ public class ReceiptRecord implements Comparable<ReceiptRecord>{
             return -1;
 
     }
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
 }

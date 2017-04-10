@@ -209,7 +209,7 @@ Page pg = (Page)request.getAttribute("page");
 
     </div>
     </div>
-     <div class="line">
+     <div class="line" style="display: none;">
    	<div class="panel  margin-small" >
           	<div class="panel-head">
           		显示项

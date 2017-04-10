@@ -19,16 +19,16 @@ public class EYzmDownload {
 			public void run() {
 				// TODO Auto-generated method stub
 				HttpClient httpClient = new HttpClient();
-				GetMethod httpGet = new GetMethod("http://www.hljjj.gov.cn:8081/Home/Yzm");
+				GetMethod httpGet = new GetMethod("http://hl.122.gov.cn/captcha1");
 				for (int i = 0; i < 100; i++)
 				try {
-					httpGet.setQueryString(URIUtil.encodeQuery("time="+new Date().getTime()));
+					httpGet.setQueryString(URIUtil.encodeQuery("nocache="+new Date().getTime()));
 					System.out.println("获取验证码......");
 				    int result = httpClient.executeMethod(httpGet);
 				    System.out.println("Response status code: " + result);
 				        
 				    InputStream input = httpGet.getResponseBodyAsStream();
-				    File yzmFile = new File("C:\\Users\\Xiaoyao\\Desktop\\项目\\电子违章\\yzm"+i
+				    File yzmFile = new File("E:\\result\\Test\\yzm"+i
 				    		+ ".jpg");
 				    yzmFile.createNewFile();
 				    FileUtils.copyInputStreamToFile(input, yzmFile);

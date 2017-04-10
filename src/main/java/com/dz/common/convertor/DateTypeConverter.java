@@ -10,16 +10,20 @@ import java.util.Map;
 
 public class DateTypeConverter extends StrutsTypeConverter {
 	public  SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+	public  SimpleDateFormat dateFormat0 = new SimpleDateFormat("yyyy-MM-dd");
 	public  SimpleDateFormat dateFormat1 = new SimpleDateFormat("yyyy/MM");
 	public  SimpleDateFormat dateFormat2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	public  SimpleDateFormat dateFormat20 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public  SimpleDateFormat dateFormat3 = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 	public  SimpleDateFormat dateFormat4 = new SimpleDateFormat("HH:mm");
 	public  SimpleDateFormat dateFormat5 = new SimpleDateFormat("MM/dd");
 	public  SimpleDateFormat dateFormat6 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 
 	final static String pattern =  "^\\d{4}(\\/)\\d{1,2}\\/\\d{1,2}$";
+	final static String pattern0 =  "^\\d{4}(\\-)\\d{1,2}\\-\\d{1,2}$";
 	final static String pattern1 =  "^\\d{4}(\\/)\\d{1,2}$";
 	final static String pattern2 =  "^\\d{4}(\\/)\\d{1,2}\\/\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}$";
+	final static String pattern20 =  "^\\d{4}(\\-)\\d{1,2}\\-\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}$";
 	final static String pattern3 =  "^\\d{4}(\\/)\\d{1,2}\\/\\d{1,2}\\s+\\d{2}:\\d{2}$";
 	final static String pattern4 =  "^\\d{2}:\\d{2}$";
 	final static String pattern5 =  "^\\d{1,2}\\/\\d{1,2}$";
@@ -38,11 +42,16 @@ public class DateTypeConverter extends StrutsTypeConverter {
 			if(str.matches(pattern)){
 				date =  dateFormat.parse(str); 
 			}
+			if(str.matches(pattern0)){
+				date =  dateFormat0.parse(str); 
+			}
 				
 			if(str.matches(pattern1))
 				date =   dateFormat1.parse(str); 
 			if(str.matches(pattern2))
 				date =   dateFormat2.parse(str); 
+			if(str.matches(pattern20))
+				date =   dateFormat20.parse(str); 
 			if(str.matches(pattern3))
 				date =   dateFormat3.parse(str); 
 			if(str.matches(pattern4))
@@ -74,7 +83,7 @@ public class DateTypeConverter extends StrutsTypeConverter {
 	
 	public static void main(String[] args) {
 		DateTypeConverter convert = new DateTypeConverter();
-		String sdate="2014/8/12";
+		String sdate="2014-8-12";
 		System.out.println(convert.convertFromString(null, new String[]{sdate}, null));
 		
 		Date date = new Date();

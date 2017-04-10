@@ -32,6 +32,9 @@
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 <script src="/DZOMS/res/layer-v2.1/layer/layer.js"></script>
 <script src="/DZOMS/res/js/window.js"></script>
+
+<link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
+<script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
 <script>
 	function addface(){
             var photo='<img  width="128" height="128" class="img-border radius-big" id="photo" />'
@@ -74,7 +77,32 @@
         	document.businessApply.action = "/DZOMS/driver/driverInCar/businessApplyCancelSelect2";
         	document.businessApply.submit();
         }
-        
+$(document).ready(function(){
+
+$("[name='vehicle.licenseNum']").bigAutocomplete({
+	url:"/DZOMS/select/vehicleByLicenseNum",
+	condition:" carframeNum not in (select carframeNum from Driverincar where finished=false and operation='证照注销') ",
+	callback:function(){
+		refresh();
+	}
+});
+});
+
+$(document).ready(function(){
+	var licenseNum = $('[name="vehicle.licenseNum"]').val();
+	if (licenseNum.length==0) {
+		$('[name="vehicle.licenseNum"]').val("黑A");
+	}else{
+		var condition1 = "select d.name from Driver d,Vehicle v where d.idNum = v.driverId and v.licenseNum ='" + licenseNum + "'";
+	
+		$.post("/DZOMS/common/doit",{"condition":condition1},function(data){
+			if (data!=undefined&&data["affect"]!=undefined) {
+				var name = data["affect"];
+				$("#vehicleOwner").val(name);
+			}
+		});
+	}
+});
     </script>
  <style>
         .label{
@@ -109,19 +137,34 @@
 	    <div class="panel-body">
 	    	<div class="xm2">
 	    		        <div class="padding">
-        	<img src="/DZOMS/data/driver/<s:property value="driver.idNum"/>/photo.jpg" class="radius img-responsive" height="200px"></img>
-        	<strong>人车照片</strong>
-        	<div>
-        		<img src="/DZOMS/data/driver/<s:property value="driver.idNum"/>/driver_vehicle_photo.jpg" class="radius img-responsive" id="headimg" ></img>
-        	</div>
-            <br/>
-            <div class="container">
-                <a class="button input-file bg-green input-file1">
-                    装入<input type="file" onchange="loadpicture(this.files)" id="oldimg">
-                </a>
-                <a class="button input-file delebutton1" data-width="50%" data-mask="1">清空</a>
-            </div>
-        </div>
+					    	<!--<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('data/driver/'+#driver.idNum+'/photo.jpg')=true}">
+					    	    <img src="/DZOMS/data/driver/<s:property value="driver.idNum"/>/photo.jpg" class="radius img-responsive" style="width: 150px;height: 150px;">
+					    	</s:if>
+					    	<s:else>
+					    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" style="width: 150px;height:150px;">
+					    	</s:else>-->
+					    	<strong>驾驶员照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+driver.idNum+'/photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{driver.idNum}'/>/photo.jpg" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:else>
+				        		
+				        	</div>
+				            
+				        	<strong style="display:none">人车照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+driver.idNum+'/drive_vehicle_photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{driver.idNum}'/>/drive_vehicle_photo.jpg" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;display:none;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;display:none;">
+    	</s:else>
+				        	</div>
+				            
+		                 </div>
 	    		
 	    	</div>
 	    	<div class="xm8">
@@ -133,35 +176,11 @@
                     </label>
                 </div>
                 <div class="field" >
+                	<s:textfield name="vehicle.licenseNum" cssClass="input"/>
                 	<s:hidden name="driver.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
                 	<s:hidden name="vehicle.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
-                <s:if test="%{vehicle.licenseNum!=null}">
-                	<s:textfield name="vehicle.licenseNum" cssClass="input"/>
-                	
-                </s:if>
-                <s:else>
-                <%! List<String> vmstr; %>
-				<%  
-					ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());    
-  					VehicleService vms = ctx.getBean(VehicleService.class);
-  					
-  					List<Vehicle> vml = vms.selectAll();
-  					
-					vmstr = (List<String>)CollectionUtils.collect(vml, new Transformer(){
-  						@Override
-  						public Object transform(Object obj) {
-               				Vehicle vm = (Vehicle) obj;
-                			return vm.getLicenseNum();
-           				}
-  					});
-  					
-  					vmstr.add(0, "");
-  					
-  					request.setAttribute("vmstr",vmstr);
-  				%>
-                	<s:select list="#request.vmstr" cssClass="input" name="vehicle.licenseNum" onchange="refresh()"></s:select>
-                </s:else>
-                </div>
+               
+               </div>
             </div>
             <div class="form-group">
                 <div class="label padding">
@@ -171,7 +190,7 @@
                 </div>
                 <div class="field" >
                 	<s:set name="driverId" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',vehicle.carframeNum).driverId}"></s:set>
-                    <s:textfield value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#driverId).name}" cssClass="input"/>
+                    <s:textfield id="vehicleOwner" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#driverId).name}" cssClass="input"/>
                 </div>
             </div>
             <br>
@@ -204,7 +223,22 @@
                 			<s:set name="secondDriverName" value="%{#secondDriver.name==null?'':#secondDriver.name}"></s:set>
                 		</s:else>
                 		
-                		<s:select cssClass="input" list="{'',#firstDriverName,#secondDriverName}" name="driver.name" onchange="refresh2()"></s:select>
+                		<s:set name="thirdDriver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',vehicle.thirdDriver)}"></s:set>
+                		<s:if test="%{#thirdDriver==null||!#thirdDriver.isInCar||#thirdDriver.businessApplyCancelTime!=null}">
+                			<s:set name="thirdDriverName" value="%{''}"></s:set>
+                		</s:if>
+                		<s:else>
+                			<s:set name="thirdDriverName" value="%{#thirdDriver.name==null?'':#thirdDriver.name}"></s:set>
+                		</s:else>
+                		
+                		<s:if test="%{#secondDriver==null||!#secondDriver.isInCar||#secondDriver.businessApplyCancelTime!=null}">
+                			<s:set name="secondDriverName" value="%{''}"></s:set>
+                		</s:if>
+                		<s:else>
+                			<s:set name="secondDriverName" value="%{#secondDriver.name==null?'':#secondDriver.name}"></s:set>
+                		</s:else>
+                		
+                		<s:select cssClass="input" list="{'',#firstDriverName,#secondDriverName,#thirdDriverName}" name="driver.name" onchange="refresh2()"></s:select>
                 		</s:if>
                 		<s:else>
                 			<s:textfield cssClass="input"  name="driver.name" />
@@ -352,7 +386,7 @@
                 </div>
                 <div class="field" >
                     <s:select cssClass="input"  name="applyAttribute"
-                              list="@com.dz.common.other.JsonListReader@getList('driver/driver.json','driver.attribute')"></s:select>
+                              list="{'主驾','副驾','三驾','临驾'}"></s:select>
                 </div>
             </div>
             <br/>
@@ -394,7 +428,7 @@
                 </label>
             </div>
             <div class="field" >
-                <input  class="datepick input" disabled="disabled" name="driver.businessApplyCancelTime" value="<%=(new  java.text.SimpleDateFormat("yyyy/MM/dd")).format(new java.util.Date()) %>"/>
+                <input  class="datepick input" disabled="disabled" name="driver.businessApplyCancelRegistTime" value="<%=(new  java.text.SimpleDateFormat("yyyy/MM/dd")).format(new java.util.Date()) %>"/>
             </div>
         </div>
             <br/>

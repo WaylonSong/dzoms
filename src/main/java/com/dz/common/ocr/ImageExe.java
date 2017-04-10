@@ -24,8 +24,8 @@ import com.sun.media.jai.codec.TIFFEncodeParam;
 public class ImageExe {
 	
 	public static void main(String[] args) {
-		File inDom = new File("C:\\Users\\Xiaoyao\\Desktop\\项目\\电子违章");
-		File outDom = new File("C:\\Users\\Xiaoyao\\Desktop\\项目\\电子违章\\yzm");
+		File inDom = new File("E:\\result\\Test");
+		File outDom = new File("E:\\result\\TestResult");
 		File[] flist = inDom.listFiles(new FileFilter(){
 			@Override
 			public boolean accept(File file) {

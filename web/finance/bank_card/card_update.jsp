@@ -114,7 +114,7 @@
 
 				</tr>
 				
-				<tr>
+				<!--<tr>
 					<td>
                 		<div class="form-group">
 						<div class="label">
@@ -138,9 +138,12 @@
 					    </div>
                     </td>
 
-				</tr>
+				</tr>-->
 				<tr>
-					<td><input type="submit" class="btn btn-primary" value="修改"></td>
+					<td>
+						<input type="hidden" name="bankCard.isDefaultPay" value="true" />
+						<input type="hidden" name="bankCard.isDefaultRecive" value="true" />
+						<input type="submit" class="btn btn-primary" value="修改"></td>
 					
 				</tr>
 			</table>

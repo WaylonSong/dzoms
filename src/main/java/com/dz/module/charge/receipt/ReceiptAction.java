@@ -52,6 +52,8 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
     private String message;
     private int fapiaohao;
     private String carId;
+    private int year;
+    
     @Autowired
     private ReceiptService service;
     private int startNum;
@@ -60,21 +62,30 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
     private SeqService seqService;
     private String proveNum;
     public String addRecord(){
+    	if(rr!=null){
+    		rr.setRecordTime(new Date());
+    	}
         if(service.addRecord(rr)){
             addActionMessage("添加成功！！！");
             request.setAttribute("msgStr", "添加成功！！！");
+            ajax_message="success";
         }
         else{
             addActionMessage("添加失败！！！");
         	request.setAttribute("msgStr", "添加失败！！！");
+        	ajax_message="fail";
         }
         if("进货".equals(rr.getStyle())){
-            jspPage = "in.jsp";
+        	seqService.increment();
+            //jspPage = "in.jsp";
+        	ajax_message="添加成功！";
+            return STRING_RESULT;
         }else{
             seqService.increment();
             jspPage = "out.jsp";
+            return SUCCESS;
         }
-        return SUCCESS;
+        
     }
     
     public void addRecordByLocal() throws IOException{
@@ -84,6 +95,11 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
 		ServletActionContext.getResponse().setContentType("application/json");
 		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
 		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		
+		if(rr!=null){
+    		rr.setRecordTime(new Date());
+    	}
+		
         if(service.addRecord(rr)){
             out.print("success");
         }
@@ -145,30 +161,80 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
 
     public String searchIns(){
         List<ReceiptRecord> rrs = service.searchRecords(startTime,endTime);
+        List<ReceiptRecord> rrout = new ArrayList<ReceiptRecord>();
         Iterator<ReceiptRecord> itors = rrs.iterator();
-        Map<String,List<CountPass>> map = new HashMap<>();
-        Map<String,StorageItem> simap = new TreeMap<>();
+        Map<Integer,List<CountPass>> map = new HashMap<>();
+        Map<Integer,StorageItem> simap = new TreeMap<>();
         while(itors.hasNext()){
             ReceiptRecord rr = itors.next();
-            if(!rr.getStyle().equals("进货"))
+            if(!rr.getStyle().equals("进货")){
+            	rrout.add(rr);
                 itors.remove();
+            }
             else{
-                if(map.get(rr.getProveNum()) == null){
-                    map.put(rr.getProveNum(),new ArrayList<CountPass>());
+                if(map.get(rr.getId()) == null){
+                    map.put(rr.getId(),new ArrayList<CountPass>());
                 }
-                List<CountPass> cps = map.get(rr.getProveNum());
+                List<CountPass> cps = map.get(rr.getId());
                 CountPass cp = new CountPass(rr.getStartNum(),rr.getEndNum());
                 cps.add(cp);
             }
         }
+        
+//        System.out.println("ReceiptAction.searchIns(),"+rrout);
+        
+        Iterator<ReceiptRecord> itors2 = rrout.iterator();
+        while(itors2.hasNext()){
+            ReceiptRecord rr = itors2.next();
+            if(rr.getStyle().equals("进货"))
+                itors2.remove();
+            else{
+//            	System.out.println("ReceiptAction.searchIns(),"+rr.getId());
+                List<CountPass> cps = new ArrayList<CountPass>();
+                
+                for(ReceiptRecord rin:rrs){
+                	if(rin.getStartNum()<=rr.getStartNum()&&rin.getEndNum()>=rr.getEndNum()){
+                		cps = map.get(rin.getId());
+//                		System.out.println("ReceiptAction.searchIns(),"+rin.getId());
+                		break;
+                	}
+                }
+                
+                Iterator<CountPass> it = cps.iterator();
+                
+                while(it.hasNext()){
+                	CountPass cp = it.next();
+                	if(cp.getStart()<=rr.getStartNum()&&cp.getEnd()>=rr.getEndNum()){
+                		if(cp.getStart()==rr.getStartNum()&&cp.getEnd()==rr.getEndNum()){
+                			it.remove();
+                		}else if(cp.getStart()==rr.getStartNum()){
+                			cp.setStart(rr.getEndNum()+1);
+                			break;
+                		}else if(cp.getEnd()==rr.getEndNum()){
+                			cp.setEnd(rr.getStartNum()-1);
+                			break;
+                		}else{
+                			CountPass left = new CountPass(cp.getStart(), rr.getStartNum()-1);
+                			CountPass right = new CountPass(rr.getEndNum()+1,cp.getEnd());
+                			it.remove();
+                			cps.add(left);
+                			cps.add(right);
+                			break;
+                		}
+                	}
+                }
+            }
+        }
+        
+        
         for(ReceiptRecord rr:rrs){
-            if(simap.get(rr.getProveNum()) == null){
+            if(simap.get(rr.getId()) == null){
                 StorageItem si = new StorageItem();
                 si.setRecorder(rr.getRecorder());
                 si.setProveNum(rr.getProveNum());
                 si.setRecordTime(rr.getRecordTime());
-                si.setCountPasses(map.get(rr.getProveNum()));
-                simap.put(rr.getProveNum(),si);
+                si.setCountPasses(map.get(rr.getId()));
+                simap.put(rr.getId(),si);
             }
         }
         ActionContext context = ActionContext.getContext();
@@ -237,7 +303,9 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
         return STRING_RESULT;
     }
     public String validateOut(){
-        if(service.validateSoled(startNum, endNum)){
+    	if(year==0)
+    		year=new Date().getYear()+1900;
+        if(service.validateSoled(startNum, endNum,year)){
             ajax_message = "success";
         }else{
             ajax_message = "fail";
@@ -337,4 +405,12 @@ public class ReceiptAction extends ActionSupport  implements ServletRequestAware
     public void setReason(String reason) {
         this.reason = reason;
     }
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
 }

@@ -74,8 +74,6 @@
         
         function deleheadimg(){
             $("#imghead")[0].src="/DZOMS/res/image/driverhead.png";
-           
-            
             $("#readyimg1").val("");
         }
        
@@ -227,6 +225,7 @@ $(document).ready(function(){
         <s:hidden name="driver.status" value="1"/>
         <s:hidden name="driver.lururen" value="%{#session.user.uname}"/>
     <div class="xm2  ">
+    	<strong>驾驶员照片</strong>
     	<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+driver.idNum+'/photo.jpg')}">
     		<img src="/DZOMS/data/driver/<s:property value='%{driver.idNum}'/>/photo.jpg" class="radius img-responsive" style="width: 150px;height: 150px;" id="imghead">
     	</s:if>
@@ -282,7 +281,12 @@ $(document).ready(function(){
                             </label>
                         </div>
                         <div class="field">
-                            <s:textfield cssClass="input" name="driver.applyLicenseNum" />
+                        	<s:if test="%{driver.applyLicenseNum!=null}">
+                        		<s:textfield cssClass="input" name="driver.applyLicenseNum" />
+                        	</s:if>
+                            <s:else>
+                            	<s:textfield cssClass="input" name="driver.applyLicenseNum" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle', driver.carframeNum).licenseNum}" />
+                            </s:else>
                         </div>
                     </div>
                 </td>
@@ -481,7 +485,7 @@ $(document).ready(function(){
                             </label>
                         </div>
                         <div class="field" style="width: 60%">
-                            <s:textfield cssClass="input datepick" cssStyle="width: 100%" name="driver.qualificationDate"  />
+                            <s:textfield cssClass="input " cssStyle="width: 100%" name="driver.qualificationDate"  />
                         </div>
                     </div>
                 </td>
@@ -1145,7 +1149,7 @@ $(function(){
 		/**
 		 * Show next to selector
 		 */
-		var e_top = e.offset().top-win.outerHeight();
+		var e_top = e.offset().top-win.outerHeight()-200;
 		
 		var x=parseInt($(window).width()-win.outerWidth())/2;
 		//var y=parseInt($(window).height()-win.outerHeight())/2;
@@ -1168,6 +1172,29 @@ $(function(){
 	del_but_bind('.delebutton1',deleheadimg);
 	button_bind('#sure_dele','确认删除吗？',"deledriverfile()");
 	button_bind('#sure_submit','确认提交？',"$('#submit-button').click();");
+	
+	
+$('[name="driver.qualificationDate"]').datetimepicker({
+	lang:"ch",           //语言选择中文
+	format:"Y/m/d",      //格式化日期
+	timepicker:false,    //关闭时间选项
+	yearStart:2000,     //设置最小年份
+	yearEnd:2050,        //设置最大年份
+	//todayButton:false    //关闭选择今天按钮
+	onClose:function(){
+		var arr = $('[name="driver.qualificationDate"]').val().split("/");
+//		alert(arr);
+		arr[0] = parseInt(arr[0])+6;
+		$('[name="driver.qualificationValidDate"]').val(""+arr[0]+"/"+arr[1]+"/"+arr[2]);
+	}
+});
+
+$(document).ready(function(){
+	var iframe = window.parent.parent.document.getElementsByName("body")[0];
+	var iframeP = window.parent.document.getElementById("body-right");
+	$(iframe).css("height","2500");
+	$(iframeP).css("height","2500");
+});
 </script>
 
 

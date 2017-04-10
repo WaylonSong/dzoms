@@ -34,18 +34,37 @@
 	function setMoney(){
 		var moneyStr = $("#money").val();
 		try{
-			var money = parseInt(moneyStr);
+			var money = parseFloat(moneyStr);
 			if (isNaN(money)) {
-				alert("请填写一个数！");
+				alert("请填写一个金额！");
 				return;
 			}
 			$("#rent").val(money);
 		}catch(e){
-			alert("请填写一个数！");
+			alert("请填写一个金额！");
 		}
 	}
 </script>
-
+<script>
+$(document).ready(function(){
+	var licenseNum = $("#oldLicenseNum").val();
+	$.post("/DZOMS/common/doit",{"condition":"from Contract c where c.state=1 and c.carframeNum in (select v.carframeNum from Vehicle v where v.licenseNum='"+licenseNum+"') order by contractBeginDate desc "},function(data){
+		var contract=data["affect"];
+		if(contract!=undefined){
+			var abandonedTime = new Date();
+			abandonedTime.setTime(contract["abandonedTime"]["time"]);
+			$("#terminationDate").val(abandonedTime.format("yyyy/MM/dd"));
+	
+			var abandonedFinalTime = new Date();
+			abandonedFinalTime.setTime(contract["abandonedFinalTime"]["time"]);
+			$("#procedureEndDate").val(abandonedFinalTime.format("yyyy/MM/dd"));
+	
+			var diff_day = abandonedFinalTime.diff(abandonedTime);
+			$("#terminationDays").val(diff_day);
+		}
+	});
+});
+</script>
 </head>
 
 <body>
@@ -133,6 +152,31 @@
                         </div>
                     </div>
                 </td>
+                <td>
+                   <div class="form-group">
+		                <div class="label padding">
+		                    <label>
+		                        银行卡号
+		                    </label>
+		                </div>
+		                <div class="field">
+		                	<%request.setAttribute("quate","\'");%>
+		                	<s:set name="hrb_bankcard" value="%{@com.dz.common.other.ObjectAccess@execute('from BankCard where idNumber='+#request.quate+contract.idNum+#request.quate+' and cardClass like '+#request.quate+'哈尔滨%'+#request.quate)}"></s:set>
+		                	<s:set name="yz_bankcard" value="%{@com.dz.common.other.ObjectAccess@execute('from BankCard where idNumber='+#request.quate+contract.idNum+#request.quate+' and cardClass like '+#request.quate+'邮政%'+#request.quate)}"></s:set>
+		                	<s:if test="%{#hrb_bankcard==null&&#yz_bankcard==null}">
+		                		无银行卡
+		                	</s:if>
+		                	<s:else>
+		                		<s:if test="%{#hrb_bankcard!=null}">
+		                		<s:property value="%{#hrb_bankcard.cardNumber}"/>(哈尔滨银行)
+		                		</s:if>
+		                		<s:if test="%{#yz_bankcard!=null}">
+		                		<s:property value="%{#yz_bankcard.cardNumber}"/>(邮政储蓄)
+		                		</s:if>
+		                	</s:else>
+		                </div>
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td>
@@ -157,7 +201,7 @@
                         </div>
                         <div class="field">
                             <s:textfield id="oldLicenseNum" cssClass="input" readonly="true"
-                            	value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.contract.Contract',contract.contractFrom).carNum}"/>
+                            	value="%{contract.carNumOld}"/>
                         </div>
                     </div>
                 </td>
@@ -340,29 +384,7 @@
                     <s:radio name="vehicleApproval.damageInsurance" list="#{'0.3':'30%','0.9':'90%'}"  />
                 </div>
             </div>-->
-<div class="form-group">
-                <div class="label padding">
-                    <label>
-                        银行卡号
-                    </label>
-                </div>
-                <div class="field">
-                	<%request.setAttribute("quate","\'");%>
-                	<s:set name="hrb_bankcard" value="%{@com.dz.common.other.ObjectAccess@execute('from BankCard where idNumber='+#request.quate+contract.idNum+#request.quate+' and cardClass like '+#request.quate+'哈尔滨%'+#request.quate)}"></s:set>
-                	<s:set name="yz_bankcard" value="%{@com.dz.common.other.ObjectAccess@execute('from BankCard where idNumber='+#request.quate+contract.idNum+#request.quate+' and cardClass like '+#request.quate+'邮政%'+#request.quate)}"></s:set>
-                	<s:if test="%{#hrb_bankcard==null&&#yz_bankcard==null}">
-                		无银行卡
-                	</s:if>
-                	<s:else>
-                		<s:if test="%{#hrb_bankcard!=null}">
-                		<s:property value="%{#hrb_bankcard.cardNumber}"/>(哈尔滨银行)
-                		</s:if>
-                		<s:if test="%{#yz_bankcard!=null}">
-                		<s:property value="%{#yz_bankcard.cardNumber}"/>(邮政储蓄)
-                		</s:if>
-                	</s:else>
-                </div>
-            </div>
+
             <s:if test="%{contract.contractFrom==null}">
             <div class="form-group" cssStyle="width: 320px;">
                 <div class="label padding">
@@ -371,7 +393,7 @@
                     </label>
                 </div>
                 <div class="field">
-                    <s:textfield cssClass="input input-auto" size="5" maxlength="5" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" readonly="true"></s:textfield>元
+                    <s:textfield cssClass="input input-auto" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" readonly="true"></s:textfield>元
                 </div>
             </div>
             </s:if>
@@ -379,14 +401,35 @@
             <div class="form-group">
                 <div class="label padding" cssStyle="width: 260px">
                     <label class="">
-                        每年补交保费
+                        补交保费
                     </label>
                 </div>
                 <div class="field">
-                    <s:textfield id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" cssClass="input" readonly="true"/>
+                    <s:textfield id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay" cssClass="input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="label padding" cssStyle="width: 260px">
+                    <label class="">
+                        补交起始日
+                    </label>
+                </div>
+                <div class="field">
+                    <s:textfield id="payBeginDate" name="vehicleApproval.payBeginDate" cssClass="input"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="label padding" cssStyle="width: 260px">
+                    <label class="">
+                        补交终止日
+                    </label>
+                </div>
+                <div class="field">
+                    <s:textfield id="payEndDate" name="vehicleApproval.payEndDate" cssClass="input"/>
                 </div>
             </div>
            </s:if>
+          
         </div>
         </blockquote>
         
@@ -443,7 +486,7 @@
         
         <blockquote class="border-main">
             <strong>计财部经理意见：</strong>
-            <div class="alert">请填写月承费 <input id="money" onblur="setMoney()"></div>
+            <div class="alert">请填写月承费 <input id="money" value="0" onblur="setMoney()" ></div>
             <div>
                 <s:textarea
                         id="financeManagerRemark"
@@ -454,13 +497,46 @@
             </div>
         </blockquote>
         
-        <div class="xm11-move">
+        <div class="xm7-move">
+        	<input type="button" value="同意" class="button bg-green" onclick="approvalApply('#financeManagerRemark');">
             <input type="submit" value="提交" class="button bg-green">
+              <button type="button" class="button bg-green dialogs" name="backid"
+							id="backid" data-toggle="click" data-target="#mydialog" data-mask="1" data-width="50%">中止</button>
         </div>
 
     </form>
 </div>
 </div>
+<form action="/DZOMS/vehicle/vehicleApprovalInterrupt" method="post" name="interruptForm">
+			<s:hidden name="vehicleApproval.checkType" value="0"></s:hidden>
+			<s:hidden name="vehicleApproval.id"></s:hidden>
+			<s:hidden name="url" value="/vehicle/CreateApproval/approval_list.jsp"></s:hidden>
+			<s:hidden name="vehicleApproval.interruptPerson" value="%{#session.user.uid}"></s:hidden>
+			<s:hidden name="vehicleApproval.interruptReason"></s:hidden>
+		</form>
+		
+<div id="mydialog"> 
+   		<div class="dialog"> 
+   			<div class="dialog-head"> 
+   				<span class="close rotate-hover"></span><strong>中止原因</strong> 
+   			</div>
+   			<div class="dialog-body">
+          		<textarea class="input reason"></textarea>
+   			</div>
+   			<div class="dialog-foot"> 
+   				 <button class="button dialog-close">取消</button> 
+   				 <button class="button bg-green dialog-close" onclick="interrupt()">中止</button> 
+   			</div> 
+  		</div> 
+   </div>
+   
+   <script>
+   	function interrupt(){
+   		var reason = $(".dialog-win .reason").val();
+   		$('input[name="vehicleApproval.interruptReason"]').val(reason);
+   		document.interruptForm.submit();
+   	}
+   </script>
 <script type="text/javascript" src="/DZOMS/res/js/DateTimeHelper.js" ></script>
 </body>
 </html>

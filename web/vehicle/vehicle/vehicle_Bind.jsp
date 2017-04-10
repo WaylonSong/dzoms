@@ -59,10 +59,32 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 								function(vehicle){
 									if (vehicle != undefined) {
 											$("#department").val(vehicle["dept"]);
+											$("#licenseNum").val(vehicle["licenseNum"]);
 									}
 								});
 				}
 			});
+			
+			$("#licenseNum").bigAutocomplete({
+			url:"/DZOMS/select/VehicleBylicenseNum",
+			condition:" state in (0,3) ",
+			doubleClick:true,
+			doubleClickDefault:'黑A',
+			callback:function(){
+				$.post("/DZOMS/common/doit",{"condition":"from Vehicle where licenseNum='"+$("#licenseNum").val()+"' "},function(data){
+					if (data!=undefined &&data["affect"]!=undefined ) {
+						var vehicle = data["affect"];
+						$("#department").val(vehicle["dept"]);
+						$("#carframe_num").val(vehicle["carframeNum"]);
+					}
+				});
+			}
+		});
+		
+		if($("#licenseNum").val().trim().length<7){
+			$("#licenseNum").val('黑A');
+		}
+		
 		});
 	</script>
 
@@ -117,6 +139,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
             	 <form name="vehicleAdd" style="width: 100%;" action="/DZOMS/vehicle/vehicleBind" method="post" enctype="multipart/form-data"  class="form-inline">
             	 	<input type="hidden" name="url" value="/vehicle/vehicle/vehicle_search.jsp" />
             	 	<div class="line">
+            	 		<div class="form-group" style="width: 500px;">
+            	 		<div class="label float-left" style="width: 80px;"><label>车牌号:</label></div>
+            	 		<div class="field" style="width: 400px;">
+            	 			<s:textfield id="licenseNum" name="vehicle.licenseNum" cssClass="input input-auto" data-validate="required:必填"/><span style="color:red;">*</span>
+            	 		</div>
+            	 	    </div>
+            	 </div>
+            	 <div class="line">
             	 		<div class="form-group" style="width: 500px;">
             	 		<div class="label float-left" style="width: 80px;"><label>车架号:</label></div>
             	 		<div class="field" style="width: 400px;">

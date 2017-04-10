@@ -242,6 +242,7 @@ $(function(){
 		var data=e.attr("data-url");
 		var mask=e.attr("data-mask");
 		var width=e.attr("data-width");
+		var functionName = e.attr("data-function");
 		var detail="";
 		var masklayout=$('<div class="dialog-mask"></div>');
 		if(width==null){width="80%";}
@@ -257,6 +258,13 @@ $(function(){
 		var win=$(detail);
 		win.find(".dialog").addClass("open");
 		$("body").append(win);
+		
+		//自定义的扩展，用于window.js 中的button_bind_html 当参数第二项为函数时
+		if(functionName!=undefined&&functionName!=null){
+			var info = eval(functionName+"()");
+			win.find(".dialog").find('.dialog-body').html(info);
+		}
+		
 		var x=parseInt($(window).width()-win.outerWidth())/2;
 		var y=parseInt($(window).height()-win.outerHeight())/2;
 		if (y<=10){y="10"}

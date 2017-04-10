@@ -32,8 +32,17 @@
        			<action name="selectToList" class="objectAccess" method="select">
             		<result name="selectToUrl">${url}</result>
        			</action>
+       			<action name="selectToList2" class="objectAccess" method="selectJoin">
+            		<result name="selectToUrl">${url}</result>
+       			</action>
+       			
        			<action name="doit" class="objectAccess" method="doit">
        			</action>
+       			
+       			<action name="doitToUrl" class="objectAccess" method="doitToUrl">
+       				<result name="selectToUrl">${url}</result>
+       			</action>
+       			
        			
        			<action name="getObj" class="objectAccess" method="getObj">
        				<result>${url}</result>

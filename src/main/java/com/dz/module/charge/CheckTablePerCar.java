@@ -2,6 +2,7 @@ package com.dz.module.charge;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author doggy
@@ -23,11 +24,14 @@ public class CheckTablePerCar {
     private BigDecimal insurance = new BigDecimal(0.00);
     private BigDecimal other = new BigDecimal(0.00);
     //实际的收入（不算上月余额）
-    private BigDecimal realAll;
+    private BigDecimal realAll = new BigDecimal(0.00);
     //上月累欠
-    private BigDecimal left;
+    private BigDecimal left = new BigDecimal(0.00);
     //本月累欠
-    private BigDecimal thisMonthLeft;
+    private BigDecimal thisMonthLeft = new BigDecimal(0.00);
+    
+    //本月计划
+    private List<ChargePlan> plans;
 
     public int getContractId() {
         return contractId;
@@ -148,4 +152,12 @@ public class CheckTablePerCar {
     public void setDept(String dept) {
         this.dept = dept;
     }
+
+	public List<ChargePlan> getPlans() {
+		return plans;
+	}
+
+	public void setPlans(List<ChargePlan> plans) {
+		this.plans = plans;
+	}
 }

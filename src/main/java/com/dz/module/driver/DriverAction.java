@@ -39,20 +39,58 @@ public class DriverAction extends BaseAction{
 	private String hzw;
 
 	public String driverApply(){
+		if(driver==null||StringUtils.isBlank(driver.getIdNum())){
+			request.setAttribute("msgStr", "身份证号不可为空。");
+			url = "/driver/applycheck/driver_apply.jsp";
+			return "selectToUrl";
+		}
+		
 		driver.setStatus(0);
 		driver.setApplyTime(new Date());
 		driver.setDrivingLicenseDate(new Date());
 		driver.setQualificationDate(new Date());
 		driver.setQualificationValidDate(new Date());
+		
+		if(StringUtils.contains(driver.getApplyMatter(), "临")){
+			driver.setStatus(1);
+		}
+		
+		User user = (User) session.getAttribute("user");
+		String position = user.getPosition();
+		String dept="";
+		
+		if(position==null)
+			dept="";
+		else 
+		if(position.contains("一"))
+			dept = "一部";
+		else if(position.contains("二"))
+			dept = "二部";
+		else if(position.contains("三"))
+			dept = "三部";
+		
 		boolean result = false;
 		try{
 			Driver rd = driverService.selectById(driver.getIdNum());
+			
 			if(rd!=null){
-				rd.setStatus(1);
+				if(rd.getIsInCar()==true){
+					request.setAttribute("msgStr", "该驾驶员已上车。");
+					url = "/driver/applycheck/driver_apply.jsp";
+					return "selectToUrl";
+				}
+				
+				rd.setStatus(0);
 				rd.setApplyMatter(driver.getApplyMatter());
+				rd.setFuwubaozhengjin(driver.getFuwubaozhengjin());
+				rd.setApplyLicenseNum(driver.getApplyLicenseNum());
 				rd.setApplyTime(new Date());
+				rd.setDept(dept);
 				ObjectAccess.saveOrUpdate(rd);
-				url = "/driver/applycheck/driver_apply.jsp";
+				
+				driver = rd;
+				
+				url = "/driver/applycheck/driver_apply_prt.jsp";
 				result = true;
 			}else{
 				result = driverService.driverAdd(driver,null);
@@ -102,13 +140,15 @@ public class DriverAction extends BaseAction{
 		boolean isYunYinBuJinLi = false;
 		boolean isCaiWuJinLi = false;
 		for(RelationUr ur:relationUrs){
-			//Role role = ObjectAccess.getObject(Role.class, ur.getRid());
+			Role role = ObjectAccess.getObject(Role.class, ur.getRid());
+			if(role==null||role.getRname()==null)
+				continue;
 			//role.getRname().equals("财务经理");
-			if(ur.getRid() == 154)
+			if(role.getRname().contains("财务"))
 				isCaiWuJinLi = true;
-			if(ur.getRid() == 303)
+			if(role.getRname().contains("提请聘用"))
 				isLuRuRen = true;
-			if(ur.getRid() == 152)
+			if(role.getRname().contains("聘用审核"))
 				isYunYinBuJinLi = true;
 		}
 		List<UrlAttachBean> urlAttachBeen = new ArrayList<>();
@@ -332,7 +372,7 @@ public class DriverAction extends BaseAction{
 	}
 	
 	public String driverToExcel(){
-		try(InputStream is = new FileInputStream(System.getProperty("com.dz.root")+"driver/driver_template.xlsx")) {
+		try(InputStream is = new FileInputStream(System.getProperty("com.dz.root")+"driver/driver_template.xls")) {
 	        File file = File.createTempFile("driver_output", "xls");
 	        
 			try (OutputStream os = new FileOutputStream(file)) {
@@ -434,8 +474,14 @@ public class DriverAction extends BaseAction{
 //		vehicleService.updateVehicle(v);
 		
 		String basePath = System.getProperty("com.dz.root") +"data/driver/"+driver.getIdNum();
+		
+//		System.out.println(drive_vehicle_photo);
+//		System.out.println(drive_photo);
+		
 		if(StringUtils.length(drive_vehicle_photo)==30)
 			FileUploadUtil.store(drive_vehicle_photo,new File(basePath,"drive_vehicle_photo.jpg"));
+		if(StringUtils.length(drive_photo)==30)
+			FileUploadUtil.store(drive_photo,new File(basePath,"photo.jpg"));
 
 		Driverincar record = new Driverincar(d.getBusinessApplyCarframeNum(),d.getIdNum(),"证照申请",d.getBusinessApplyTime());
 		record.setFinished(false);
@@ -455,6 +501,7 @@ public class DriverAction extends BaseAction{
 		d.setBusinessReciveTime(driver.getBusinessReciveTime());
 		d.setBusinessReciveRegistrant(driver.getBusinessReciveRegistrant());
 		d.setBusinessReciveRegistTime(driver.getBusinessReciveRegistTime());
+		d.setEmployeeNum(driver.getEmployeeNum());
 		d.setIsInCar(true);
 		d.setBusinessApplyState(2);
 		d.setDriverClass(d.getBusinessApplyDriverClass());
@@ -503,8 +550,18 @@ public class DriverAction extends BaseAction{
 	
 	//vehicleService.updateVehicle(v);
 	ObjectAccess.saveOrUpdate(v);
+	
+	String basePath = System.getProperty("com.dz.root") +"data/driver/"+driver.getIdNum();
+	
+//	System.out.println(drive_vehicle_photo);
+//	System.out.println(drive_photo);
+	
+	if(StringUtils.length(drive_vehicle_photo)==30)
+		FileUploadUtil.store(drive_vehicle_photo,new File(basePath,"drive_vehicle_photo.jpg"));
+	if(StringUtils.length(drive_photo)==30)
+		FileUploadUtil.store(drive_photo,new File(basePath,"photo.jpg"));
 		
-		Driverincar record = ObjectAccess.execute(String.format("from Driverincar where carframeNum='%s' and idNumber='%s' and operation='证照申请' and finished=false", vehicle.getCarframeNum(),d.getIdNum()));
+		Driverincar record = ObjectAccess.execute(String.format("from Driverincar where carframeNum='%s' and idNumber='%s' and operation='证照申请' and finished=false", v.getCarframeNum(),d.getIdNum()));
 		record.setFinished(true);
 		ObjectAccess.saveOrUpdate(record);
 		//record = new Driverincar(d.getCarframeNum(),d.getIdNum(),"上车",d.getBusinessReciveTime());
@@ -518,7 +575,9 @@ public class DriverAction extends BaseAction{
 		d.setBusinessApplyCancelRegistrant(driver.getBusinessApplyCancelRegistrant());
 		d.setBusinessApplyCancelRegistTime(driver.getBusinessApplyCancelRegistTime());
 		d.setBusinessApplyCancelState(1);
-		driverService.driverUpdate(d,families);
+		
+		ObjectAccess.saveOrUpdate(d);
+		
 		Driverincar record = new Driverincar(d.getCarframeNum(),d.getIdNum(),"证照注销",d.getBusinessApplyCancelTime());
 		record.setFinished(false);
 		record.setDriverClass(d.getDriverClass());
@@ -554,6 +613,8 @@ public class DriverAction extends BaseAction{
 			v.setFirstDriver(null);
 		}else if(d.getDriverClass().equals("副驾")){
 			v.setSecondDriver(null);
+		}else if(d.getDriverClass().equals("三驾")){
+			v.setThirdDriver(null);
 		}else if(d.getDriverClass().equals("临驾")){
 			v.setTempDriver(null);
 		}
@@ -561,7 +622,7 @@ public class DriverAction extends BaseAction{
 		ObjectAccess.saveOrUpdate(v);
 		
 		Driverincar record = ObjectAccess.execute(String.format("from Driverincar where carframeNum='%s' and idNumber='%s' and operation='证照注销' and finished=false",
-				vehicle.getCarframeNum(),d.getIdNum()));
+				v.getCarframeNum(),d.getIdNum()));
 		record.setFinished(true);
 		ObjectAccess.saveOrUpdate(record);
 //		Driverincar record = new Driverincar(d.getCarframeNum(),d.getIdNum(),"下车",driver.getBusinessReciveCancelRegistTime());
@@ -579,11 +640,15 @@ public class DriverAction extends BaseAction{
 		d.setBusinessApplyCancelRegistTime(null);
 		
 		d.setDept(null);
+		d.setStatus(4);
 		
-		driverService.driverUpdate(d,families);
-		
+		ObjectAccess.saveOrUpdate(d);
+				
 		return SUCCESS;
 	}
+	
+	private String operation;
+	private Boolean finished;
 	
 	public String selectDriverInCarRecord(){
 		int currentPage = 0;
@@ -596,8 +661,8 @@ public class DriverAction extends BaseAction{
 			currentPage = 1;
 		}
 		Page page = PageUtil.createPage(15,
-				driverService.selectDriverInCarByConditionCount(beginDate, endDate, vehicle, driver), currentPage);
-		List<Driverincar> l = driverService.selectDriverInCarByCondition(page,beginDate, endDate, vehicle, driver);
+				driverService.selectDriverInCarByConditionCount(beginDate, endDate, vehicle, driver,operation,finished), currentPage);
+		List<Driverincar> l = driverService.selectDriverInCarByCondition(page,beginDate, endDate, vehicle, driver,operation,finished);
 		
 		request.setAttribute("list", l);
 		request.setAttribute("page", page);
@@ -626,7 +691,7 @@ public class DriverAction extends BaseAction{
 		ObjectAccess.saveOrUpdate(l);
 		ObjectAccess.saveOrUpdate(d);
 		
-		ServletActionContext.getResponse().setContentType("application/json");
+		ServletActionContext.getResponse().setContentType("text/plain");
 		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
 		PrintWriter out = ServletActionContext.getResponse().getWriter();
 		
@@ -657,7 +722,7 @@ public class DriverAction extends BaseAction{
 		d.setIsLeave(false);
 		ObjectAccess.saveOrUpdate(l);
 		ObjectAccess.saveOrUpdate(d);
-		ServletActionContext.getResponse().setContentType("application/json");
+		ServletActionContext.getResponse().setContentType("text/plain");
 		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
 		PrintWriter out = ServletActionContext.getResponse().getWriter();
 		
@@ -676,9 +741,10 @@ public class DriverAction extends BaseAction{
 		} else {
 			currentPage = 1;
 		}
+		//System.out.println(finished);
 		Page page = PageUtil.createPage(15,
-				driverService.selectDriverLeaveByConditionCount(beginDate, endDate, vehicle, driver), currentPage);
-		List<Driverleave> l = driverService.selectDriverLeaveByCondition(page,beginDate, endDate, vehicle, driver);
+				driverService.selectDriverLeaveByConditionCount(beginDate, endDate, vehicle, driver,finished,operation), currentPage);
+		List<Driverleave> l = driverService.selectDriverLeaveByCondition(page,beginDate, endDate, vehicle, driver,finished,operation);
 		
 		request.setAttribute("list", l);
 		request.setAttribute("page", page);
@@ -1017,6 +1083,7 @@ public class DriverAction extends BaseAction{
 	
 	//人车照片   证照申请时
 	private String drive_vehicle_photo;
+	private String drive_photo;
 	
     private Object jsonObject;
     
@@ -1327,6 +1394,24 @@ public class DriverAction extends BaseAction{
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public String getDrive_photo() {
+		return drive_photo;
+	}
+	public void setDrive_photo(String drive_photo) {
+		this.drive_photo = drive_photo;
+	}
+	public Boolean getFinished() {
+		return finished;
+	}
+	public void setFinished(Boolean finished) {
+		this.finished = finished;
+	}
+	public String getOperation() {
+		return operation;
+	}
+	public void setOperation(String operation) {
+		this.operation = operation;
 	}
 	
 	

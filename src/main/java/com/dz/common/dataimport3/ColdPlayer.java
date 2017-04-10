@@ -36,11 +36,32 @@ public class ColdPlayer {
     public VehicleApprovalService vehicleApprovalService;
 
     public String main() throws Exception{
-//        importData(importCarNumFromFile(ColdPlayer.class.getResource("193.txt").getPath()),"plan_add_insurance",new BigDecimal(193));
-//        importData(importCarNumFromFile(ColdPlayer.class.getResource("300.txt").getPath()),"plan_base_contract",new BigDecimal(300));
-    	importData(importCarNumFromFile(ColdPlayer.class.getResource("2.74.txt").getPath()),"plan_add_other",new BigDecimal(2.74));
-    	importData(importCarNumFromFile(ColdPlayer.class.getResource("125.txt").getPath()),"plan_sub_contract",new BigDecimal(125));
-        return "success";
+//      importData(importCarNumFromFile(ColdPlayer.class.getResource("193.txt").getPath()),"plan_add_insurance",new BigDecimal(193));
+//      importData(importCarNumFromFile(ColdPlayer.class.getResource("300.txt").getPath()),"plan_base_contract",new BigDecimal(300));
+//    	importData(importCarNumFromFile(ColdPlayer.class.getResource("2.74.txt").getPath()),"plan_add_other",new BigDecimal(2.74));
+//    	importData(importCarNumFromFile(ColdPlayer.class.getResource("125.txt").getPath()),"plan_sub_contract",new BigDecimal(125));
+    	
+    	//20160728新调整 
+    	//上调无 210 450 
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_up_193.txt").getPath()),"plan_add_other",new BigDecimal(193));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_up_2_74.txt").getPath()),"plan_add_other",new BigDecimal(2.74));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_up_330.txt").getPath()),"plan_add_other",new BigDecimal(330));
+    	
+    	//下调
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_75.txt").getPath()),"plan_sub_contract",new BigDecimal(75));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_125.txt").getPath()),"plan_sub_contract",new BigDecimal(125));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_405.txt").getPath()),"plan_sub_contract",new BigDecimal(405));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_545.txt").getPath()),"plan_sub_contract",new BigDecimal(545));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_215.txt").getPath()),"plan_sub_contract",new BigDecimal(215));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_300.txt").getPath()),"plan_sub_contract",new BigDecimal(300));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_425.txt").getPath()),"plan_sub_contract",new BigDecimal(425));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_55.txt").getPath()),"plan_sub_contract",new BigDecimal(55));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_126.txt").getPath()),"plan_sub_contract",new BigDecimal(126));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_150.txt").getPath()),"plan_sub_contract",new BigDecimal(150));
+    	importData(importCarNumFromFile(ColdPlayer.class.getResource("20160728/20160728_down_195.txt").getPath()),"plan_sub_contract",new BigDecimal(195));
+
+    	
+    	return "success";
     }
 
     private void importData(List<String> carNums,String feeType,BigDecimal fee) {

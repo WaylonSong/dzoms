@@ -38,7 +38,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			refreshSearch();
 			
 			$("[name='vehicleSele']").find("input").change(function(){
-				if($(this).val().trim().length==0)
+				//if($(this).val().trim().length==0)
 						refreshSearch();
 			});
 			
@@ -49,6 +49,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			
 			$("[name='insurance.insuranceNum']").bigAutocomplete({
 				url:"/DZOMS/select/InsuranceByinsuranceNum",
+				callback:refreshSearch
+			});
+			
+			$("[name='vehicle.licenseNum']").bigAutocomplete({
+				url:"/DZOMS/select/vehicleByLicenseNum",
 				callback:refreshSearch
 			});
 			
@@ -82,8 +87,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
         					<tr>
         						<td>车架号</td>
         						<td><input type="text" id="carframe_num" name="insurance.carframeNum" class="input" /></td>
+        						<td>车牌号</td>
+        						<td><input type="text" name="vehicle.licenseNum" class="input"  /></td>
         						<td>保单号</td>
         						<td><input type="text" name="insurance.insuranceNum" class="input"  /></td>
+        						<td>保险类别</td>
+        						<td>
+        							<select name="insurance.insuranceClass" class="input">
+        								<option value="">全部</option>
+        								<option value="强">强险单</option>
+        								<option value="商">商业保险单</option>
+        								<option value="承运">承运人责任险</option>
+        							</select>
+        						</td>
         					</tr>
         				
         				</table>

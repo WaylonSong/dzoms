@@ -69,8 +69,11 @@ Page pg = (Page)request.getAttribute("page");
         
         function _detail(){
         	var selected_val = $("input[name='cbx']:checked").val();
-					if(selected_val==undefined)
-					alert('您没有选择任何一条数据');
+					if(selected_val==undefined){
+						alert('您没有选择任何一条数据');
+						return false;
+					}
+					
 					var url = "/DZOMS/contract/contractPreShow?contract.id="+selected_val;
 					window.open(url,"合同明细",'width=800,height=600,resizable=yes,scrollbars=yes');
         }
@@ -149,16 +152,17 @@ function toBeforePage(){
 
                     <tr>
                         <th>选择</th>
+                        <th class="dept selected_able">部门</th>
+                        <th class="licenseNum selected_able">车牌号</th>
+                        <th class="driverName selected_able">承租人</th>
+                        <th class="driverId selected_able">身份证</th>
                         <th class="carframeNum selected_able">车架号</th>
                         <th class="engineNum selected_able">发动机号</th>
                         <th class="carMode selected_able">车辆型号</th>
                         <!--<th class="inDate selected_able">购入日期</th>
                         <th class="certifyNum selected_able">合格证编号</th>-->
-                        <th class="dept selected_able">归属部门</th>
                         <th class="pd selected_able">车辆制造日期</th>
-                        <th class="driverId selected_able">承租人身份证号</th>
-                        <th class="driverName selected_able">承租人</th>
-                        <th class="licenseNum selected_able">车牌号</th>
+                        
                         <th class="beginTime selected_able">合同开始日期</th>
                         <th class="endTime selected_able">合同终止日期</th>
                         <th class="planendTime selected_able">预计废业日期</th>
@@ -171,16 +175,19 @@ function toBeforePage(){
                    
 <tr id="<s:property value="%{#contract.id}"/>">
  <td><input type="radio" name="cbx" value="<s:property value="%{#contract.id}"/>" ></td>
+ <td class="dept selected_able"><s:property value="%{#v.dept}"/></td>
+ <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
+ <td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).name}"/></td>
+ <td class="driverId selected_able"><s:property value="%{#v.driverId}"/></td>
+ 
  <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum }"/></td>
  <td class="engineNum selected_able"><s:property value="%{#v.engineNum}"/></td>
  <td class="carMode selected_able"><s:property value="%{#v.carMode}"/></td>
 <!-- <td class="inDate selected_able"><s:property value="%{#v.inDate}"/></td>
  <td class="certifyNum selected_able"><s:property value="%{#v.certifyNum}"/></td>-->
- <td class="dept selected_able"><s:property value="%{#v.dept}"/></td>
+ 
  <td class="pd selected_able"><s:property value="%{#v.pd}"/></td>
- <td class="driverId selected_able"><s:property value="%{#v.driverId}"/></td>
- <td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).name}"/></td>
- <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
+
  <td class="beginTime selected_able"><s:property value="%{#contract.contractBeginDate}"/></td>
  <td class="endTime selected_able"><s:property value="%{#contract.contractEndDate}"/></td>
  <td class="planendTime selected_able">
@@ -242,6 +249,19 @@ function toBeforePage(){
         <div class="panel-body">
             <div class="button-group checkbox bg-blue-light" id="show_div">
                 <label class="button active">
+                    <input type="checkbox" name="sbx" value="dept" checked="checked"><span class="icon icon-check text-green"></span>部门
+                </label>
+                <label class="button  active">
+                    <input type="checkbox" name="sbx" value="licenseNum"  checked="checked"><span class="icon icon-check text-green"></span>车牌号
+                </label>
+                <label class="button  active">
+                    <input type="checkbox" name="sbx" value="driverName" checked="checked"><span class="icon icon-check text-green"></span>承租人
+                </label>
+                <label class="button  active">
+                    <input type="checkbox" name="sbx" value="driverId" checked="checked"><span class="icon icon-check text-green"></span>承租人身份证号
+                </label>
+                
+                <label class="button active">
                     <input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>车架号
                 </label>
                 <label class="button active">
@@ -256,20 +276,9 @@ function toBeforePage(){
                 <label class="button active">
                     <input type="checkbox" name="sbx" value="certifyNum" checked="checked"><span class="icon icon-check text-green"></span>合格证编号
                 </label>-->
-                <label class="button active">
-                    <input type="checkbox" name="sbx" value="dept" checked="checked"><span class="icon icon-check text-green"></span>归属部门
-                </label>
+                
                 <label class="button active">
                     <input type="checkbox" name="sbx" value="pd"  checked="checked"><span class="icon icon-check text-green"></span>车辆制造日期
-                </label>
-                <label class="button  active">
-                    <input type="checkbox" name="sbx" value="driverId" checked="checked"><span class="icon icon-check text-green"></span>承租人身份证号
-                </label>
-                <label class="button  active">
-                    <input type="checkbox" name="sbx" value="driverName" checked="checked"><span class="icon icon-check text-green"></span>承租人
-                </label>
-                <label class="button  active">
-                    <input type="checkbox" name="sbx" value="licenseNum"  checked="checked"><span class="icon icon-check text-green"></span>车牌号
                 </label>
                  <label class="button  active">
                     <input type="checkbox" name="sbx" value="beginTime"  checked="checked"><span class="icon icon-check text-green"></span>合同开始日期

@@ -50,7 +50,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
             </tr>
             <tr>
                 <td style="text-align: right;"><strong>表扬类型</strong></td>
-                <td> <s:property value="%{@com.dz.common.tablelist.TableListService@getFathersValueString(bean[0].praiseClass)}"/></td>
+                <td> <s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(bean[0].praiseClass,'praiseClass1')}"/>
+                	<s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(bean[0].praiseClass,'praiseClass2')}"/>
+                	<s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(bean[0].praiseClass,'praiseClass3')}"/>
+                	<s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(bean[0].praiseClass,'praiseClass4')}"/></td>
                 <td style="text-align: right;"><strong>分值</strong></td>
                 <td><s:textfield cssClass="input input-auto float-left" size="5" value="%{bean[0].grade}"/></td>
             </tr>

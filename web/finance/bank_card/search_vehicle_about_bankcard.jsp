@@ -1,5 +1,6 @@
 <%@page import="com.dz.common.other.ObjectAccess"%>
 <%@page import="com.dz.module.vehicle.Vehicle"%>
+<%@taglib uri="/struts-tags" prefix="s"%>
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%
 String path = request.getContextPath();
@@ -51,11 +52,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				callback:refreshSearch
 			});
 			
-			$("#carframe_num").bigAutocomplete({
-				url:"/DZOMS/select/vehicleById",
-				callback:refreshSearch
-			});
-			
 			$("#license_num").bigAutocomplete({
 				url:"/DZOMS/select/vehicleByLicenseNum",
 				callback:refreshSearch
@@ -67,20 +63,37 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			});
 			
 		});
+		function carFocus(){
+			$('input[name="vehicle.licenseNum"]').val("黑A");
+		}
+		
+		function beforeSubmit(){
+			if ($("#changeInOneMonth").is(":checked")) {
+				hql = " and carframeNum in (select carframeNum from Contract where contractFrom is not null and contractBeginDate > '"+$("#OneMonth").val()+"') ";
+				hql = $('[name="condition2"]:checked').val() + hql;
+				hql = $('#vehicle_state').val() + hql;
+				$('[name="condition"]').val(hql);
+			}else{
+				$('[name="condition"]').val($('#vehicle_state').val() +$('[name="condition2"]:checked').val());
+			}
+
+			return true;
+		}
 	</script>
   </head>
  <body> 
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
-                <li>车辆管理</li>
+                <li>财务管理</li>
                 <li>查询</li>
-                <li>查询车辆技术信息</li>
+                <li>查询银行卡--车辆</li>
     </ul>
 </div>
  
 <form name="vehicleSele" action="/DZOMS/vehicle/vehicleSele" method="post"
-      class="definewidth m20" target="result_form" style="width: 100%;">
+      class="definewidth m20" target="result_form" style="width: 100%;" onsubmit="return beforeSubmit();">
       <input type="hidden" name="url" value="/finance/bank_card/search_vehicle_about_bankcard_result.jsp" />
+   	<s:hidden name="condition"></s:hidden>
    <div class="line">
    	<div class="panel  margin-small" >
           	<div class="panel-head">
@@ -103,18 +116,41 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
                             	<option value="二部">二部</option>
                             	<option value="三部">三部</option>
                             </select></td>
-                        
-                            <td style="border-top: 0px;">车辆识别代码/车架号</td>
-                            <td style="border-top: 0px;"><input type="text" id="carframe_num" name="vehicle.carframeNum" class="input" /></td>
+                            
+                            <td style="border-top: 0px;">车辆状态</td>
+                            <td style="border-top: 0px;"><select id="vehicle_state" class="input">
+                            	<option value=" ">全部</option>
+                            	<option value=" and state in (1,3) " selected="selected">运营中</option>
+                            	<option value=" and state=2 ">已废业</option>
+                            </select></td>
                         
                             <td style="border-top: 0px;">车牌号</td>
-                            <td style="border-top: 0px;"><input type="text" id="license_num" name="vehicle.licenseNum" class="input" /></td>
+                            <td style="border-top: 0px;"><input type="text" id="license_num" name="vehicle.licenseNum" class="input" value="黑A" onfocus="carFocus()"/></td>
 
 							<td style="border-top: 0px;">有无银行卡</td>
 							<td style="border-top: 0px;">
-								<input type="radio" name="condition" value=" and carframeNum in (select carNum from BankCard  where carNum is not null) " checked="checked"/>有 &nbsp;
-								<input type="radio" name="condition" value=" and carframeNum not in (select carNum from BankCard where carNum is not null) "/>无
+							<s:if test="%{#parameters.no!=null}">
+							<input type="radio" name="condition2" value=" and carframeNum in (select carNum from BankCard  where carNum is not null) " />有 &nbsp;
+								<input type="radio" name="condition2" value=" and carframeNum not in (select carNum from BankCard where carNum is not null) " checked="checked"/>无
+							</s:if>
+							<s:else>
+							<input type="radio" name="condition2" value=" and carframeNum in (select carNum from BankCard  where carNum is not null) " checked="checked"/>有 &nbsp;
+								<input type="radio" name="condition2" value=" and carframeNum not in (select carNum from BankCard where carNum is not null) "/>无
+							</s:else>
 							</td>
+							
+							<td style="border-top: 0px;">三个月内发生转包</td>
+              <td style="border-top: 0px;">
+              	<input type="checkbox" id="changeInOneMonth" >
+              	<s:set name="OneMonth" value="%{@com.dz.common.global.DateUtil@getlastMonth()}"></s:set>
+              	<s:set name="OneMonth" value="%{@com.dz.common.global.DateUtil@getlastMonth(#OneMonth)}"></s:set>
+              	<s:set name="OneMonth" value="%{@com.dz.common.global.DateUtil@getlastMonth(#OneMonth)}"></s:set>
+              	<s:textfield cssStyle="display:none" id="OneMonth" >
+              		<s:param name="value">
+              			<s:date name="OneMonth" format="yyyy-MM-dd"/>
+              		</s:param>
+              	</s:textfield>
+              </td>
 							
 							<td style="border-top: 0px;"><input type="submit" value="查询"></td>
                         </tr>
@@ -129,7 +165,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 </form>
 <div>
-    <iframe name="result_form" width="100%" height="800px" id="result_form" scrolling="no">
+    <iframe name="result_form" width="100%" height="1000px" id="result_form" scrolling="no">
 
     </iframe>
 
@@ -157,6 +193,6 @@ $(document).ready(function(){
         // $(".xdsoft_datetimepicker.xdsoft_noselect").show();
         // $("#ri-li").append($(".xdsoft_datetimepicker.xdsoft_noselect"));
 
-    });
+    
     </script>
 </html>

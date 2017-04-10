@@ -2,12 +2,17 @@
 <%@page import="com.dz.module.driver.Driver"%>
 <%@page import="com.dz.common.global.Page"%>
 <%@taglib uri="/struts-tags" prefix="s"%>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
 Page pg = (Page)request.getAttribute("page");
 %>
+
+<m:permission role="查询车辆型号">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>

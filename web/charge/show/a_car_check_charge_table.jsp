@@ -1,7 +1,6 @@
 <%@ taglib prefix="s" uri="/struts-tags" %>
-<%@ page import="com.dz.module.charge.CheckTablePerCar" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.dz.module.charge.CheckChargeTable" %>
+<%@ page import="com.dz.module.charge.*" %>
 <%@ page import="java.util.Calendar" %>
 <%@ page import="java.math.BigDecimal" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -13,7 +12,7 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="renderer" content="webkit">
-  <title>测试</title>
+  <title>单车收费查询</title>
   <link rel="stylesheet" href="/DZOMS/res/css/pintuer.css"/>
   <link rel="stylesheet" type="text/css" href="/DZOMS/res/css/jquery.datetimepicker.css"/>
 
@@ -21,6 +20,15 @@
   <script src="/DZOMS/res/js/pintuer.js"></script>
   <script src="/DZOMS/res/js/respond.js"></script>
   <link rel="stylesheet" href="/DZOMS/res/css/admin.css">
+  <style>
+  .plan{
+  background-color:yellow
+  }
+  
+  .pay{
+  background-color:Chartreuse
+  }
+  </style>
   <script>
     function setDept(){
       var licenseNum = $("#licenseNum").val();
@@ -45,11 +53,26 @@
         $("#form").attr("action","/DZOMS/charge/exportACarChargeTable");
         $("#form").submit();
     }
+    
+    var isShow=true;
+    function tiggerPlans(){
+    	if (isShow) {
+    		$("tr.plan").hide();
+    	} else{
+    		$("tr.plan").show();
+    	}
+    	
+    	isShow = ! isShow;
+    }
+    
+    $(document).ready(function(){
+    	tiggerPlans();
+    });
   </script>
 </head>
 <body>
 <form method="post" id="form" style="width: 100%;" action="/DZOMS/charge/getACarChargeTable" class="form-inline form-tips">
-<div class="padding"  style="height:400px">
+<div class="padding" style="height:600px; overflow:auto">
     <div class="panel">
         <div class="panel-head">
             <strong>查询条件</strong>
@@ -112,10 +135,11 @@
     <br>
     <div class="panel">
         <div class="panel-head">
-            <strong>查询结果</strong>
+            <strong>查询结果</strong><input type="button" class="button" onclick="tiggerPlans()" value="显示/隐藏计划详情"></input>
         </div>
-        <div class="panel-body">
-            <table class="table table-bordered table-responsive">
+        <div class="panel-body" >
+        	<div>
+        		<table class="table table-bordered table-responsive">
                 <tr>
                     <th>年月</th>
                     <th>车牌号</th>
@@ -163,10 +187,10 @@
                     <%bd6 = bd6.add(record.getOther());%>
                     <td><%=record.getRealAll()%></td>
                     <%bd7 = bd7.add(record.getRealAll());%>
-                    <td><%=record.getLeft()%></td>
-                    <%bd8 = bd8.add(record.getLeft());%>
+                    <td><%=record.getLeft()==null?new BigDecimal(0.00):record.getLeft()%></td>
+                    <%bd8 = bd8.add(record.getLeft()==null?new BigDecimal(0.00):record.getLeft());%>
                     <td><%=record.getThisMonthLeft()%></td>
-                    <%bd9 = bd9.add(record.getThisMonthLeft());%>
+                    <%bd9 = bd9.add(record.getThisMonthLeft()==null?new BigDecimal(0.00):record.getThisMonthLeft());%>
                 </tr>
                 <%}%>
                 <tr>
@@ -185,6 +209,98 @@
                     <th><%=bd9%></th>
                 </tr>
             </table>
+        	</div>
+           
+           <hr></hr>
+           
+           <div>
+           	<%for(CheckTablePerCar record:tables){%>
+           		<div>
+           		<%Calendar cal = Calendar.getInstance();cal.setTime(record.getTime());%>
+           			<p><h2><%=cal.get(Calendar.YEAR)+"年"+(cal.get(Calendar.MONTH)+1)+"月"%></h2></p>
+           			<table class="table table-bordered table-responsive">
+           				<tr>
+                    		<th>车牌号</th>
+                    		<th>司机</th>
+                    		<th>身份证</th>
+                    		<th>类型</th>
+                    		<th>数额</th>
+                		</tr>
+                		<%for(ChargePlan plan : record.getPlans()){ %>
+                		<%boolean isSub = false;boolean isPlan = true;//计划为黄色 收入为蓝色
+                		  String chargeType=null;
+                				switch(plan.getFeeType()){
+                				 case "plan_base_contract":
+                				 	chargeType=("银行计划");
+                				 	break;
+                				 case "plan_add_insurance":
+                				 	chargeType=("保费调整");
+                				 	break;
+                				 case "plan_sub_insurance":
+                				 	chargeType=("保费调整");
+                				 	isSub = true;
+                				 	break;
+                				 case "plan_add_contract":
+                				 	chargeType=("合同费用调整");
+                				 	break;
+                				 case "plan_sub_contract":
+                				 	chargeType=("合同费用调整");
+                				 	isSub = true;
+                				 	break;
+                				 case "plan_add_other":
+                				 	chargeType=("其它费用调整");
+                				 	break;
+                				 case "plan_sub_other":
+                				 	chargeType=("其它费用调整");
+                				 	isSub = true;
+                				 	break;
+                				 case "add_bank":
+                				 	chargeType=("银行回款");
+                				 	isPlan = false;
+                				 	break;
+                				 case "add_cash":
+                				 	chargeType=("现金回款");
+                				 	isPlan = false;
+                				 	break;
+                				 case "add_oil":
+                				 	chargeType=("油补回款");
+                				 	isPlan = false;
+                				 	break;
+                				 case "add_insurance":
+                				 	chargeType=("保险转入");
+                				 	isPlan = false;
+                				 	break;
+                				 case "add_other":
+                				 	chargeType=("其它回款");
+                				 	isPlan = false;
+                				 	break;
+                				 case "sub_oil":
+                				 	chargeType=("油补取款");
+                				 	isPlan = false;
+                				 	isSub = true;
+                				 	break;
+                				 case "sub_insurance":
+                				 	chargeType=("保险取款");
+                				 	isPlan = false;
+                				 	isSub = true;
+                				 	break;
+                				}
+                			
+                			if(chargeType==null)
+                				continue;
+                			 %>
+                		<tr class="<%=isPlan?"plan":"pay"%>" >
+                			<td><%=record.getCarNumber()%></td>
+                    		<td><%=record.getDriverName()%></td>
+                    		<td><%=record.getDriverId()%></td>
+                			<td><%=chargeType %></td>
+                			<td><%=isSub?plan.getFee().negate():plan.getFee() %></td>
+                		</tr>
+                		<%} %>
+           			</table>
+           		</div>
+           	<%}%>
+           </div>
         </div>
     </div>
 

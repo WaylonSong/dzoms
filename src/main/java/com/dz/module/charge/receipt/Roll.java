@@ -17,6 +17,7 @@ public class Roll {
     private int id;
     private int startNum;
     private int endNum;
+    private int year;
     //0表示买入，1表示卖出
     private int solded;
 
@@ -51,4 +52,12 @@ public class Roll {
     public void setSolded(int solded) {
         this.solded = solded;
     }
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
 }

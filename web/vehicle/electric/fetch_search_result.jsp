@@ -114,7 +114,7 @@ function toBeforePage(){
 
                     <tr>
 <!--                        <th>选择</th>
--->                     <th class="carframeNum selected_able">车架号</th>
+-->                     <th class="carframeNum selected_able">部门</th>
                         <th class="licenseNum selected_able">车牌号</th>
                         <th class="area selected_able">违章地点</th>
                         <th class="act selected_able">违章事项</th>
@@ -129,7 +129,7 @@ function toBeforePage(){
                    
 <tr>
 <!-- <td><input type="checkbox" name="cbx" value="<s:property value="%{#v.carframeNum}"/>" ></td>
---> <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum }"/></td>
+--> <td class="carframeNum selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#v.carframeNum).dept }"/></td>
  <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
  <td class="area selected_able"><s:property value="%{#v.area }"/></td>
 <td class="act selected_able"><s:property value="%{#v.act }"/></td>
@@ -188,7 +188,7 @@ function toBeforePage(){
         <div class="panel-body">
             <div class="button-group checkbox bg-blue-light" id="show_div">
                 <label class="button active">
-                    <input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>车架号
+                    <input type="checkbox" name="sbx" value="carframeNum" checked="checked"><span class="icon icon-check text-green"></span>部门
                 </label>
                 <label class="button active">
                     <input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号
@@ -206,9 +206,9 @@ function toBeforePage(){
    	
    </div>
 
-<form action="/DZOMS/common/selectToList" method="post" name="vehicleSele">
+<form action="/DZOMS/common/selectToList2" method="post" name="vehicleSele">
     <s:hidden name="condition" />
-    <input type="hidden" name="className" value="com.dz.module.vehicle.electric.ElectricHistory"/>
+		<input type="hidden" name="column" value="h"/>
     <input type="hidden" name="url" value="/vehicle/electric/fetch_search_result.jsp" />
     <s:hidden name="currentPage" value="%{#request.page.currentPage}" id="currentPage"></s:hidden>
 </form>

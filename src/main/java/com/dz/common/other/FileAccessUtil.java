@@ -162,7 +162,16 @@ public class FileAccessUtil {
 	 */
 	public void remove(String basePath,String filename){
 		File file = new File(basePath,filename);
-		file.delete();
+		if(file.isFile())
+			file.delete();
+		else{
+			try {
+				FileUtils.deleteDirectory(file);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	/**
 	 * 加载单个文件
@@ -186,7 +195,7 @@ public class FileAccessUtil {
 		}
 	}
 	
-	public File[] list(String basePath){
+	public static File[] list(String basePath){
 		File baseFile = new File(basePath);
 		if(!baseFile.exists()){
 			return null;

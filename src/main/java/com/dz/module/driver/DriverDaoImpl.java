@@ -62,20 +62,31 @@ public class DriverDaoImpl implements DriverDao {
 			driver.setCaiwufuzerenyijian(caiwufuzerenyijian);
 			driver.setFuwubaozhengjin(fuwubaozhengjin);
 			
-			driver.setBusinessApplyTime(null);
-			driver.setBusinessApplyRegistrant(null);
-			driver.setBusinessApplyRegistTime(null);
-			driver.setBusinessReciveTime(null);
-			driver.setBusinessReciveRegistrant(null);
-			driver.setBusinessReciveRegistTime(null);
-			driver.setBusinessApplyCancelTime(null);
-			driver.setBusinessApplyCancelRegistrant(null);
-			driver.setBusinessApplyCancelRegistTime(null);
-			driver.setBusinessReciveCancelTime(null);
-			driver.setBusinessReciveCancelRegistrant(null);
-			driver.setBusinessReciveCancelRegistTime(null);
-			driver.setBusinessApplyCancelState(null);
-			driver.setBusinessApplyState(null);
+			if(driver.getBusinessApplyTime()==null||driver.getBusinessApplyTime().before(new Date(50,0,1))){
+				driver.setBusinessApplyTime(null);
+				driver.setBusinessApplyRegistrant(null);
+				driver.setBusinessApplyRegistTime(null);
+				driver.setBusinessApplyState(null);
+			}
+			
+			if(driver.getBusinessReciveTime()==null||driver.getBusinessReciveTime().before(new Date(50,0,1))){
+				driver.setBusinessReciveTime(null);
+				driver.setBusinessReciveRegistrant(null);
+				driver.setBusinessReciveRegistTime(null);
+			}
+			
+			if(driver.getBusinessApplyCancelTime()==null||driver.getBusinessApplyCancelTime().before(new Date(50,0,1))){
+				driver.setBusinessApplyCancelTime(null);
+				driver.setBusinessApplyCancelRegistrant(null);
+				driver.setBusinessApplyCancelRegistTime(null);
+			}
+
+			if(driver.getBusinessReciveCancelTime()==null||driver.getBusinessReciveCancelTime().before(new Date(50,0,1))){
+				driver.setBusinessReciveCancelTime(null);
+				driver.setBusinessReciveCancelRegistrant(null);
+				driver.setBusinessReciveCancelRegistTime(null);
+				driver.setBusinessApplyCancelState(null);
+			}
 			
 			session.update(driver);
 			tx.commit();
@@ -613,7 +624,7 @@ public void addDriverInCarRecord(Driverincar record) {
 }
 
 @Override
-public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle vehicle, Driver driver) {
+public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle vehicle, Driver driver, String operation, Boolean finished) {
 	Session session = null;
 	try {
 		session = HibernateSessionFactory.getSession();
@@ -638,6 +649,14 @@ public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle
 			sql+="and idNumber like :idNum ";
 		}
 		
+		if(!StringUtils.isEmpty(operation)){
+			sql+="and operation like :operation ";
+		}
+		
+		if(finished!=null){
+			sql+="and finished = :finished ";
+		}
+		
 		Query query = session.createQuery(sql);
 		
 		if(!StringUtils.isEmpty(vehicle.getCarframeNum())){
@@ -659,6 +678,15 @@ public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle
 			query.setDate("endDate", endDate);
 		}
 		
+		if(!StringUtils.isEmpty(operation)){
+			query.setString("operation", "%"+operation+"%");
+		}
+		
+		if(finished!=null){
+			query.setBoolean("finished", finished);
+			sql+="and finished = :finished ";
+		}
+		
 		return Integer.parseInt(query.uniqueResult().toString());
 	} catch (HibernateException e) {
 		throw e;
@@ -670,7 +698,7 @@ public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle
 @SuppressWarnings("unchecked")
 @Override
 public List<Driverincar> selectDriverInCarByCondition(Page page,Date beginDate,Date endDate,
-		Vehicle vehicle, Driver driver) {
+		Vehicle vehicle, Driver driver, String operation, Boolean finished) {
 	Session session = null;
 	try {
 		session = HibernateSessionFactory.getSession();
@@ -695,6 +723,14 @@ public List<Driverincar> selectDriverInCarByCondition(Page page,Date beginDate,D
 			sql+="and idNumber like :idNum ";
 		}
 		
+		if(!StringUtils.isEmpty(operation)){
+			sql+="and operation like :operation ";
+		}
+		
+		if(finished!=null){
+			sql+="and finished = :finished ";
+		}
+		
 		Query query = session.createQuery(sql);
 		
 		if(!StringUtils.isEmpty(vehicle.getCarframeNum())){
@@ -715,6 +751,16 @@ public List<Driverincar> selectDriverInCarByCondition(Page page,Date beginDate,D
 		if(endDate!=null){
 			query.setDate("endDate", endDate);
 		}
+		
+		if(!StringUtils.isEmpty(operation)){
+			query.setString("operation", "%"+operation+"%");
+		}
+		
+		if(finished!=null){
+			query.setBoolean("finished", finished);
+			sql+="and finished = :finished ";
+		}
+		
 		if(page!=null){
 			query.setMaxResults(page.getEveryPage());
 			query.setFirstResult(page.getBeginIndex());
@@ -893,11 +939,11 @@ public void addLeaveRecord(Driverleave record) {
 }
 
 @Override
-public int selectDriverLeaveByConditionCount(Date beginDate,Date endDate,Vehicle vehicle, Driver driver) {
+public int selectDriverLeaveByConditionCount(Date beginDate,Date endDate,Vehicle vehicle, Driver driver, Boolean finished,String operation) {
 	Session session = null;
 	try {
 		session = HibernateSessionFactory.getSession();
-		String sql = "select count(*) from Driverleave where 1=1 ";
+		String sql = "select count(*) from Driverleave where finished=:finished ";
 		
 		if(beginDate!=null){
 			sql+="and opeTime>:beginDate ";
@@ -914,14 +960,20 @@ public int selectDriverLeaveByConditionCount(Date beginDate,Date endDate,Vehicle
 			sql+="and idNumber like :idNum ";
 		}
 		
+		if(!StringUtils.isEmpty(operation)){
+			sql+="and operation like :operation ";
+		}
+		
 		Query query = session.createQuery(sql);
 		
+		query.setBoolean("finished", finished);
+		
 		if(!StringUtils.isEmpty(vehicle.getCarframeNum())){
-			query.setString("carframeNum", vehicle.getCarframeNum());
+			query.setString("carframeNum", "%"+vehicle.getCarframeNum()+"%");
 		}
 		
 		if(!StringUtils.isEmpty(driver.getIdNum())){
-			query.setString("idNum", driver.getIdNum());
+			query.setString("idNum", "%"+driver.getIdNum()+"%");
 		}
 		
 		if(beginDate!=null){
@@ -929,6 +981,10 @@ public int selectDriverLeaveByConditionCount(Date beginDate,Date endDate,Vehicle
 		}
 		if(endDate!=null){
 			query.setDate("endDate", endDate);
+		}
+		
+		if(!StringUtils.isEmpty(operation)){
+			query.setString("operation","%"+operation+"%");
 		}
 		
 		return Integer.parseInt(query.uniqueResult().toString());
@@ -942,11 +998,11 @@ public int selectDriverLeaveByConditionCount(Date beginDate,Date endDate,Vehicle
 @SuppressWarnings("unchecked")
 @Override
 public List<Driverleave> selectDriverLeaveByCondition(Page page,Date beginDate,Date endDate,
-		Vehicle vehicle, Driver driver) {
+		Vehicle vehicle, Driver driver, Boolean finished,String operation) {
 	Session session = null;
 	try {
 		session = HibernateSessionFactory.getSession();
-		String sql = "from Driverleave where 1=1 ";
+		String sql = "from Driverleave where finished=:finished ";
 		
 		if(beginDate!=null){
 			sql+="and opeTime>:beginDate ";
@@ -963,14 +1019,20 @@ public List<Driverleave> selectDriverLeaveByCondition(Page page,Date beginDate,D
 			sql+="and idNumber like :idNum ";
 		}
 		
+		if(!StringUtils.isEmpty(operation)){
+			sql+="and operation like :operation ";
+		}
+		
 		Query query = session.createQuery(sql);
 		
+		query.setBoolean("finished", finished);
+		
 		if(!StringUtils.isEmpty(vehicle.getCarframeNum())){
-			query.setString("carframeNum", vehicle.getCarframeNum());
+			query.setString("carframeNum", "%"+vehicle.getCarframeNum()+"%");
 		}
 		
 		if(!StringUtils.isEmpty(driver.getIdNum())){
-			query.setString("idNum", driver.getIdNum());
+			query.setString("idNum", "%"+driver.getIdNum()+"%");
 		}
 		
 		if(beginDate!=null){
@@ -978,6 +1040,9 @@ public List<Driverleave> selectDriverLeaveByCondition(Page page,Date beginDate,D
 		}
 		if(endDate!=null){
 			query.setDate("endDate", endDate);
+		}
+		if(!StringUtils.isEmpty(operation)){
+			query.setString("operation","%"+operation+"%");
 		}
 		if(page!=null){
 			query.setMaxResults(page.getEveryPage());

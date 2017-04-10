@@ -14,6 +14,7 @@ public class BankRecordTmp {
     @Id
     @GeneratedValue
     private int id;
+    private int fid;
     private String licenseNum;
     private String driverName;
     private BigDecimal money;
@@ -110,4 +111,12 @@ public class BankRecordTmp {
     public void setBankCardNum(String bankCardNum) {
         this.bankCardNum = bankCardNum;
     }
+
+	public int getFid() {
+		return fid;
+	}
+
+	public void setFid(int fid) {
+		this.fid = fid;
+	}
 }

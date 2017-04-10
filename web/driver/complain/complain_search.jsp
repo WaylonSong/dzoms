@@ -26,21 +26,25 @@
 <script src="/DZOMS/res/js/admin.js"></script>
 
 <script type="text/javascript" src="/DZOMS/res/js/JsonList.js" ></script>
+<script src="/DZOMS/res/js/itemtool.js"></script>
 <script type="text/javascript" src="/DZOMS/res/js/TableList.js" ></script>
 
 <script>
 $(document).ready(function(){
-			$("#complain_search").find("input").change(function(){
-				$("#complain_search").submit();
-				if($("#complain_search input[name='states']:checked").length==1){
-					$("#complain_search input[name='states']:checked").attr("disabled","disabled");
-				}else{
-					$("#complain_search input[name='states']:checked").removeAttr("disabled");
-				}
-			});
+	$("#complain_search").find("input").change(function(){
+		$("#complain_search").submit();
+		if($("#complain_search input[name='states']:checked").length==1){
+			$("#complain_search input[name='states']:checked").attr("disabled","disabled");
+		}else{
+			$("#complain_search input[name='states']:checked").removeAttr("disabled");
+		}
+	});
 			
-			$("#complain_search").submit();
-		});
+	$("#complain_search").submit();
+	
+	getSingleList("complain.complainObject", "complain.complainObject", ["complainObject2"]);
+});
+
 </script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 	
@@ -86,7 +90,49 @@ $(document).ready(function(){
                     		        value="{0,1,2,3,4,-1}" cssClass="checkbox" />
 			              	</div>
 			              </div>
-			             <!-- <button type="reset" class="button bg-yellow">重置</button>-->
+			               <div class="form-group">
+			              	<div class="label">
+			              		<label>部门</label>
+			              	</div>
+			              	<div class="field">
+			              		<select name="dept" id="dept" class="input" style="width: 100px;">
+			              			<option value="" selected="selected">全部</option>
+			              			<option value="一部">一部</option>
+			              			<option value="二部">二部</option>
+			              			<option value="三部">三部</option>
+			              		</select>
+			              	</div>
+			              </div>
+			              <div class="form-group">
+			              	<div class="label">
+			              		<label>投诉类型</label>
+			              	</div>
+			              	<div class="field">
+			              		<select name="complain.complainClass" id="complainClass" class="input" style="width: 100px;" onfocus="getList1('complainClass','complainClass')" ></select>
+			              	</div>
+			              </div>
+			              <div class="form-group">
+			              	<div class="label">
+			              		<label>违规项目</label>
+			              	</div>
+			              	<div class="field">
+			              		<select name="complain.complainObject" class="input" />
+			              		<input type="hidden" name="complainObject2" />
+			              	</div>
+			              </div>
+			              
+			               <div class="form-group">
+			              	<div class="label">
+			              		<label>排序方式</label>
+			              	</div>
+			              	<div class="field">
+			              		<input type="radio" name="order" value="licenseNum" checked="checked" />按车号
+			              		<input type="radio" name="order" value="complainTime" />按投诉日期
+			              	</div>
+			              </div>
+			              
+			              <input type="reset" class="button bg-yellow" value="重置"></input>
+			              <input type="submit" class="button bg-yellow" value="查询"></input>
 		</form>
 					
 					
@@ -96,7 +142,7 @@ $(document).ready(function(){
 	</div>
 		
 <div>
-    <iframe name="result_form" width="100%" height="800px" id="resule_form" scrolling="no">
+    <iframe name="result_form" width="100%" height="1800px" id="resule_form" scrolling="no">
 
     </iframe>
 

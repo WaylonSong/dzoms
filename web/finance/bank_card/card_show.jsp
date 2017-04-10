@@ -16,6 +16,11 @@
 	User user = (User) session.getAttribute("user");
 %>
 
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="银行卡新增,银行卡查看" any="true">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
+
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
@@ -100,7 +105,7 @@
 
 				</tr>
 				
-				<tr>
+				<!--<tr>
 					<td>
                 		<div class="form-group">
 						<div class="label">
@@ -124,7 +129,7 @@
 					    </div>
                     </td>
 
-				</tr>
+				</tr>-->
 			</table>
 		</form>
 				

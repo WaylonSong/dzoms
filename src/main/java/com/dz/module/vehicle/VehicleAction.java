@@ -1,5 +1,6 @@
 package com.dz.module.vehicle;
 
+import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.BaseAction;
 import com.dz.common.global.Page;
 import com.dz.common.other.FileAccessUtil;
@@ -8,13 +9,22 @@ import com.dz.common.other.ObjectAccess;
 import com.dz.common.other.PageUtil;
 import com.dz.module.contract.Contract;
 import com.dz.module.contract.ContractService;
+import com.dz.module.user.RelationUr;
+import com.dz.module.user.User;
+import com.dz.module.user.message.Message;
+import com.dz.module.user.message.MessageToUser;
 
 import net.sf.json.JSONArray;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.javatuples.Triplet;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -22,6 +32,7 @@ import org.springframework.stereotype.Controller;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 
@@ -69,6 +80,14 @@ public class VehicleAction extends BaseAction{
 		return vehicle;
 	}
 	
+	public VehicleMode getVehicleMode() {
+		return vehicleMode;
+	}
+
+	public void setVehicleMode(VehicleMode vehicleMode) {
+		this.vehicleMode = vehicleMode;
+	}
+
 	public void setVehicle(Vehicle vehicle){
 		this.vehicle = vehicle;
 	}
@@ -82,12 +101,8 @@ public class VehicleAction extends BaseAction{
          	currentPage=Integer.parseInt(currentPagestr);
          }
          
-        String hql = " 1=1 ";
-        
-        if(StringUtils.isNotEmpty(condition)){
-			hql+=condition;
-		}
-        
+        String hql = " state>=0 ";
+
         if(vehicle!=null){
         	
         	hql += checkAndGenerate(vehicle,"carframeNum"," and carframeNum like '%%%s%%' ");
@@ -105,6 +120,10 @@ public class VehicleAction extends BaseAction{
         		hql += " and driverId in (select idNum from Driver where name ='"+driverName+"') ";
         	}
         }
+        
+        if(StringUtils.isNotEmpty(condition)){
+			hql+=condition;
+		}
          
         long count = ObjectAccess.execute("select count(*) from Vehicle where " + hql);
         
@@ -167,7 +186,8 @@ public class VehicleAction extends BaseAction{
 	
 	public void vehicleSelectValidCount() throws IOException{
 		Triplet<String,String,Object> condition = new Triplet<String,String,Object>("state","<",2);
-		int total = vehicleService.seleVehicleCount(null,condition);
+		Triplet<String,String,Object> condition2 = new Triplet<String,String,Object>("state","!=",-1);
+		int total = vehicleService.seleVehicleCount(null,condition,condition2);
 		
 		ServletActionContext.getResponse().setContentType("application/json");
 		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
@@ -186,7 +206,6 @@ public class VehicleAction extends BaseAction{
 	
 	public String vehicleAdd() {
 		try {
-			//TODO
 			String basePath = System.getProperty("com.dz.root") +"data/vehicle/"+vehicle.getCarframeNum()+"/";
 			File base = new File(basePath);
 			if (!base.exists()) {
@@ -200,24 +219,7 @@ public class VehicleAction extends BaseAction{
 				FileUploadUtil.store(photo_tuoying, new File(base,"photo_tuoying.jpg"));
 			}
 			
-			vehicle.setState(0);
-			
-			
-//			Contract c = ObjectAccess.execute("select c from Contract c where c.idNum='"+vehicle.getDriverId()+
-//					"' and c.state=2 ");
-//			if(c==null){
-//				request.setAttribute("msgStr", "添加失败。请先进行新车开业，新车开业后才可录入车辆信息。");
-//				return ERROR;
-//			}
-//			c.setCarframeNum(vehicle.getCarframeNum());
-//			c.setCarNum(vehicle.getLicenseNum());
-//			
-//			ObjectAccess.saveOrUpdate(c);
-			
-//			VehicleApproval approval = ObjectAccess.execute("from VehicleApproval c where c.contractId="+c.getId()+
-//					" and c.checkType=0 ");
-//			approval.setGetCarDate(getCarDate);
-//			ObjectAccess.saveOrUpdate(approval);
+			vehicle.setState(-1);
 			
 			vehicle.setGetCarDate(getCarDate);
 			
@@ -235,6 +237,58 @@ public class VehicleAction extends BaseAction{
 			return ERROR;
 		}
 	}
+	
+	public String vehicleRelook(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query q = s.createQuery("update Vehicle set state=0 where state=-1");
+			q.executeUpdate();
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "添加成功。");
+		return SUCCESS;
+	}
+	
+	public String vehicleDelete(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Vehicle v = (Vehicle) s.get(Vehicle.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=-1){
+				request.setAttribute("msgStr", "删除失败。不存在未审核的车架号为"+vehicle.getCarframeNum()+"的车辆。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
 	
 	public void vehicleSearch() throws IOException {
 		ServletActionContext.getResponse().setContentType("application/json");
@@ -274,39 +328,241 @@ public class VehicleAction extends BaseAction{
 		return SUCCESS;
 	}
 	
+	
+	
 	public String addInvoice(){
-		Vehicle v = vehicleService.selectById(vehicle);
-		v.setInvoiceNumber(vehicle.getInvoiceNumber());
-		v.setInvoiceDate(vehicle.getInvoiceDate());
-		v.setInvoiceMoney(vehicle.getInvoiceMoney());
-		v.setPurseFrom(vehicle.getPurseFrom());
-		v.setInvoiceRegister(vehicle.getInvoiceRegister());
-		v.setInvoiceRegistTime(vehicle.getInvoiceRegistTime());
-		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
-			return ERROR;
+		Invoice i = new Invoice();
+		BeanUtils.copyProperties(vehicle,i, new String[]{"state"});
+		i.setState(0);
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String relookInvoice(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from Invoice where state=0");
+			List<Invoice> is = query.list();
+			for(Invoice i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BeanUtils.copyProperties(i,v, new String[]{"state"});
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String revokeInvoice(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Invoice v = (Invoice) s.get(Invoice.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=1){
+				request.setAttribute("msgStr", "回退失败。");
+				return SUCCESS;
+			}else{
+				v.setState(0);
+				s.saveOrUpdate(v);
+			}
+			
+			Vehicle vh = (Vehicle) s.get(Vehicle.class, vehicle.getCarframeNum());
+			Invoice ispace = new Invoice();
+			BeanUtils.copyProperties(ispace,vh, new String[]{"state","carframeNum"});
+			s.saveOrUpdate(vh);
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteInvoice(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Invoice v = (Invoice) s.get(Invoice.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
 	
 	public String addTax(){
-		Vehicle v = vehicleService.selectById(vehicle);
-		v.setTaxNumber(vehicle.getTaxNumber());
-		v.setTaxDate(vehicle.getTaxDate());
-		v.setTaxMoney(vehicle.getTaxMoney());
-		v.setTaxFrom(vehicle.getTaxFrom());
-		v.setTaxRegister(vehicle.getTaxRegister());
-		v.setTaxRegistTime(vehicle.getTaxRegistTime());
-		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
-			return ERROR;
+		Tax i = new Tax();
+		BeanUtils.copyProperties(vehicle,i, new String[]{"state"});
+		i.setState(0);
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String relookTax(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from Tax where state=0");
+			List<Tax> is = query.list();
+			for(Tax i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BeanUtils.copyProperties(i,v, new String[]{"state"});
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String revokeTax(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Tax v = (Tax) s.get(Tax.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=1){
+				request.setAttribute("msgStr", "回退失败。");
+				return SUCCESS;
+			}else{
+				v.setState(0);
+				s.saveOrUpdate(v);
+			}
+			
+			Vehicle vh = (Vehicle) s.get(Vehicle.class, vehicle.getCarframeNum());
+			Tax ispace = new Tax();
+			BeanUtils.copyProperties(ispace,vh, new String[]{"state","carframeNum"});
+			s.saveOrUpdate(vh);
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteTax(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Tax v = (Tax) s.get(Tax.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
 	
@@ -315,38 +571,193 @@ public class VehicleAction extends BaseAction{
 		
 		if(v==null){
 			request.setAttribute("msgStr", "添加失败。车架号错误，该车不存在！");
-			return ERROR;
+			return SUCCESS;
 		}
 		
-		v.setLicenseNum(vehicle.getLicenseNum());
-		v.setLicenseNumRegDate(vehicle.getLicenseNumRegDate());
-		v.setLicensePurseNum(vehicle.getLicensePurseNum());
-		v.setLicenseRegister(vehicle.getLicenseRegister());
-		v.setLicenseRegistTime(vehicle.getLicenseRegistTime());
-		v.setLicenseRegNum(vehicle.getLicenseRegNum());
-		v.setIsNewLicense(vehicle.getIsNewLicense());
+		String basePath = System.getProperty("com.dz.root") +"data/vehicle/"+vehicle.getCarframeNum()+"/";
+		File base = new File(basePath);
+		if (!base.exists()) {
+			base.mkdirs();
+		}
+		if(StringUtils.length(photo)==30){
+			FileUploadUtil.store(photo, new File(base,"photo.jpg"));
+		}
 		
-		Contract c = ObjectAccess.execute("select c from Contract c where c.state in (2,3) and c.idNum='"+v.getDriverId()+
-				"' and c.carframeNum='"+v.getCarframeNum()+"' ");
+		License i = new License();
+		BeanUtils.copyProperties(vehicle,i, new String[]{"state"});
+		i.setState(0);
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String relookLicence(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from License where state=0");
+			List<License> is = query.list();
+			for(License i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BeanUtils.copyProperties(i,v, new String[]{"state"});
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+				
+				Query q_c = s.createQuery("select c from Contract c where c.state in (2,3) and c.idNum=:idNum and c.carframeNum=:carframeNum ");
+				q_c.setString("idNum", v.getDriverId());
+				q_c.setString("carframeNum", v.getCarframeNum());
+				q_c.setMaxResults(1);
+				Contract c = (Contract) q_c.uniqueResult();
+				
+				if(c!=null){
+					c.setCarNum(v.getLicenseNum());
+					
+					s.saveOrUpdate(c);
+					
+					Query q_va = s.createQuery("from VehicleApproval c where c.contractId=:cid and c.checkType=0 ");
+					q_va.setInteger("cid", c.getId());
+					q_va.setMaxResults(1);
+					VehicleApproval approval = (VehicleApproval) q_va.uniqueResult();
 		
-		if(c!=null){
-			c.setCarNum(vehicle.getLicenseNum());
+					approval.setLicenseRegisterDate(v.getLicenseNumRegDate());
+					approval.setOperateApplyDate(new Date());
+					s.saveOrUpdate(approval);
+				}
+				
+				Message msg = new Message();
+				
+				User u = (User) s.get(User.class, v.getLicenseRegister());
+				msg.setFromUser(v.getLicenseRegister());
+				msg.setTime(new Date());
+				
+				msg.setCarframeNum(v.getCarframeNum());
+				msg.setType("车辆牌照录入完毕");
+				msg.setMsg(String.format("%tF %s发：\n"
+						+ "现有车%s(%s) 已录入完毕，可进行绑定承租人操作。", 
+						msg.getTime(),u.getUname(),
+						v.getLicenseNum(),v.getCarframeNum()));
+				
+				s.saveOrUpdate(msg);
+				
+				Query q_us = s.createQuery("from RelationUr where rid in (select rid from Role where rname = '绑定承租人')");
+				List<RelationUr> users = q_us.list();
+		
+				for (RelationUr relationUr : users) {
+					MessageToUser mu = new MessageToUser();
+					mu.setUid(relationUr.getUid());
+					mu.setMid(msg.getId());
+					mu.setAlreadyRead(false);
+					s.saveOrUpdate(mu);
+				}
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteLicence(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			License v = (License) s.get(License.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String revokeLicence(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			License i = (License) s.get(License.class, vehicle.getCarframeNum());
 			
-			ObjectAccess.saveOrUpdate(c);
+			if(i == null||i.getState()!=1){
+				request.setAttribute("msgStr", "回退失败。");
+				return SUCCESS;
+			}
 			
-			VehicleApproval approval = ObjectAccess.execute("from VehicleApproval c where c.contractId="+c.getId()+
-					" and c.checkType=0 ");
-			approval.setLicenseRegisterDate(v.getLicenseNumRegDate());
-			approval.setOperateApplyDate(new Date());
-			ObjectAccess.saveOrUpdate(approval);
+			Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+			
+			Query q_c = s.createQuery("select c from Contract c where c.state=0 and c.idNum=:idNum and c.carframeNum=:carframeNum ");
+			q_c.setString("idNum", v.getDriverId());
+			q_c.setString("carframeNum", v.getCarframeNum());
+			q_c.setMaxResults(1);
+			Contract c = (Contract) q_c.uniqueResult();
+			
+			if(c!=null){
+				request.setAttribute("msgStr", "合同已生效，不可修改。");
+				return SUCCESS;
+			}
+			
+			License ispace = new License();
+			ispace.setCarframeNum(v.getCarframeNum());
+			BeanUtils.copyProperties(ispace,v, new String[]{"state"});
+
+			i.setState(0);
+			s.saveOrUpdate(i);
+			s.saveOrUpdate(v);
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
-			return ERROR;
-		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
 	
@@ -355,98 +766,470 @@ public class VehicleAction extends BaseAction{
 	 */
 	public String addService(){
 		Vehicle v = vehicleService.selectById(vehicle);
-		
-		//v.setOperateCard(vehicle.getOperateCard());
-		v.setOperateCardRegistDate(vehicle.getOperateCardRegistDate());
-		v.setOperateCardRegister(vehicle.getOperateCardRegister());
-		//v.setOperateCardTime(vehicle.getOperateCardTime());
-		v.setTwiceSupplyDate(vehicle.getTwiceSupplyDate());
-		v.setNextSupplyDate(vehicle.getNextSupplyDate());
-		v.setMoneyCountor(vehicle.getMoneyCountor());
-		v.setMoneyCountorNextDate(vehicle.getMoneyCountorNextDate());
-		v.setMoneyCountorTime(vehicle.getMoneyCountorTime());
-		//v.setBusinessLicenseNum(vehicle.getBusinessLicenseNum());
-		
-		Contract c = ObjectAccess.execute("select c from Contract c where c.idNum='"+v.getDriverId()+
-				"' and c.carframeNum='"+v.getCarframeNum()+"' ");
-		
-		if(c!=null){
-			VehicleApproval approval = ObjectAccess.execute("from VehicleApproval c where c.contractId="+c.getId()+
-					" and c.checkType=0 ");
-			approval.setOperateCardDate(v.getOperateCardTime());
-			ObjectAccess.saveOrUpdate(approval);
+		if(v==null){
+			request.setAttribute("msgStr", "添加失败。车架号错误，该车不存在！");
+			return SUCCESS;
 		}
 		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
-			return ERROR;
+		ServiceInfo i = new ServiceInfo();
+		BeanUtils.copyProperties(vehicle,i, new String[]{"state"});
+		i.setState(0);
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
+	
+	public String relookService(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from ServiceInfo where state=0");
+			List<ServiceInfo> is = query.list();
+			for(ServiceInfo i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BeanUtils.copyProperties(i,v, new String[]{"state"});
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+				
+				Query q_c = s.createQuery("select c from Contract c where c.state in (2,3) and c.idNum=:idNum and c.carframeNum=:carframeNum ");
+				q_c.setString("idNum", v.getDriverId());
+				q_c.setString("carframeNum", v.getCarframeNum());
+				q_c.setMaxResults(1);
+				Contract c = (Contract) q_c.uniqueResult();
+				
+				if(c!=null){					
+					Query q_va = s.createQuery("from VehicleApproval c where c.contractId=:cid and c.checkType=0 ");
+					q_va.setInteger("cid", c.getId());
+					q_va.setMaxResults(1);
+					VehicleApproval approval = (VehicleApproval) q_va.uniqueResult();
+					approval.setOperateCardDate(v.getOperateCardTime());
+					s.saveOrUpdate(approval);
+				}
+	
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteService(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			ServiceInfo v = (ServiceInfo) s.get(ServiceInfo.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	
+	public String revokeService(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			ServiceInfo i = (ServiceInfo) s.get(ServiceInfo.class, vehicle.getCarframeNum());
+			
+			if(i == null||i.getState()!=1){
+				request.setAttribute("msgStr", "回退失败。");
+				return SUCCESS;
+			}
+			
+			Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+			
+			ServiceInfo ispace = new ServiceInfo();
+			BeanUtils.copyProperties(ispace,v, new String[]{"state","carframeNum"});
+
+			i.setState(0);
+			s.saveOrUpdate(i);
+			s.saveOrUpdate(v);
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
 	/**
 	 * 添加经营权信息
 	 */
 	public String addServiceRight(){
 		Vehicle v = vehicleService.selectById(vehicle);
-		
-		v.setOperateCard(vehicle.getOperateCard());
-		v.setServiceRightRegistDate(vehicle.getServiceRightRegistDate());
-		v.setServiceRightRegister(vehicle.getServiceRightRegister());
-		v.setOperateCardTime(vehicle.getOperateCardTime());
-		
-		Contract c = ObjectAccess.execute("select c from Contract c where c.idNum='"+v.getDriverId()+
-				"' and c.carframeNum='"+v.getCarframeNum()+"' ");
-		
-		if(c!=null){
-			VehicleApproval approval = ObjectAccess.execute("from VehicleApproval c where c.contractId="+c.getId()+
-					" and c.checkType=0 ");
-			approval.setOperateCardDate(v.getOperateCardTime());
-			ObjectAccess.saveOrUpdate(approval);
+		if(v==null){
+			request.setAttribute("msgStr", "添加失败。车架号错误，该车不存在！");
+			return SUCCESS;
 		}
 		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
-			return ERROR;
+		ServiceRightInfo i = new ServiceRightInfo();
+		BeanUtils.copyProperties(vehicle,i, new String[]{"state"});
+		i.setState(0);
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
+	
+	public String relookServiceRight(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from ServiceRightInfo where state=0");
+			List<ServiceRightInfo> is = query.list();
+			for(ServiceRightInfo i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BeanUtils.copyProperties(i,v, new String[]{"state"});
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+				
+				Query q_c = s.createQuery("select c from Contract c where c.state in (2,3) and c.idNum=:idNum and c.carframeNum=:carframeNum ");
+				q_c.setString("idNum", v.getDriverId());
+				q_c.setString("carframeNum", v.getCarframeNum());
+				q_c.setMaxResults(1);
+				Contract c = (Contract) q_c.uniqueResult();
+				
+				if(c!=null){
+					Query q_va = s.createQuery("from VehicleApproval c where c.contractId=:cid and c.checkType=0 ");
+					q_va.setInteger("cid", c.getId());
+					q_va.setMaxResults(1);
+					VehicleApproval approval = (VehicleApproval) q_va.uniqueResult();
+					approval.setOperateCardDate(v.getOperateCardTime());
+					s.saveOrUpdate(approval);
+				}
+	
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteServiceRight(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			ServiceRightInfo v = (ServiceRightInfo) s.get(ServiceRightInfo.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String revokeServiceRight(){
+		request.setAttribute("msgStr", "由于与合同计费发生挂钩，功能停用。");
+		return SUCCESS;
+		
+//		Session s = null;
+//		Transaction tx = null;
+//		try{
+//			s = HibernateSessionFactory.getSession();
+//			tx = s.beginTransaction();
+//			ServiceRightInfo i = (ServiceRightInfo) s.get(ServiceRightInfo.class, vehicle.getCarframeNum());
+//			
+//			if(i == null||i.getState()!=1){
+//				request.setAttribute("msgStr", "回退失败。");
+//				return SUCCESS;
+//			}
+//			
+//			Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+//			
+//			Query q_c = s.createQuery("select c from Contract c where c.state=0 and c.idNum=:idNum and c.carframeNum=:carframeNum ");
+//			q_c.setString("idNum", v.getDriverId());
+//			q_c.setString("carframeNum", v.getCarframeNum());
+//			q_c.setMaxResults(1);
+//			Contract c = (Contract) q_c.uniqueResult();
+//			
+//			if(c!=null){
+//				request.setAttribute("msgStr", "合同已生效，不可修改。");
+//				return SUCCESS;
+//			}
+//			
+//			ServiceRightInfo ispace = new ServiceRightInfo();
+//			ispace.setCarframeNum(v.getCarframeNum());
+//			BeanUtils.copyProperties(ispace,v, new String[]{"state"});
+//
+//			i.setState(0);
+//			s.saveOrUpdate(i);
+//			s.saveOrUpdate(v);
+//			
+//			tx.commit();
+//		}catch(HibernateException e){
+//			e.printStackTrace();
+//			if(tx!=null){
+//				tx.rollback();
+//			}
+//			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+//			return SUCCESS;
+//		}finally{
+//			HibernateSessionFactory.closeSession();
+//		}
+//		request.setAttribute("msgStr", "操作成功。");
+//		return SUCCESS;
+	}
+	
 	
 	private BusinessLicense businessLicense;
 
 	public String addTrade(){
 		Vehicle v = vehicleService.selectById(vehicle);
-		
-		ObjectAccess.saveOrUpdate(businessLicense);
-		
-		if(businessLicense==null||businessLicense.getId()==null||businessLicense.getId()==0){
-			request.setAttribute("msgStr", "添加失败。");
+		if(v==null){
+			request.setAttribute("msgStr", "添加失败。车架号错误，该车不存在！");
 			return SUCCESS;
 		}
 		
-		v.setBusinessLicenseComment(vehicle.getBusinessLicenseComment());
-		v.setBusinessLicenseId(businessLicense.getId());
+		Trade i = new Trade();
+		BeanUtils.copyProperties(businessLicense,i, new String[]{"state"});
+		i.setCarframeNum(vehicle.getCarframeNum());
+		i.setBusinessLicenseComment(vehicle.getBusinessLicenseComment());
 		
-		boolean flag = vehicleService.updateVehicle(v);
-		if(!flag) {
-			request.setAttribute("msgStr", "添加失败。");
+		i.setState(0);
+		
+		String str = "";
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			s.saveOrUpdate(i);
+			
+			BusinessLicense bl = (BusinessLicense) s.get(BusinessLicense.class, i.getLicenseNum());
+			if(bl!=null){
+				str="注意：已存在一条资格证号相同的记录，审核时将自动覆盖。";
+			}
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
 			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		request.setAttribute("msgStr", "添加成功。");
+		request.setAttribute("msgStr", "操作成功。"+str);
 		return SUCCESS;
 	}
 	
+	public String relookTrade(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Query query = s.createQuery("from Trade where state=0");
+			List<Trade> is = query.list();
+			for(Trade i:is){
+				Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+				BusinessLicense ls = new BusinessLicense();
+				BeanUtils.copyProperties(i,ls, new String[]{"state"});
+				s.saveOrUpdate(ls);
+				
+				v.setBusinessLicenseComment(i.getBusinessLicenseComment());
+				v.setBusinessLicenseId(i.getLicenseNum());
+				s.update(v);
+				i.setState(1);
+				s.update(i);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String deleteTrade(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Trade v = (Trade) s.get(Trade.class, vehicle.getCarframeNum());
+			if(v == null||v.getState()!=0){
+				request.setAttribute("msgStr", "删除失败。");
+				return SUCCESS;
+			}else{
+				s.delete(v);
+			}
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "删除失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	public String revokeTrade(){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			Trade i = (Trade) s.get(Trade.class, vehicle.getCarframeNum());
+			
+			if(i == null||i.getState()!=1){
+				request.setAttribute("msgStr", "回退失败。");
+				return SUCCESS;
+			}
+			
+			Vehicle v = (Vehicle) s.get(Vehicle.class, i.getCarframeNum());
+			
+			BusinessLicense ls = (BusinessLicense) s.get(BusinessLicense.class, i.getLicenseNum());
+			if(ls!=null){
+				s.delete(ls);
+			}
+			
+			v.setBusinessLicenseComment(null);
+			v.setBusinessLicenseId(null);
+
+			i.setState(0);
+			s.saveOrUpdate(i);
+			s.saveOrUpdate(v);
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "回退失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
+		}
+		request.setAttribute("msgStr", "操作成功。");
+		return SUCCESS;
+	}
+	
+	private VehicleMode vehicleMode;
 	public String vehicleSelectById(){
 		Vehicle vs = vehicleService.selectById(vehicle);
 		vs.setFirstDriver(vs.getFirstDriver()+ " ");
 		vs.setSecondDriver(vs.getSecondDriver()+" ");
 		vs.setThirdDriver(vs.getThirdDriver()+" ");
 		vs.setForthDriver(vs.getForthDriver()+" ");
+		
+		vehicleMode  = (VehicleMode) ObjectAccess.getObject("com.dz.module.vehicle.VehicleMode", vs.getCarMode());
+
+		this.vehicle = vs;
+		
 		jsonObject = vs;
-		this.vehicle = (Vehicle) jsonObject;
 		vehicle.setDriverId(vehicle.getDriverId()+" ");
 		return "selectById";
 	}

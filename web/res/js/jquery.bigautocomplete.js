@@ -57,7 +57,11 @@
 			               //callback：选中行后按回车或单击时回调的函数
 			               callback:null,
 			               //condition 向后台传输的查询条件
-			               condition:null
+			               condition:null,
+			               //doubleClick: 响应双击事件
+			               doubleClick:true,
+			               //doubleClickDefault: 当没有输入时的默认输入
+			               doubleClickDefault:''
 			};
 			$.extend(this.config,param);
 			
@@ -157,7 +161,12 @@
 						
 						makeContAndShow(data_);
 					}else if(url != null && url != ""){//ajax请求数据
-						$.post(url,{keyword:keyword_,condition:config.condition},function(result){
+						var condition = config.condition;
+						console.log(condition instanceof Function);
+						if(condition instanceof Function){
+							condition = condition();
+						}
+						$.post(url,{keyword:keyword_,condition:condition},function(result){
 							makeContAndShow(result.data)
 						},"json")
 					}
@@ -176,7 +185,53 @@
 					}
 				}
 				
-			});	
+			});
+			
+			if($this.data("config").doubleClick){
+				$this.dblclick(function(){
+					var config = $this.data("config");
+					
+					var offset = $this.offset();
+					$bigAutocompleteContent.width(config.width);
+					var h = $this.outerHeight() - 1;
+					$bigAutocompleteContent.css({"top":offset.top + h,"left":offset.left});
+					
+					var data = config.data;
+					var url = config.url;
+					var keyword_ = $.trim($this.val());
+					if(keyword_ == null || keyword_ == ""){
+//						bigAutocomplete.hideAutocomplete();
+//						return;
+						keyword_ = config.doubleClickDefault;
+					}	
+//					if(keyword_ == null || keyword_ == ""){
+//						bigAutocomplete.hideAutocomplete();
+//						return;
+//					}	
+					if(data != null && $.isArray(data) ){
+						var data_ = new Array();
+						for(var i=0;i<data.length;i++){
+							if(data[i].title.indexOf(keyword_) > -1){
+								data_.push(data[i]);
+							}
+						}
+						
+						makeContAndShow(data_);
+					}else if(url != null && url != ""){//ajax请求数据
+						var condition = config.condition;
+						console.log(condition instanceof Function);
+						if(condition instanceof Function){
+							condition = condition();
+						}
+						$.post(url,{keyword:keyword_,condition:condition},function(result){
+							makeContAndShow(result.data)
+						},"json")
+					}
+
+					
+					bigAutocomplete.holdText = $this.val();
+				});
+			}
 			
 					
 			//组装下拉框html内容并显示
@@ -204,6 +259,8 @@
 			$this.focus(function(){
 				bigAutocomplete.currentInputText = $this;
 			});
+			
+			$this.bind("change blur",$this.data("config").callback);
 			
 		}
 		//隐藏下拉框

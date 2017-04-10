@@ -11,13 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.BaseAction;
+import com.dz.common.other.ObjectAccess;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,9 +92,6 @@ public class UserAction extends BaseAction {
 	 */
 
 	public String userLogin() {
-		request = ServletActionContext.getRequest();
-		session = request.getSession();
-		
 		String result = userService.userLogin(user);
 		Relation_urDaoImpl relation = new Relation_urDaoImpl();
 		if (result.equals("error_uname")) {
@@ -127,18 +129,47 @@ public class UserAction extends BaseAction {
 				}
 			}
 			session.setAttribute("menuItems", menuItems);
+			Cookie cookie;
+			try {
+				cookie = new Cookie("LoginName", URLEncoder.encode(user.getUname(),"utf-8"));
+				cookie.setMaxAge(24*60*60*30); //一个月内有效
+				response.addCookie(cookie);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			return "login_success";
 		}
 	}
 	
+	public void userNames() throws IOException{
+		response.setContentType("application/json");
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		
+		JSONArray jarr = new JSONArray();
+		
+		List<User> users = ObjectAccess.query(User.class, null);
+		
+		for (User user : users) {
+			if(!StringUtils.containsAny(user.getUname(), "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")){
+				JSONObject json = new JSONObject();
+				json.put("name", user.getUname());
+				jarr.add(json);
+			}
+		}
+		
+		out.print(jarr.toString());
+		out.flush();
+		out.close();
+	}
+	
 	/*通过.NET客户端登陆*/
 	public void userLoginFromOut() throws IOException{
-		request = ServletActionContext.getRequest();
-		session = request.getSession();
-		
-		ServletActionContext.getResponse().setContentType("application/json");
-		ServletActionContext.getResponse().setCharacterEncoding("utf-8");
-		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		response.setContentType("application/json");
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
 		
 		JSONObject json = new JSONObject();
 		
@@ -184,6 +215,20 @@ public class UserAction extends BaseAction {
 		return "login_failed";
 	}
 
+	
+	public void userMessageCount() throws IOException{
+		response.setContentType("application/json");
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		
+		User user = (User)session.getAttribute("user");
+		
+		long count = ObjectAccess.execute("select count(*) from MessageToUser where alreadyRead=false and uid="+user.getUid());
+		out.print(count);
+		out.flush();
+		out.close();
+	}
+	
 	public int getTheme() {
 		return theme;
 	}

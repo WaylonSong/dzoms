@@ -53,10 +53,8 @@ Page pg = (Page)request.getAttribute("page");
 
         function _update(){
             var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+            var url = "/DZOMS/vehicle/tax_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2ftax_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
@@ -122,12 +120,12 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               			<s:if test="#session.roles.{?#this.rname=='购置税修改权限'}.size>0">  
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 			                                </s:if>
-		                                    <button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
+		                                    <!--<button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
 			                                                            导出</button>
 			                                  <button  onclick="_toPrint()" type="button" class="button icon-print text-green" style="line-height: 6px;">
-			                                                            打印</button>
+			                                                            打印</button>-->
                                      </div>
                                 </div>
           	        	</div>
@@ -146,6 +144,7 @@ Page pg = (Page)request.getAttribute("page");
 <th class="taxDate			selected_able">核发日期</th>
 <th class="taxMoney			selected_able">购置税应收金额</th>
 <th class="taxFrom			selected_able">发证机关</th>
+<th class="licenseNum selected_able">车牌号</th>
 <th class="taxRegister 	selected_able">登记人</th>
 <th class="taxRegistTime selected_able">登记时间</th>
                     </tr>
@@ -160,6 +159,7 @@ Page pg = (Page)request.getAttribute("page");
 <td class="taxDate selected_able"><s:property value="%{#v.taxDate}"/></td>
 <td class="taxMoney selected_able"><s:property value="%{#v.taxMoney}"/></td>
 <td class="taxFrom selected_able"><s:property value="%{#v.taxFrom}"/></td>
+<td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
 <td class="taxRegister selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.taxRegister).uname}"/></td>
 <td class="taxRegistTime selected_able"><s:property value="%{#v.taxRegistTime}"/></td>
  </tr>
@@ -211,7 +211,10 @@ Page pg = (Page)request.getAttribute("page");
 <label class="button active"><input type="checkbox" name="sbx" value="taxDate" checked="checked"><span class="icon icon-check text-green"></span>核发日期</label>
 <label class="button active"><input type="checkbox" name="sbx" value="taxMoney" checked="checked"><span class="icon icon-check text-green"></span>购置税应收金额</label>
 <label class="button active"><input type="checkbox" name="sbx" value="taxFrom" checked="checked"><span class="icon icon-check text-green"></span>发证机关</label>
-<label class="button active"><input type="checkbox" name="sbx" value="taxRegister" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
+<label class="button active">
+                    <input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号
+                </label>
+                <label class="button active"><input type="checkbox" name="sbx" value="taxRegister" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
 <label class="button active"><input type="checkbox" name="sbx" value="taxRegistTime" checked="checked"><span class="icon icon-check text-green"></span>登记时间</label>
             </div>
 

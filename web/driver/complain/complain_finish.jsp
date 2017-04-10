@@ -41,9 +41,9 @@
 	
 	$(document).ready(function(){
 		var complainObject = $("#complainObject").val();
-		getFathersValue(complainObject,function(str){
-			$("#complainObject_show").val(str);
-		});
+		var json = $.parseJSON(complainObject);
+		var str = json["complainObject2"]+":"+json["complain.complainObject"];
+		$("#complainObject_show").val(str);
 	});
 </script>
 </head>

@@ -1,9 +1,15 @@
 package com.dz.module.vehicle.electric;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
 import static javax.persistence.GenerationType.IDENTITY;
+
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -20,7 +26,7 @@ public class ElectricHistory implements java.io.Serializable {
 	private Integer fecthId;
 	private String carframeNum;
 	private String licenseNum;
-	private String date;
+	private Date date;
 	private String act;
 	private String area;
 	private String code;
@@ -38,7 +44,7 @@ public class ElectricHistory implements java.io.Serializable {
 
 	/** full constructor */
 	public ElectricHistory(Integer fecthId, String carframeNum,
-			String licenseNum, String date, String area, String code,
+			String licenseNum, Date date, String area, String code,
 			String fen, String money, String handled) {
 		this.fecthId = fecthId;
 		this.carframeNum = carframeNum;
@@ -90,12 +96,13 @@ public class ElectricHistory implements java.io.Serializable {
 		this.licenseNum = licenseNum;
 	}
 
-	@Column(name = "date", length = 30)
-	public String getDate() {
+	@Column(name = "date")
+	@Temporal(TemporalType.TIMESTAMP)
+	public Date getDate() {
 		return this.date;
 	}
 
-	public void setDate(String date) {
+	public void setDate(Date date) {
 		this.date = date;
 	}
 

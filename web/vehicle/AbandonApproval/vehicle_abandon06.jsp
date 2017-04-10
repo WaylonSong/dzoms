@@ -95,10 +95,23 @@
 						<s:textfield id="contract.contractEndDate" name="contract.contractEndDate" /></td>
 				</tr>
 				<tr>
+					<%@page import="com.opensymphony.xwork2.util.*,com.dz.module.contract.*" %>
 					<td class="tableleft">运营时长</td>
-					<s:set name="nowDate" value="%{@com.dz.common.other.TimeComm@getDate()}"></s:set>
-					<td><s:textfield id="operateDuration" value="%{@com.dz.common.other.TimeComm@subDate(contract.contractBeginDate,#nowDate)}"/></td>
-
+					<%
+					java.util.Date date = new java.util.Date();
+					ValueStack vs = (ValueStack) request.getAttribute("struts.valueStack");
+					Contract c = (Contract) vs.findValue("contract");
+					long timespan = Math.min(c.getContractEndDate().getTime(), date.getTime()) - c.getContractBeginDate().getTime();
+					long days = timespan / 3600000 / 24;
+					long month = days /30;
+					days = days % 30;
+					String sspan = ""+month+"个月,"+days+"天";
+					request.setAttribute("sspan", sspan);
+					%>
+					<td>
+						<%--<s:textfield  id="operateDuration" value="%{@com.dz.common.other.TimeComm@subDate(contract.contractBeginDate,@org.apache.commons.lang.ObjectUtils@min(contract.contractEndDate,#request.nowDate))}" /> --%>
+						<s:textfield  id="operateDuration" value="%{#request.sspan}" />
+					</td>
 					<td class="tableleft">办理事项</td>
 					<td>
 						<s:radio name="vehicleApproval.handleMatter" list="%{#{'false':'废业','true':'解除'}}"></s:radio>
@@ -165,6 +178,7 @@
 					<td class="tableleft">计财部审核人意见</td>
 					<td colspan="3">
 						<s:textarea cssClass="input-xlarge"
+							id="financeRemark"
 							name="vehicleApproval.financeRemark" rows="3" 
 							cssStyle="width:100%"></s:textarea>
 					</td>
@@ -173,6 +187,7 @@
 				<tr>
 					<td class="tableleft"></td>
 					<td colspan="3" style="text-align:right;">
+						<input type="button" value="同意" class="btn btn-primary" onclick="approvalApply('#financeRemark');">
 						<button type="submit" class="btn btn-primary" type="button">提交</button>
 						&nbsp;&nbsp;
 						<button type="button" class="btn btn-success dialogs" name="backid"

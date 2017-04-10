@@ -149,7 +149,10 @@ Page pg = (Page)request.getAttribute("page");
                 <tr>
                     <th>选择</th>
                    <th class="praiseTime 	selected_able">表扬时间		</th>
-<th class="praiseClass	selected_able">表扬类型		</th>
+<th class="praiseClass	selected_able">表扬类型(第一级)		</th>
+<th class="praiseClass	selected_able">表扬类型(第二级)		</th>
+<th class="praiseClass	selected_able">表扬类型(第三级)		</th>
+<th class="praiseClass	selected_able">表扬类型(第四级)		</th>
 <th class="praiseGrade  selected_able">分值			</th>
 <th class="praiseNumber	selected_able">参与人数		</th>
 <th class="registrant	selected_able">录入人		</th>
@@ -160,7 +163,10 @@ Page pg = (Page)request.getAttribute("page");
                             <td><input type="radio" name="cbx" value="<s:property value='%{#v.id}'/>" ></td>
 							
 							<td class="praiseTime selected_able"><s:property value="%{#v.praiseTime}"/></td>
-<td class="praiseClass selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getFathersValueString(#v.praiseClass)}"/></td>
+<td class="praiseClass selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.praiseClass,'praiseClass1')}"/></td>
+<td class="praiseClass selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.praiseClass,'praiseClass2')}"/></td>
+<td class="praiseClass selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.praiseClass,'praiseClass3')}"/></td>
+<td class="praiseClass selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.praiseClass,'praiseClass4')}"/></td>
 <td class="praiseGrade selected_able"><s:property value="%{#v.grade}"/></td>
 <td class="praiseNumber selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@execute('select count(*) from GroupPraiseDriver where groupPraiseId='+#v.id)}"/></td>
 <td class="registrant selected_able"><s:property value="#v.registrant"/></td>

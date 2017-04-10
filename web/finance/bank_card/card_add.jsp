@@ -8,6 +8,12 @@
 <%@page import="org.springframework.web.context.support.*"%>
 <%@page import="org.springframework.context.*" %>
 <%@page import="org.apache.commons.collections.*" %>
+
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="银行卡新增">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
+
 <%
 	String path = request.getContextPath();
 	String basePath = request.getScheme() + "://"
@@ -41,47 +47,48 @@
         
         function checkBeforeSubmit(){
         	var condition = "";
-        	condition += "from BankCard where cardNumber='"+$('[name="bankCard.cardNumber"]').val()+"' ";
+        	condition += "from BankCard where cardNumber='"+$('[name="bankCard.cardNumber"]').val()+"' and carNum not in (select carframeNum from Vehicle where state=2 or state=3) ";
         	$.post("/DZOMS/common/doit",{"condition":condition},function(data){
         		try{
         			if (data["affect"]!=undefined && data["affect"] != null) {
         				var card=data["affect"] ;
         				alert("已存在卡号为"+card["cardNumber"]+","+card["cardClass"]+"卡。");
         			}else{
-        				if ($('[name="bankCard.isDefaultPay"]').val() == "true") {
-        					$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultPay=true "},function(data1){
-        						if (data1["affect"]!=undefined && data1["affect"] != null) {
-        							var card=data1["affect"] ;
-        							alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主支付卡。");
-        						}else{
-        							if ($('[name="bankCard.isDefaultRecive"]').val() == "true") {
-        								$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultRecive=true "},function(data2){
-        									if (data2["affect"]!=undefined && data2["affect"] != null) {
-        										var card=data2["affect"] ;
-        										alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主回款卡。");
-        									}else{
-        										document.cardAddForm.submit();
-        									}
-        								});
-        							} else{
-        								document.cardAddForm.submit();
-        							}
-        						}
-        					});
-        				} else{
-        					if ($('[name="bankCard.isDefaultRecive"]').val() == "true") {
-        						$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultRecive=true "},function(data2){
-        							if (data2["affect"]!=undefined && data2["affect"] != null) {
-        								var card=data2["affect"] ;
-        								alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主回款卡。");
-        							}else{
-        								document.cardAddForm.submit();
-        							}
-        						});
-        					} else{
-        						document.cardAddForm.submit();
-        					}
-        				}
+//      				if ($('[name="bankCard.isDefaultPay"]').val() == "true") {
+//      					$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultPay=true "},function(data1){
+//      						if (data1["affect"]!=undefined && data1["affect"] != null) {
+//      							var card=data1["affect"] ;
+//      							alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主支付卡。");
+//      						}else{
+//      							if ($('[name="bankCard.isDefaultRecive"]').val() == "true") {
+//      								$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultRecive=true "},function(data2){
+//      									if (data2["affect"]!=undefined && data2["affect"] != null) {
+//      										var card=data2["affect"] ;
+//      										alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主回款卡。");
+//      									}else{
+//      										document.cardAddForm.submit();
+//      									}
+//      								});
+//      							} else{
+//      								document.cardAddForm.submit();
+//      							}
+//      						}
+//      					});
+//      				} else{
+//      					if ($('[name="bankCard.isDefaultRecive"]').val() == "true") {
+//      						$.post("/DZOMS/common/doit",{"condition":"from BankCard where idNumber='"+$('[name="bankCard.idNumber"]').val()+"' and isDefaultRecive=true "},function(data2){
+//      							if (data2["affect"]!=undefined && data2["affect"] != null) {
+//      								var card=data2["affect"] ;
+//      								alert("该驾驶员已绑定"+card["cardNumber"]+","+card["cardClass"]+"卡为主回款卡。");
+//      							}else{
+//      								document.cardAddForm.submit();
+//      							}
+//      						});
+//      					} else{
+//      						document.cardAddForm.submit();
+//      					}
+//      				}
+						document.cardAddForm.submit();
         			}
         		}catch(e){
         			//TODO handle the exception
@@ -209,7 +216,7 @@
 
 				</tr>
 				
-				<tr>
+				<!--<tr>
 					<td>
                 		<div class="form-group">
 						<div class="label">
@@ -238,11 +245,13 @@
                     </td>
 					
 					
-				</tr>
+				</tr>-->
 				
 				<tr>
 					
 					<td colspan="3" style="text-align: right;">
+						<input type="hidden" name="bankCard.isDefaultPay" value="true" />
+						<input type="hidden" name="bankCard.isDefaultRecive" value="true" />
 						<input type="button" class="button bg-green" id="f-submit" value="提交">
 					</td>
 					

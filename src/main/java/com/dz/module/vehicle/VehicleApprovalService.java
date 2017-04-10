@@ -3,9 +3,13 @@ package com.dz.module.vehicle;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -29,20 +33,25 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
+import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.DateUtil;
 import com.dz.common.global.ToDo;
 import com.dz.common.global.WaitDeal;
 import com.dz.common.global.WaitToDo;
 import com.dz.common.other.ObjectAccess;
 import com.dz.module.charge.ChargeDao;
+import com.dz.module.charge.ChargePlan;
 import com.dz.module.contract.Contract;
 import com.dz.module.contract.ContractDao;
 import com.dz.module.driver.Driver;
 import com.dz.module.driver.DriverService;
 import com.dz.module.driver.Driverincar;
 import com.dz.module.driver.Families;
+import com.dz.module.user.RelationUr;
 import com.dz.module.user.Role;
 import com.dz.module.user.User;
+import com.dz.module.user.message.Message;
+import com.dz.module.user.message.MessageToUser;
 import com.opensymphony.xwork2.ActionContext;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -51,6 +60,10 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 @Service
@@ -70,9 +83,43 @@ public class VehicleApprovalService implements WaitToDo {
 	 * @return
 	 */
 	public boolean addVehicleApproval(VehicleApproval vehicleApproval, Contract contract){
-		if(vehicleApproval == null)
+		HttpServletRequest request =  ServletActionContext.getRequest();
+		if(vehicleApproval == null){
+			request.setAttribute("msgStr", "审批单信息不完整。");
 			return false;	
+		}
+			
 		
+		long count = ObjectAccess.execute("select count(*) from VehicleApproval "
+				+ "where checkType='"+vehicleApproval.getCheckType()+ "'"
+				+ " and state!=8 and state>0 "
+				+ "and contractId in (select id from Contract where idNum='"
+				+ contract.getIdNum()
+				+ "') ");
+		if(count>0){
+			request.setAttribute("msgStr", "该车主存在同一类型的审批单尚未结束，请先结束后再进行申请。");
+			return false;	
+		}
+		
+		String hql = "select count(*) from VehicleApproval "
+				+ "where checkType='"+vehicleApproval.getCheckType()+ "'"
+				+ " and state!=8 and state>0 "
+				+ (StringUtils.isEmpty(contract.getCarframeNum())?
+						" and 1=0 ":
+							"and contractId in (select id from Contract where carframeNum='"
+							+ contract.getCarframeNum().trim()
+							+ "') "
+				);
+		
+		//System.out.println(hql);
+		
+		long count2 = ObjectAccess.execute(hql);
+		
+		
+		if(count2>0){
+			request.setAttribute("msgStr", "该车存在同一类型的审批单尚未结束，请先结束后再进行申请。");
+			return false;	
+		}
 		
 		switch(vehicleApproval.getCheckType()){
 			case 0:
@@ -91,7 +138,29 @@ public class VehicleApprovalService implements WaitToDo {
 					if(v.getLicenseRegistTime()!=null){
 						vehicleApproval.setOperateApplyDate(v.getLicenseRegistTime());
 					}
+					
+					Contract c = ObjectAccess.getObject(Contract.class, contract.getContractFrom());
+					contract.setContractId(c.getContractId());
+					contract.setContractType(c.getContractType());
+					contract.setContractEndDate(c.getContractEndDate());
+					
+				}else if(StringUtils.isNotBlank(contract.getCarNumOld())){
+					Contract c = ObjectAccess.execute("from Contract c where c.state=1 and c.carframeNum in (select v.carframeNum from Vehicle v where v.licenseNum='"+contract.getCarNumOld().trim()+"') order by contractBeginDate desc");
+					
+					if(c==null||StringUtils.isBlank(c.getCarframeNum())){
+						request.setAttribute("msgStr", "无效的原车牌号！");
+						return false;	
+					}
+					
+					Vehicle v = ObjectAccess.getObject(Vehicle.class, c.getCarframeNum());
+					if(v==null){
+						request.setAttribute("msgStr", "原车信息获取失败！");
+						return false;	
+					}
+					v.setReused(true);
+					ObjectAccess.saveOrUpdate(v);
 				}
+				
 				if(!contractDao.contractWrite(contract)){
 					return false;
 				}
@@ -105,6 +174,7 @@ public class VehicleApprovalService implements WaitToDo {
 				Contract c = contractDao.selectById(contract.getId());
 				Vehicle vehicle = (Vehicle) ObjectAccess.getObject("com.dz.module.vehicle.Vehicle", c.getCarframeNum());
 				VehicleMode vehicleMode = (VehicleMode) ObjectAccess.getObject("com.dz.module.vehicle.VehicleMode",vehicle.getCarMode());
+				if(vehicleMode!=null)
 				vehicleApproval.setFueltype(vehicleMode.getFuel());
 				
 				c.setAbandonRequest(contract.getAbandonRequest());
@@ -123,7 +193,7 @@ public class VehicleApprovalService implements WaitToDo {
 		if(BooleanUtils.isTrue(contract.getGeneByImport())){
 			vehicleApproval.setBranchManagerName(1);
 		}else{
-			HttpServletRequest request =  ServletActionContext.getRequest();
+			
 			vehicleApproval.setBranchManagerName(((User)request.getSession().getAttribute("user")).getUid());
 		}
 		vehicleApproval.setBranchManagerApprovalDate(new Date());
@@ -586,9 +656,62 @@ public class VehicleApprovalService implements WaitToDo {
 				vehicleApproval.setOfficeRemark(_vehicleApproval.getOfficeRemark());
 				vehicleApproval.setIsapprovalOffice(_vehicleApproval.getIsapprovalOffice());
 				
-				contractDao.changeState(_vehicleApproval.getContractId(),3);
+//				contractDao.changeState(_vehicleApproval.getContractId(),3);
 				
-				return vehicleApprovalDao.executeUpdate(vehicleApproval);
+				Session session = null;
+				Transaction tx = null;
+				try{
+					session = HibernateSessionFactory.getSession();
+					tx = session.beginTransaction();
+					Contract cx = (Contract) session.get(Contract.class, _vehicleApproval.getContractId());
+					cx.setState((short) 3);
+					session.update(cx);
+					
+					Message msg = new Message();
+					User u = (User) session.get(User.class, uName);
+					msg.setFromUser(uName);
+					msg.setTime(new Date());
+					
+					msg.setCarframeNum(contract.getCarframeNum());
+					msg.setIdNum(contract.getIdNum());
+					msg.setType("开业流程完毕");
+					
+					Driver d = (Driver) session.get(Driver.class, contract.getIdNum());
+					
+					msg.setMsg(String.format("%tF %s发：\n"
+							+ "现有车%s(%s) 承包人 %s(%s) 开业流程已完毕，可进行合同录入。", 
+							msg.getTime(),u.getUname(),
+							contract.getCarNum(),contract.getCarframeNum(),d.getName(),contract.getIdNum()));
+					
+					session.save(msg);
+					
+					Query q_u = session.createQuery("from RelationUr where "
+								+ "rid in (select rid from Role where rname = :rname )");
+					
+					q_u.setString("rname", "办公室主任");
+					List<RelationUr> users = q_u.list();
+					for (RelationUr relationUr : users) {
+						MessageToUser mu = new MessageToUser();
+						mu.setUid(relationUr.getUid());
+						mu.setMid(msg.getId());
+						mu.setAlreadyRead(false);
+						session.saveOrUpdate(mu);
+					}
+					session.update(vehicleApproval);
+					
+					tx.commit();
+				}catch(HibernateException e){
+					e.printStackTrace();
+					if(tx!=null){
+						tx.rollback();
+					}
+					return false;
+				}finally{
+					HibernateSessionFactory.closeSession();
+				}
+				
+				
+				return true;
 			}
 			else if(state==3)//计财部审批
 			{
@@ -602,10 +725,9 @@ public class VehicleApprovalService implements WaitToDo {
 			else if(state==4)//计财部审批
 			{
 				if(!BooleanUtils.isTrue(contract.getGeneByImport())){
-					ActionContext context = ActionContext.getContext();
-					String[] rentStr = (String[]) context.getParameters().get("contract.rent");
-					if(rentStr!=null&&rentStr.length>0){
-						double rent = NumberUtils.toDouble(rentStr[0]);
+					String rentStr = (String) request.getParameter("contract.rent");
+					if(StringUtils.isNotBlank(rentStr)){
+						double rent = NumberUtils.toDouble(rentStr);
 						contract.setRent(rent);
 						ObjectAccess.saveOrUpdate(contract);
 					}
@@ -631,18 +753,27 @@ public class VehicleApprovalService implements WaitToDo {
 			{
 				String carframeNum = contract.getCarframeNum();
 				if(StringUtils.isEmpty(carframeNum)){
-					request.setAttribute("msgStr", "车辆信息未录入，无法审批。");
+					request.setAttribute("msgStr", "未绑定承租人，请至车辆管理-新增-绑定承租人操作此项功能。");
 					return false;
+				}
+				
+				Vehicle ve = ObjectAccess.getObject(Vehicle.class, carframeNum);
+				if(ve!=null && ve.getLicensePurseNum().matches("^黑\\w{6}")){
+					Vehicle ov = ObjectAccess.getObject(Vehicle.class, ve.getLicensePurseNum());
+					if(ov!=null&&ov.getState()<2){
+						request.setAttribute("msgStr", "原车尚未完成废业，请先完成废业流程。");
+						return false;
+					}
 				}
 				
 				List<Insurance> ilist = ObjectAccess.query(Insurance.class, " carframeNum='"+contract.getCarframeNum()+"'");
 				boolean hasJQX=false,hasSX = false;
 				for(Insurance insurance:ilist){
-					if(StringUtils.equalsIgnoreCase(insurance.getInsuranceClass(),"交强险")){
+					if(StringUtils.contains(insurance.getInsuranceClass(),"强险")){
 						if(new Date().before(insurance.getEndDate())){
 							hasJQX = true;
 						}
-					}else if (StringUtils.equalsIgnoreCase(insurance.getInsuranceClass(), "商业保险单")) {
+					}else if (StringUtils.contains(insurance.getInsuranceClass(), "商业保险")) {
 						if(new Date().before(insurance.getEndDate())){
 							hasSX = true;
 						}
@@ -667,6 +798,8 @@ public class VehicleApprovalService implements WaitToDo {
 				
 				vehicleApproval.setDamageInsurance(_vehicleApproval.getDamageInsurance());
 				vehicleApproval.setOnetimeAfterpay(_vehicleApproval.getOnetimeAfterpay());
+				vehicleApproval.setPayBeginDate(_vehicleApproval.getPayBeginDate());
+				vehicleApproval.setPayEndDate(_vehicleApproval.getPayEndDate());
 				
 				return vehicleApprovalDao.executeUpdate(vehicleApproval);		
 			}
@@ -725,11 +858,11 @@ public class VehicleApprovalService implements WaitToDo {
 				List<Insurance> ilist = ObjectAccess.query(Insurance.class, " carframeNum='"+contract.getCarframeNum()+"'");
 				boolean hasJQX=false,hasSX = false;
 				for(Insurance insurance:ilist){
-					if(StringUtils.equalsIgnoreCase(insurance.getInsuranceClass(),"交强险")){
+					if(StringUtils.contains(insurance.getInsuranceClass(),"强险")){
 						if(new Date().before(insurance.getEndDate())){
 							hasJQX = true;
 						}
-					}else if (StringUtils.equalsIgnoreCase(insurance.getInsuranceClass(), "商业保险单")) {
+					}else if (StringUtils.contains(insurance.getInsuranceClass(), "商业保险")) {
 						if(new Date().before(insurance.getEndDate())){
 							hasSX = true;
 						}
@@ -746,10 +879,10 @@ public class VehicleApprovalService implements WaitToDo {
 					return false;
 				}
 				
-				if(vehicleApproval.getOperateCardDate()==null){
-					request.setAttribute("msgStr", "营运信息未录入，无法审批。");
-					return false;
-				}
+//				if(vehicleApproval.getOperateCardDate()==null){
+//					request.setAttribute("msgStr", "营运信息未录入，无法审批。");
+//					return false;
+//				}
 				
 				vehicleApproval.setApprovalDirectorDate(new Date());
 				vehicleApproval.setState(6);
@@ -770,7 +903,7 @@ public class VehicleApprovalService implements WaitToDo {
 		}else if(vehicleApproval.getCheckType()==1){
 			
 			if (state == 1) {
-				contract.setAbandonedTime(contract.getAbandonedTime() == null?new Date():contract.getAbandonedTime());
+				//contract.setAbandonedTime(contract.getAbandonedTime() == null?new Date():contract.getAbandonedTime());
 				ObjectAccess.saveOrUpdate(contract);
 				vehicleApproval.setAssurerRemark(_vehicleApproval.getAssurerRemark());
 				vehicleApproval.setAssurerName(uName);
@@ -809,10 +942,9 @@ public class VehicleApprovalService implements WaitToDo {
 				vehicleApproval.setState(6);
 				vehicleApproval.setIsapprovalFinance(_vehicleApproval.getIsapprovalFinance());
 			} else if (state == 6) {
-				ActionContext context = ActionContext.getContext();
-				String[] rentStr = (String[]) context.getParameters().get("contract.rent");
-				if(rentStr!=null&&rentStr.length>0){
-					double rent = NumberUtils.toDouble(rentStr[0]);
+				String rentStr = (String) request.getParameter("contract.rent");
+				if(StringUtils.isNotBlank(rentStr)){
+					double rent = NumberUtils.toDouble(rentStr);
 					contract.setRent(rent);
 					ObjectAccess.saveOrUpdate(contract);
 				}
@@ -830,31 +962,97 @@ public class VehicleApprovalService implements WaitToDo {
 				vehicleApproval.setIsapprovalDirector(_vehicleApproval.getIsapprovalDirector());
 				
 				Vehicle vehicle = ObjectAccess.getObject(Vehicle.class, contract.getCarframeNum());
+				
+				String strT = (String) request.getParameter("contract.abandonedChargeTime");
+				if(StringUtils.isNotBlank(strT)){
+					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+					try {
+						Date abandonedChargeTime = df.parse(strT);
+						contract.setAbandonedChargeTime(abandonedChargeTime);
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				Session session = HibernateSessionFactory.getSession();
+				Transaction tx = null;
+				
+				try{
+					tx = session.beginTransaction();
+				
 				vehicle.setDriverId(null);
 				
-				if(_vehicleApproval.getHandleMatter()){
+				if(vehicleApproval.getHandleMatter()){
 					vehicle.setState(3);
 				}else{
 					vehicle.setState(2);
+					if(contract.getAbandonedTime()==null){
+						contract.setAbandonedTime(contract.getContractEndDate());
+					}
+					
+					//附加提前废业后的调整 -305-25
+					Calendar sp = Calendar.getInstance();
+					sp.setTime(contract.getAbandonedTime());
+					
+					Calendar endTime = Calendar.getInstance();
+					endTime.setTime(contract.getContractEndDate());
+					
+					sp.add(Calendar.MONTH, 1);
+					
+					int amount = 0;
+					
+					while(sp.before(endTime)){
+						sp.add(Calendar.MONTH, 1);
+						if(sp.after(endTime)){
+							if(endTime.get(Calendar.DATE)>=20){
+								amount+=306+25;
+							}
+							break;
+						}else{
+							amount+=306+25;
+						}
+					}
+					
+					sp.setTime(contract.getAbandonedTime());
+					if(sp.get(Calendar.DATE)>26){
+						sp.add(Calendar.MONTH, 1);
+					}
+					sp.set(Calendar.DATE, 1);
+					
+					ChargePlan tplan = new ChargePlan();
+					tplan.setContractId(contract.getId());
+					tplan.setFee(BigDecimal.valueOf(amount));
+					tplan.setFeeType("plan_sub_contract");
+					tplan.setInTime(new Date());
+					tplan.setComment("提前废业时的306,25");
+					tplan.setTime(sp.getTime());
+					tplan.setIsClear(false);
+					session.save(tplan);
+					
+					
 					chargeDao.planTransfer(contract.getId(), DateUtil.getNextMonth(contract.getAbandonedTime()),contract.getId(),contract.getAbandonedTime());
-					List<String> dl = Arrays.<String>asList(vehicle.getFirstDriver(),vehicle.getSecondDriver(),vehicle.getTempDriver());
+					List<String> dl = Arrays.<String>asList(vehicle.getFirstDriver(),vehicle.getSecondDriver(),vehicle.getThirdDriver(),vehicle.getTempDriver());
 
 					for(int i=0;i<dl.size();i++){
 						String idNum = dl.get(i);
 						if(!StringUtils.isEmpty(idNum)) {
-							Driver d = ObjectAccess.getObject(Driver.class, idNum);
+							Driver d = (Driver) session.get(Driver.class, idNum);
 							if (d != null && d.getDriverClass() != null) {
 								if (d.getDriverClass().equals("主驾")) {
 									vehicle.setFirstDriver(null);
 								} else if (d.getDriverClass().equals("副驾")) {
 									vehicle.setSecondDriver(null);
+								} else if (d.getDriverClass().equals("三驾")) {
+									vehicle.setThirdDriver(null);
 								} else if (d.getDriverClass().equals("临驾")) {
 									vehicle.setTempDriver(null);
 								}
 
 
 								Driverincar record = new Driverincar(d.getCarframeNum(), d.getIdNum(), "下车", new Date());
-								driverService.addDriverInCarRecord(record);
+								record.setFinished(true);
+								session.saveOrUpdate(record);
+								//driverService.addDriverInCarRecord(record);
 
 								d.setIsInCar(false);
 
@@ -874,15 +1072,14 @@ public class VehicleApprovalService implements WaitToDo {
 								d.setBusinessApplyCancelRegistTime(null);
 
 								d.setDept(null);
+								d.setStatus(4);
 
-								ObjectAccess.saveOrUpdate(d);
+								session.saveOrUpdate(d);
 							}
 						}
 					}
 
-					ObjectAccess.saveOrUpdate(vehicle);
-
-					contract.setAbandonedFinalTime(new Date());
+//					contract.setAbandonedFinalTime(new Date());
 				}
 								
 //				switch(contract.getAbandonReason()){
@@ -895,10 +1092,59 @@ public class VehicleApprovalService implements WaitToDo {
 //					break;
 //				}
 				
+				contract.setState((short)1);
 
-				ObjectAccess.saveOrUpdate(contract);
+				session.saveOrUpdate(vehicle);
+				session.saveOrUpdate(contract);
 				
-				contractDao.changeState(_vehicleApproval.getContractId(),1);
+				session.saveOrUpdate(vehicleApproval);
+				
+				//contractDao.changeState(_vehicleApproval.getContractId(),1);
+				Message msg = new Message();
+				User u = (User) session.get(User.class, uName);
+				msg.setFromUser(uName);
+				msg.setTime(new Date());
+				
+				msg.setCarframeNum(contract.getCarframeNum());
+				msg.setIdNum(contract.getIdNum());
+				msg.setType("废业流程完毕");
+				
+				Driver d = (Driver) session.get(Driver.class, contract.getIdNum());
+				
+				msg.setMsg(String.format("%tF %s发：\n"
+						+ "现有车%s(%s) 承包人 %s(%s) 废业流程已完毕，可进行开业申请。", 
+						msg.getTime(),u.getUname(),
+						contract.getCarNum(),contract.getCarframeNum(),d.getName(),contract.getIdNum()));
+				
+				session.save(msg);
+				
+				Query q_u = session.createQuery("from RelationUr where "
+							+ "rid in (select rid from Role where rname = :rname )"
+							+ "and uid in (select uid from User where position like :position)");
+				
+				q_u.setString("rname", "分部经理");
+				q_u.setString("position", "%"+contract.getBranchFirm().trim().charAt(0)+"%");
+				List<RelationUr> users = q_u.list();
+				for (RelationUr relationUr : users) {
+					MessageToUser mu = new MessageToUser();
+					mu.setUid(relationUr.getUid());
+					mu.setMid(msg.getId());
+					mu.setAlreadyRead(false);
+					session.saveOrUpdate(mu);
+				}
+				
+				tx.commit();
+				return true;
+				}catch(HibernateException ex){
+					ex.printStackTrace();
+					if(tx!=null)
+						tx.rollback();
+					
+				}finally{
+					session.flush();
+					HibernateSessionFactory.closeSession();
+				}
+				return false;
 			} 
 			
 			return vehicleApprovalDao.executeUpdate(vehicleApproval);		

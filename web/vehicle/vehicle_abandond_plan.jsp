@@ -53,15 +53,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	
 	function searchByMonth(){
 		var month = $("[name='months']").val();
-		month = (month<10?"0":"") + month;
+		month = parseInt(month);
+//		month = (month<10?"0":"") + month;
 		
 		//abandonedTime
 		
 		var conditionByMonth = " and ( (abandonedTime is null and contractEndDate >= STR_TO_DATE('"+now.getFullYear()+"-"+month+"-01','%Y-%m-%d') "+
-													" and contractEndDate < STR_TO_DATE('"+now.getFullYear()+"-"+(month+1)+"-01','%Y-%m-%d') )"+
+													" and contractEndDate < STR_TO_DATE('"+(month==12?now.getFullYear()+1:now.getFullYear())+"-"+(month==12?1:month+1)+"-01','%Y-%m-%d') )"+
 													" or ( abandonedTime is not null "+
 													" and abandonedTime >= STR_TO_DATE('"+now.getFullYear()+"-"+month+"-01','%Y-%m-%d') "+
-													" and abandonedTime < STR_TO_DATE('"+now.getFullYear()+"-"+(month+1)+"-01','%Y-%m-%d') ) )";
+													" and abandonedTime < STR_TO_DATE('"+(month==12?now.getFullYear()+1:now.getFullYear())+"-"+(month==12?1:month+1)+"-01','%Y-%m-%d') ) )";
 		var condition = rawCondition + conditionByMonth;
 		
 		var dept = $("[name='dept']").val();

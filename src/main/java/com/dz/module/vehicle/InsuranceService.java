@@ -51,13 +51,13 @@ public class InsuranceService {
 	}
 
 
-	public int selectByConditionCount(Insurance insurance) {
-		return insuranceDao.selectByConditionCount(insurance);
+	public int selectByConditionCount(Insurance insurance, Vehicle vehicle) {
+		return insuranceDao.selectByConditionCount(insurance,vehicle);
 	}
 
 
-	public List<Insurance> selectByCondition(Page page, Insurance insurance) {
-		return insuranceDao.selectByCondition(page,insurance);
+	public List<Insurance> selectByCondition(Page page, Insurance insurance, Vehicle vehicle) {
+		return insuranceDao.selectByCondition(page,insurance,vehicle);
 	}
 
 }

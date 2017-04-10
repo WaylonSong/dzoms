@@ -21,7 +21,6 @@ import static com.dz.common.other.TimeComm.*;
 public class BankCard implements java.io.Serializable {
 
 	// Fields
-
 	private Integer id;
 	private String idNumber;
 	private String carNum;

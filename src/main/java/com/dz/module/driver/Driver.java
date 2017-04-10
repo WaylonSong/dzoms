@@ -27,7 +27,7 @@ public class Driver implements java.io.Serializable {
 	 */
 	private static final long serialVersionUID = -1093714225153937348L;
 	private float score;
-	//0为申请完成,1为录入完成,2为成绩完成,3为财务完成
+	//0为申请完成,1为录入完成,2为成绩完成,3为财务完成,4已下车
 	private int status;
 
 	private String shenqingren;

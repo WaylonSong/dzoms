@@ -47,6 +47,8 @@ public class VehicleApproval implements java.io.Serializable {
 	private Boolean creditCard;
 	private Double damageInsurance;
 	private Long onetimeAfterpay;
+	private Date payBeginDate;
+	private Date payEndDate;
 	private Date approvalBranchDate;
 	private Boolean isapprovalOffice;
 	private Integer officeName;
@@ -736,6 +738,26 @@ public class VehicleApproval implements java.io.Serializable {
 
 	public void setInterruptReason(String interruptReason) {
 		this.interruptReason = interruptReason;
+	}
+
+	@Column(name="payBeginDate")
+	@Temporal(TemporalType.DATE)
+	public Date getPayBeginDate() {
+		return payBeginDate;
+	}
+
+	public void setPayBeginDate(Date payBeginDate) {
+		this.payBeginDate = payBeginDate;
+	}
+
+	@Column(name="payEndDate")
+	@Temporal(TemporalType.DATE)
+	public Date getPayEndDate() {
+		return payEndDate;
+	}
+
+	public void setPayEndDate(Date payEndDate) {
+		this.payEndDate = payEndDate;
 	}
 
 }

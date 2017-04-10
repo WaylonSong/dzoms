@@ -239,6 +239,8 @@ Page pg = (Page)request.getAttribute("page");
     <form action="/DZOMS/driver/driverInCar/searchRecord" method="post" name="vehicleSele">
         <s:hidden name="beginDate" />
         <s:hidden name="endDate" />
+        <s:hidden name="operation" />
+        <s:hidden name="finished" />
         <s:hidden name="driver.idNum"/>
         <s:hidden name="isInCar"/>
         <s:hidden name="vehicle.licenseNum"/>

@@ -4,6 +4,7 @@ package com.dz.module.driver.complain;
 import com.dz.common.global.Page;
 import com.dz.common.global.WaitToDo;
 import com.dz.module.driver.Driver;
+
 import org.hibernate.HibernateException;
 
 import java.util.Date;
@@ -82,10 +83,10 @@ public interface ComplainDao extends WaitToDo{
 	int selectAllNotTrueCount(Date beginDate, Date endDate)
 			throws HibernateException;
 
-	public abstract int selectAllByStatesCount(Date beginDate, Date endDate,
-											   Short[] states);
+	public abstract int selectAllByStatesCount(Complain complain, Date beginDate, Date endDate,
+											   String dept, Short[] states);
 
-	public abstract List<Complain> selectAllByStates(Page page,
-													 Date beginDate, Date endDate, Short[] states);
+	public abstract List<Complain> selectAllByStates(Complain complain, Page page,
+													 Date beginDate, Date endDate, String dept, Short[] states, String order);
 
 }

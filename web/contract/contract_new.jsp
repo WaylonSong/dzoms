@@ -6,6 +6,10 @@
 <%@ page language="java"
 	import="java.util.*,java.util.HashMap,com.dz.module.user.User"
 	pageEncoding="UTF-8"%>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="合同新增">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";

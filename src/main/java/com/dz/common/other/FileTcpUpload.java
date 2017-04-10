@@ -1,23 +1,18 @@
 package com.dz.common.other;
 
-import java.io.*;
-import java.util.*;
-
+import com.dz.common.global.BaseAction;
 import net.sf.json.JSONObject;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.struts2.ServletActionContext;
-import org.apache.struts2.convention.annotation.Action;
-import org.apache.struts2.convention.annotation.Namespace;
-import org.apache.struts2.convention.annotation.ParentPackage;
-import org.apache.struts2.convention.annotation.Result;
-import org.apache.struts2.convention.annotation.Results;
+import org.apache.struts2.convention.annotation.*;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.dz.common.global.BaseAction;
-import sun.nio.ch.IOUtil;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 @Controller
 @Scope("prototype")
@@ -64,13 +59,12 @@ public class FileTcpUpload extends BaseAction{
 	public void download() throws IOException{
 		File file = new File(System.getProperty("com.dz.root")+path);
 		if(file.exists()){
-			ServletActionContext.getResponse().setContentType("application/octet-stream");
-			ServletActionContext.getResponse().setHeader("Content-Disposition", "attachment;fileName="+file.getName());
-			
-			OutputStream out = ServletActionContext.getResponse().getOutputStream();
-			IOUtils.copy(new FileInputStream(file), out);
-			out.flush();
-			out.close();
+            ServletActionContext.getResponse().setContentType("application/json");
+            ServletActionContext.getResponse().setCharacterEncoding("utf-8");
+            PrintWriter out = ServletActionContext.getResponse().getWriter();
+            out.print(file.exists());
+            out.flush();
+            out.close();
 		}else{
 			ServletActionContext.getResponse().setContentType("application/json");
 			ServletActionContext.getResponse().setCharacterEncoding("utf-8");

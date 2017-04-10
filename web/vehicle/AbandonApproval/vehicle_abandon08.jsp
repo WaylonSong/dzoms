@@ -25,7 +25,8 @@
 <script src="/DZOMS/res/js/respond.js"></script>
 <script src="/DZOMS/res/js/admin.js"></script>
 <script src="/DZOMS/res/js/JsonList.js"></script>
-
+<link rel="stylesheet" href="/DZOMS/res/css/jquery.datetimepicker.css" />
+<script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 </head>
 
 <body>
@@ -96,10 +97,23 @@
 						<s:textfield id="contract.contractEndDate" name="contract.contractEndDate" /></td>
 				</tr>
 				<tr>
+					<%@page import="com.opensymphony.xwork2.util.*,com.dz.module.contract.*" %>
 					<td class="tableleft">运营时长</td>
-					<s:set name="nowDate" value="%{@com.dz.common.other.TimeComm@getDate()}"></s:set>
-					<td><s:textfield id="operateDuration" value="%{@com.dz.common.other.TimeComm@subDate(contract.contractBeginDate,#nowDate)}"/></td>
-
+					<%
+					java.util.Date date = new java.util.Date();
+					ValueStack vs = (ValueStack) request.getAttribute("struts.valueStack");
+					Contract c = (Contract) vs.findValue("contract");
+					long timespan = Math.min(c.getContractEndDate().getTime(), date.getTime()) - c.getContractBeginDate().getTime();
+					long days = timespan / 3600000 / 24;
+					long month = days /30;
+					days = days % 30;
+					String sspan = ""+month+"个月,"+days+"天";
+					request.setAttribute("sspan", sspan);
+					%>
+					<td>
+						<%--<s:textfield  id="operateDuration" value="%{@com.dz.common.other.TimeComm@subDate(contract.contractBeginDate,@org.apache.commons.lang.ObjectUtils@min(contract.contractEndDate,#request.nowDate))}" /> --%>
+						<s:textfield  id="operateDuration" value="%{#request.sspan}" />
+					</td>
 					<td class="tableleft">办理事项</td>
 					<td>
 						<s:radio name="vehicleApproval.handleMatter" list="%{#{'false':'废业','true':'解除'}}"></s:radio>
@@ -181,7 +195,30 @@
 				<tr class="form-not-disabled">
 					<td class="tableleft">主管副总经理意见</td>
 					<td colspan="3">
+						<s:if test="%{vehicleApproval.handleMatter==false}">
+						<p style="text-align:left">
+						合同起始日期：<s:date name="contract.contractBeginDate" format="yyyy/MM/dd"></s:date>&nbsp;&nbsp;
+						合同终止日期：<s:date name="contract.contractEndDate" format="yyyy/MM/dd"></s:date>&nbsp;&nbsp;
+						计划废业日期：
+						<s:if test="%{contract.abandonedTime==null}">
+							未指定，按正常废业
+						</s:if>
+						<s:else>
+							<s:date name="contract.abandonedTime" format="yyyy/MM/dd"></s:date>
+						</s:else>
+						</p>
+						<p style="text-align:left">
+							<nobr>计费终止日期：
+						<s:textfield cssClass="input input-auto datepick" name="contract.abandonedChargeTime" cssStyle="width:50%">
+							<s:param name="value">
+								<s:date name="contract.contractEndDate" format="yyyy/MM/dd"></s:date>
+							</s:param>
+						</s:textfield>
+						</nobr>
+						</p>
+						</s:if>
 						<s:textarea cssClass="input-xlarge"
+							id="directorRemark"
 							name="vehicleApproval.directorRemark" rows="3" 
 							cssStyle="width:100%"></s:textarea>
 					</td>
@@ -190,6 +227,7 @@
 				<tr>
 					<td class="tableleft"></td>
 					<td colspan="3" style="text-align:right;">
+						<input type="button" value="同意" class="btn btn-primary" onclick="approvalApply('#directorRemark');">
 						<button type="submit" class="btn btn-primary" type="button">提交</button>
 						&nbsp;&nbsp;
 						<button type="button" class="btn btn-success dialogs" name="backid"
@@ -228,6 +266,9 @@
    		$('input[name="vehicleApproval.interruptReason"]').val(reason);
    		document.interruptForm.submit();
    	}
+   	
+   	
    </script>
+   <script type="text/javascript" src="/DZOMS/res/js/DateTimeHelper.js" ></script>
 </body>
 </html>

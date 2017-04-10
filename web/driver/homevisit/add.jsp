@@ -74,6 +74,7 @@
         		var $selected_option = $licenseNumSelection.find("option:selected");
         		var carframeNum = $selected_option.val();
         		$("[name='homeVisit.carframeNum']").val(carframeNum);
+        		$driverSelection.empty();
         		$.post("/DZOMS/common/getObject",{"className":"com.dz.module.vehicle.Vehicle","id":carframeNum,"isString":true},function(data){
         			var vehicle = data;//$.parseJSON(data);
         			

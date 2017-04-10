@@ -24,7 +24,7 @@
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
                 <li>财务管理</li>
-                <li>多车车收费计划查询</li>
+                <li>多车收费计划查询</li>
     </ul>
 </div>
 <div class="line">

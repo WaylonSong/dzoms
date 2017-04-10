@@ -27,7 +27,7 @@ public class VehicleDaoImpl implements VehicleDao {
 			session = HibernateSessionFactory.getSession();
 			tx = (Transaction) session.beginTransaction();
 
-			session.save(vehicle);
+			session.saveOrUpdate(vehicle);
 			tx.commit();
 			flag = true;
 		} catch (HibernateException e) {
@@ -82,7 +82,7 @@ public class VehicleDaoImpl implements VehicleDao {
 		try {
 			session = HibernateSessionFactory.getSession();
 
-			String sql = "from Vehicle where 1=1 ";
+			String sql = "from Vehicle where state!=-1 ";
 			if (vehicle != null) {
 
 				if (!StringUtils.isEmpty(vehicle.getCarframeNum())) {
@@ -125,6 +125,8 @@ public class VehicleDaoImpl implements VehicleDao {
 							condition.getValue0());
 				}
 			}
+			
+			sql += " order by licenseNum ";
 
 			Query query = session.createQuery(sql);
 			query.setMaxResults(page.getEveryPage());
@@ -195,7 +197,7 @@ public class VehicleDaoImpl implements VehicleDao {
 		try {
 			session = HibernateSessionFactory.getSession();
 
-			String sql = "select count(*) from Vehicle where 1=1 ";
+			String sql = "select count(*) from Vehicle where state!=-1 ";
 
 			if (vehicle != null) {
 				if (!StringUtils.isEmpty(vehicle.getCarframeNum())) {
@@ -341,7 +343,7 @@ public class VehicleDaoImpl implements VehicleDao {
 		List<Vehicle> list = new ArrayList<Vehicle>();
 		try {
 			session = HibernateSessionFactory.getSession();
-			Query query = session.createQuery("from Vehicle ");
+			Query query = session.createQuery("from Vehicle where state >=0 ");
 			list = query.list();
 		} catch (HibernateException e) {
 			throw e;
@@ -358,7 +360,7 @@ public class VehicleDaoImpl implements VehicleDao {
 		try {
 			session = HibernateSessionFactory.getSession();
 
-			String sql = "from Vehicle where carframeNum like '%"
+			String sql = "from Vehicle where state!=-1 and carframeNum like '%"
 					+ (vehicle.getCarframeNum() == null ? "" : vehicle
 							.getCarframeNum())
 					+ "%' and engineNum like '%"

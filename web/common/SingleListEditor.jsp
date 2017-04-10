@@ -51,7 +51,7 @@ function refreshPage(){
 	for(var i=0;i<cols;i++){
 		title += '<td>'+labels[i]+'</td>'
 	}
-	title += +'<td>操作</td></tr>'	;
+	title += '<td>操作</td></tr>'	;
 	$("#context").append(title);
 	
 	$.post('/DZOMS/item_select',{'item.key':name},function(data){
@@ -69,7 +69,7 @@ function refreshPage(){
 			var jsonStr = tlist[j]["value"];
 			var json = $.parseJSON(jsonStr);
 			
-			var trs = '<tr id="tr'+j+'">';
+			var trs = '<tr id="tr'+j+'" rid="'+tlist[j]["id"]+'">';
 			for(var i=0;i<cols;i++){
 					trs += '<td>'+json[keys[i]]+'</td>'
 			}
@@ -102,7 +102,15 @@ function saveItem(){
 }
 
 function delLine(line){
-	$("#tr"+line).remove();
+	var $tr = $("#tr"+line);
+	var id=$tr.attr("rid");
+	$.post('/DZOMS/item_remove',{'item.id':id},function(data){
+		if($.trim(data) == 'success'){
+			$("#tr"+line).remove();
+		}else{
+			alert(data);
+		}	
+	});
 }
 
 </script>

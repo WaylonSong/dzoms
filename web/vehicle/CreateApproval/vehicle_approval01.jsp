@@ -13,6 +13,10 @@
 	String state = (String) session.getAttribute("state");
 	User user = (User) session.getAttribute("user");
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="开业发起">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE html>
 <html lang="zh-cn">
@@ -140,6 +144,19 @@ function afterDriverChange(){
 						});
 	     			}
 				});
+				
+				$("#oldLicenseNum").val("黑A");
+				
+				$('form').submit(function(){
+					if(!$('input[name="vehicleApproval.cartype"]:eq(0)').prop('checked')){
+						if($("#oldLicenseNum").val().length!=7){
+							alert("请输入正确的原车牌号！");
+							return false;
+						}
+						
+						return true;
+					}
+				});
 			}
 			else{//转包
 				$("#oldLicenseNum").prop("disabled",false);
@@ -163,9 +180,32 @@ function afterDriverChange(){
 	     				});
 	     			}
 				});
+				
+				$("#oldLicenseNum").val("黑A");
 			}
 		});
 	});
+	
+	$(document).ready(function(){
+//		$("input[name='vehicleApproval.cartype']:eq(2)").click();
+		if($("#contract_businessForm").val().trim().length==0){
+			$("#contract_businessForm").val('承包');
+		}
+		
+		if($('input[name="vehicleApproval.cartype"]:eq(0)').prop('checked')){
+			$('input[name="vehicleApproval.cartype"]:eq(1)').click();
+		}
+		
+		$('form').submit(function(){
+			if($("#idNum").val().length!=18||$('#contractorName').val().length==0){
+				alert("请输入正确的身份证号！");
+				return false;
+			}
+			return true;
+		});
+	});
+	
+	
 	
 </script>
  <style>
@@ -209,7 +249,27 @@ function afterDriverChange(){
                             </label>
                         </div>
                         <div class="field">
-                            <s:select cssClass="input" name="contract.branchFirm" value="%{#request.contractFrom.branchFirm}" list="{'一部','二部','三部'}"  data-validate="required:请选择,length#>=1:至少选择1项"></s:select>
+                        	<s:if test="#request.contractFrom!=null">
+                        		<s:select cssClass="input" name="contract.branchFirm" value="%{#request.contractFrom.branchFirm}" list="{'一部','二部','三部'}"  data-validate="required:请选择,length#>=1:至少选择1项"></s:select>
+                        	</s:if>
+                            <s:else>
+                            	<%
+                            		String position = user.getPosition();
+                            		String dept="";
+                            		
+                            		if(position==null)
+                            			dept="";
+                            		else if(position.contains("一"))
+                            			dept = "一部";
+                            		else if(position.contains("二"))
+                            			dept = "二部";
+                            		else if(position.contains("三"))
+                            			dept = "三部";
+                            		
+                            		request.setAttribute("dp",dept);
+                            	%>
+                            	<s:select cssClass="input" name="contract.branchFirm" value="%{#request.dp}" list="#{'一部':'一部','二部':'二部','三部':'三部'}"  data-validate="required:请选择,length#>=1:至少选择1项"></s:select>
+                            </s:else>
                         </div>
                     </div>
                 </td>
@@ -221,7 +281,7 @@ function afterDriverChange(){
                             </label>
                         </div>
                         <div class="field">
-                            <s:textfield name="contract.idNum" cssClass="input" />
+                            <s:textfield id="idNum" name="contract.idNum" cssClass="input" />
                         </div>
                     </div>
                 </td>
@@ -313,7 +373,7 @@ function afterDriverChange(){
                         </div>
                         <div class="field">
                             <s:set name="tcar" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#request.contractFrom.carframeNum)}"></s:set>
- 							<s:textfield id="oldLicenseNum" cssClass="input" value="%{#tcar.licenseNum}"/>
+ 							<s:textfield name="contract.carNumOld" id="oldLicenseNum" cssClass="input" value="%{#tcar.licenseNum}"/>
  							<s:hidden id="contractFrom"  cssClass="input" name="contract.contractFrom"/>
                         </div>
                     </div>
@@ -386,12 +446,13 @@ function afterDriverChange(){
                     <div class="panel-body">
                         <table class="table table-bordered">
                             <tr>
-                                <td>废业日</td>
-                                <td>报废手续办结日期</td>
+                                <td>废业手续办理日</td>
+                                <td>废业手续办结日</td>
                                 <td>天数</td>
                             </tr>
                             <tr>
-                                <td><input type="text" class="input input-auto datepick" maxlength="50" size="10"  class="input"
+                                <td>
+                              		<input type="text" class="input input-auto datepick" maxlength="50" size="10"  class="input"
                                            id="terminationDate" 
                                            name="vehicleApproval.terminationDate"></td>
                                 <td><input type="text" class="input input-auto datepick" maxlength="50" size="10"  class="input"
@@ -505,21 +566,54 @@ function afterDriverChange(){
                     </label>
                 </div>
                 <div class="field">
-                    <input type="text" class="input input-auto" size="5" maxlength="5" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay"  class="input">元
+                    <input type="text" class="input input-auto" size="10" maxlength="10" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay"  class="input">元
                 </div>
             </div>
             </s:if>
 			<s:if test="%{contract.contractFrom!=null}">
-            <div class="form-group" cssStyle="width: 320px;">
-                <div class="label padding">
-                    <label>
-                        每年补交保费
-                    </label>
-                </div>
-                <div class="field">
-                    <input type="text" class="input input-auto" size="5" maxlength="5" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay"  class="input">元
-                </div>
-            </div>
+			<table class="table table-bordered">
+				<tr>
+					<td>
+						<div class="form-group" cssStyle="width: 320px;">
+			                <div class="label padding">
+			                    <label>
+			                        补交保费
+			                    </label>
+			                </div>
+			                <div class="field">
+			                    <input type="text" class="input input-auto" size="10" maxlength="10" id="onetimeAfterpay" name="vehicleApproval.onetimeAfterpay"  class="input">元
+			                </div>
+                         </div>
+					</td>
+					<td>
+						<div class="form-group">
+			                <div class="label padding" cssStyle="width: 260px">
+			                    <label class="">
+			                        补交起始日
+			                    </label>
+			                </div>
+			                <div class="field  form-not-disabled">
+			                    <s:textfield id="payBeginDate" name="vehicleApproval.payBeginDate" cssClass="input datepick"/>
+			                </div>
+			            </div>
+					</td>
+					<td>
+						<div class="form-group">
+			                <div class="label padding" cssStyle="width: 260px">
+			                    <label class="">
+			                        补交终止日
+			                    </label>
+			                </div>
+			                <div class="field  form-not-disabled">
+			                    <s:textfield id="payEndDate" name="vehicleApproval.payEndDate" cssClass="input datepick"/>
+			                </div>
+                         </div>
+					</td>
+				</tr>
+			</table>
+           
+            
+            
             </s:if>
         </div>
         <blockquote class="border-main">
@@ -540,8 +634,9 @@ function afterDriverChange(){
                 </s:textarea>
             </div>
         </blockquote>
-        <div class="xm11-move">
-            <input type="submit" value="提交" class="button bg-green">
+        <div class="xm9-move">
+        	<input type="button" value="同意" class="button bg-green" onclick="approvalApply('#branchManagerRemark');">
+            <input id="sub_but" type="submit" value="提交" class="button bg-green">
         </div>
 
     </form>

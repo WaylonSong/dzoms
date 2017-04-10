@@ -58,7 +58,12 @@ Page pg = (Page)request.getAttribute("page");
 		if(selected_val==undefined)
 		alert('您没有选择任何一条数据');
 		var url = "/DZOMS/driver/driverPreupdate?driver.idNum="+selected_val;
-		window.open(url,"驾驶员修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+		//window.open(url,"驾驶员修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+		
+		//$("#container > iframe:nth-child(2)",window.parent.window.parent.window.parent.window.document).attr("height","2500px");
+		$("#container > iframe:nth-child(2)",window.parent.window.parent.window.parent.window.document).css("height","2500px");
+		$("#body-right",window.parent.window.parent.window.document).attr("height","2500px");
+		window.parent.window.location.href = url;
 	}
 	
 	function _toExcel(){
@@ -161,18 +166,19 @@ Page pg = (Page)request.getAttribute("page");
                
                 <tr>
                     <th>选择</th>
+                    <th class="licenseNum              selected_able">车牌号      </th>
                     <th class="name                    selected_able">姓名        </th>
                     <th class="sex                     selected_able">性别        </th>
+                    <th class="driverClass selected_able">驾驶员属性</th>
+                    <th class="phoneNum1 selected_able">电话号码</th>
+                    <th class="qualificationNum        selected_able">资格证号    </th>
+                    <th class="idNum                   selected_able">身份证号    </th>
+                    <th class="employeeNum             selected_able">员工号      </th>
                     <th class="politicalStatus         selected_able">政治面貌    </th>
                     <th class="age                     selected_able">年龄        </th>
-                    <th class="idNum                   selected_able">身份证号    </th>
-                    <th class="driverClass selected_able">驾驶员属性</th>
-                    <th class="employeeNum             selected_able">员工号      </th>
                     <th class="fingerprintNum          selected_able">指纹编号    </th>
-                    <th class="qualificationNum        selected_able">资格证号    </th>
                     <th class="star                    selected_able">星级        </th>
                     <th class="isInCar                 selected_able">是否在车    </th>
-                    <th class="licenseNum              selected_able">车牌号      </th>
                     <th class="department              selected_able">分公司归属  </th>
 
                 </tr>
@@ -181,18 +187,22 @@ Page pg = (Page)request.getAttribute("page");
                     <s:iterator value="%{#request.list}" var="v">
                         <tr>
                             <td><input type="radio" name="cbx" value="<s:property value='%{#v.idNum}'/>" ></td>
+                            <td class="licenseNum         selected_able"><s:property value='%{@com.dz.common.other.ObjectAccess@getObject("com.dz.module.vehicle.Vehicle", #v.carframeNum).licenseNum}'/></td>
                             <td class="name               selected_able"><s:property value='%{#v.name}'/></td>
                             <td class="sex                selected_able"><s:property value="%{#v.sex?'男':'女'}"/></td>
+                            <td class="driverClass selected_able"><s:property value="%{#v.driverClass}"/></td>
+                            <td class="phoneNum1 selected_able"><s:property value="%{#v.phoneNum1}"/></td>
+                            <td class="qualificationNum   selected_able"><s:property value='%{#v.qualificationNum}'/></td>
+                            <td class="idNum              selected_able"><s:property value='%{#v.idNum}'/></td>
+                            <td class="employeeNum        selected_able"><s:property value='%{#v.employeeNum}'/></td>
                             <td class="politicalStatus    selected_able"><s:property value='%{#v.politicalStatus}'/></td>
                             <td class="age                selected_able"><s:property value='%{#v.age}'/></td>
-                            <td class="idNum              selected_able"><s:property value='%{#v.idNum}'/></td>
-                            <td class="driverClass selected_able"><s:property value="%{#v.driverClass}"/></td>
-                            <td class="employeeNum        selected_able"><s:property value='%{#v.employeeNum}'/></td>
+                                                        
                             <td class="fingerprintNum     selected_able"><s:property value='%{#v.fingerprintNum}'/></td>
-                            <td class="qualificationNum   selected_able"><s:property value='%{#v.qualificationNum}'/></td>
+                            
                             <td class="star               selected_able"><s:property value='%{#v.star}'/></td>
                             <td class="isInCar            selected_able"><s:property value="%{#v.isInCar?'是':'否'}"/></td>
-                            <td class="licenseNum         selected_able"><s:property value='%{@com.dz.common.other.ObjectAccess@getObject("com.dz.module.vehicle.Vehicle", #v.carframeNum).licenseNum}'/></td>
+                            
                             <td class="department         selected_able"><s:property value='%{#v.dept}'/></td>
                         </tr>
                     </s:iterator>
@@ -224,6 +234,9 @@ Page pg = (Page)request.getAttribute("page");
             		</div>
             	</div>
             </div>
+            <div class="panel-foot border-red-light bg-red-light">
+            合计：<%=pg.getTotalCount() %>条记录。
+        </div>
             </s:if>
             <s:else>
                 	无查询结果
@@ -245,6 +258,7 @@ Page pg = (Page)request.getAttribute("page");
                 <label class="button active"><input type="checkbox" name="sbx" value="sex" checked="checked"><span class="icon icon-check text-green"></span>性别       </label>
                 <label class="button active"><input type="checkbox" name="sbx" value="politicalStatus" checked="checked"><span class="icon icon-check text-green"></span>政治面貌   </label>
                 <label class="button active"><input type="checkbox" name="sbx" value="age" checked="checked"><span class="icon icon-check text-green"></span>年龄       </label>
+                <label class="button active"><input type="checkbox" name="sbx" value="phoneNum1" checked="checked"><span class="icon icon-check text-green"></span>电话号码 </label>
                 <label class="button active"><input type="checkbox" name="sbx" value="idNum" checked="checked"><span class="icon icon-check text-green"></span>身份证号   </label>
                 <label class="button active"><input type="checkbox" name="sbx" value="driverClass" checked="checked"><span class="icon icon-check text-green"></span>驾驶员属性</label>
                 <label class="button active"><input type="checkbox" name="sbx" value="employeeNum" checked="checked"><span class="icon icon-check text-green"></span>员工号     </label>

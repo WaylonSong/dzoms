@@ -10,10 +10,13 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.BaseAction;
 import com.dz.common.other.ObjectAccess;
 import com.dz.module.vehicle.Vehicle;
@@ -95,8 +98,14 @@ public class ElectricAction extends BaseAction {
 //	    		+ " and date <= STR_TO_DATE('%tF 23:59','%%Y-%%m-%%d %%H:%%i') ", beginDate,endDate));
 		if(condition==null)
 			condition="";
-		List<ElectricHistory> l = ObjectAccess.query(ElectricHistory.class," 1=1 " + condition);
+		
+		Session session = HibernateSessionFactory.getSession();
+		Query query = session.createQuery("select h " +  condition);
+			
+		List<ElectricHistory> l = query.list();
 		datalist.add(l);
+		
+		HibernateSessionFactory.closeSession();
 		request.setAttribute("datasrc", datasrc);
 		request.setAttribute("datalist", datalist);
 		return SUCCESS;

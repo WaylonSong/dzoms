@@ -8,6 +8,10 @@ String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
 Page pg = (Page)request.getAttribute("page");
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="合同新增,合同查询,合同修改权限" any="true">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
@@ -199,7 +203,7 @@ Page pg = (Page)request.getAttribute("page");
 						</td>
             <td class="beginDate	  selected_able"><s:property value="%{#v.contractBeginDate}" />     </td>
             <td class="endDate		  selected_able"><s:property value="%{#v.contractEndDate}" />           </td>
-            <td class="abandonedTime  selected_able"><s:property value="%{#v.abandonedTime}" />         </td>
+            <td class="abandonedTime  selected_able"><s:property value="%{#v.abandonedFinalTime}" />         </td>
             <td class="businessForm   selected_able"><s:property value="%{#v.businessForm}" />     </td>
             <td class="branchFirm	  selected_able"><s:property value="%{#v.branchFirm}" />   </td>
             <td class="ascription	  selected_able"><s:property value="%{#v.ascription?'个人':'公司'}" />    </td>

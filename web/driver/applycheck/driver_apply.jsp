@@ -25,16 +25,15 @@
             var licenseNum = $("#licenseNum").val();
             
             //alert(licenseNum.length);
-            if(licenseNum.length!=7){
+            if((!licenseNum === "")&&licenseNum.length!=7){
             	sumbittable = false;
             	return ;
             }
             
             var applyType = $("#applyType").val();
-            if(applyType === "驾驶员") {
+            if(applyType === "驾驶员"||applyType === "临驾") {
                 if (licenseNum === "") {
-                    alert("请输入车牌号");
-                    sumbittable = false;
+                    sumbittable = confirm("该驾驶员未输入车牌号，是否继续？");
                 } else {
                     $.post("/DZOMS/common/doit", {"condition": "from Vehicle where licenseNum = '" + licenseNum + "'"}, function (data) {
                         if(data["affect"] === undefined){
@@ -42,12 +41,35 @@
                             sumbittable = false;
                             return ;
                         }
-                        if (data["affect"]["secondDriver"] != "") {
-                            alert("该车已有副驾.");
-                            sumbittable = false;
-                        } else {
-                            sumbittable = true;
-                        }
+//                         if (data["affect"]["secondDriver"] != "") {
+//                         		var condition1 = "select d.name from Driver d where d.idNum = '" + data["affect"]["secondDriver"] + "'";
+	
+// 														$.post("/DZOMS/common/doit",{"condition":condition1},function(data){
+// 															if (data!=undefined&&data["affect"]!=undefined) {
+// 																var name = data["affect"];
+// 																alert("该车已有副驾"+name);
+// 															}
+// 														});
+                            
+//                             sumbittable = false;
+//                             return;
+//                         }
+
+                        var condition1 = "select d from Driver d where d.idNum = '" + $('[name="driver.idNum"]').val() + "'";
+                        $.post("/DZOMS/common/doit",{"condition":condition1},function(data){
+ 							if (data!=undefined&&data["affect"]!=undefined) {
+ 								var driver = data["affect"];
+ 								if(driver["isInCar"]){
+ 									alert("该驾驶员在车，请先下车!");
+ 									sumbittable = false;
+ 									return;
+ 								}
+ 																
+ 							}
+ 						});
+                        
+                        
+                        sumbittable = true;
                     });
                 }
             }else{
@@ -73,6 +95,14 @@
         function checkSubmitable(){
         	var licenseNum = $("#licenseNum").val();
         	var applyType = $("#applyType").val();
+        	
+        	var fuwubaozhenjing = $('input[name="driver.fuwubaozhengjin"]').val();
+        	if (fuwubaozhenjing.length==0||!/^[0-9]+[0-9]*]*$/.test(fuwubaozhenjing)) {
+        		//alert("服务保证金应为正整数");
+        		$('input[name="driver.fuwubaozhengjin"]').val("0");
+        		return false;
+        	}
+        	
         	if(licenseNum.length!=7){
             	if((applyType === "新包车" ||applyType === "转租" )&& (licenseNum=="黑A" || licenseNum.length==0)) {
             		return true;
@@ -84,7 +114,7 @@
             if(sumbittable){
                 return true;
             }else{
-                alert("该车不存在/已有副驾");
+                alert("当前条件未满足，无法进行申请。");
                 return false;
             }
         }
@@ -94,6 +124,17 @@
 				url:"/DZOMS/select/vehicleByLicenseNum",
 				callback: checkCarOccupied
 			});
+			
+			$("#applyType").change(function(){
+				var applyType = $("#applyType").val();
+				if((applyType === "新包车" ||applyType === "转租" )){
+					$('input[name="driver.fuwubaozhengjin"]').val(0);
+					$('input[name="driver.fuwubaozhengjin"]').prop("readonly",true);
+				}else{
+					$('input[name="driver.fuwubaozhengjin"]').prop("readonly",false);
+				}
+			});
+			
         });
         
      
@@ -124,6 +165,7 @@
                                <option>新包车</option>
                                <option>转租</option>
                                <option>驾驶员</option>
+                               <option>临驾</option>
                        </select>
                        </div>
                    </div>
@@ -145,7 +187,7 @@
                    <div class="form-group">
                        <div class="label"><label>服务保证金</label></div>
                        <div class="field">
-                            <input type="text" value="" name="driver.fuwubaozhengjin">
+                            <input type="text" value="0" name="driver.fuwubaozhengjin">
                        </div>
                    </div>
                    <div class="form-button">

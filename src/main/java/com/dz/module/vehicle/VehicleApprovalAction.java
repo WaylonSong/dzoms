@@ -1,5 +1,6 @@
 package com.dz.module.vehicle;
 
+import com.dz.common.factory.HibernateSessionFactory;
 import com.dz.common.global.BaseAction;
 import com.dz.common.other.ObjectAccess;
 import com.dz.module.contract.Contract;
@@ -11,7 +12,12 @@ import com.dz.module.user.message.MessageToUser;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -49,7 +55,7 @@ public class VehicleApprovalAction extends BaseAction{
 	/**
 	 * 按ID查找审批单
 	 * @return
-	 * @throws IOException
+	 * @throws IOException 
 	 */
 	public void vehicleApprovalId() throws IOException {
 		ServletActionContext.getResponse().setContentType("application/json");
@@ -68,56 +74,84 @@ public class VehicleApprovalAction extends BaseAction{
 	}
 	
 	public String vehicleApprovalInterrupt(){
-		vehicleApproval = vehicleApprovalService.queryVehicleApprovalById(vehicleApproval.getId());
-		Contract c = ObjectAccess.getObject(Contract.class, vehicleApproval.getContractId());
-		c.setState((short) -2);
-		ObjectAccess.saveOrUpdate(c);
-		vehicleApproval.setState(-1);
-		vehicleApproval.setInterruptTime(new Date());
-		ObjectAccess.saveOrUpdate(vehicleApproval);
-		
-		Message msg = new Message();
-		msg.setCarframeNum(c.getCarframeNum());
-		msg.setIdNum(c.getIdNum());
-		msg.setFromUser(vehicleApproval.getInterruptPerson());
-		msg.setTime(vehicleApproval.getInterruptTime());
-		
-		User u = ObjectAccess.getObject(User.class, vehicleApproval.getInterruptPerson());
-		
-		if(vehicleApproval.getCheckType()==0){
-			msg.setType("开业审批中止");
-		}else{
-			msg.setType("废业审批中止");
-		}
-		
-		Driver d = ObjectAccess.getObject(Driver.class, c.getIdNum());
-		
-		msg.setMsg(String.format("%tF %s发：\n"
-				+ "现有车%s(%s) 承包人 %s(%s) 因%s 中止审批，特此通知。", 
-				msg.getTime(),u.getUname(),
-				c.getCarNum(),c.getCarframeNum(),d.getName(),c.getIdNum(),vehicleApproval.getInterruptReason()));
-		
-		ObjectAccess.saveOrUpdate(msg);
-		
-		List<RelationUr> users;
-		if(vehicleApproval.getCheckType()==0){
-			users = ObjectAccess.query(RelationUr.class, String.format(
-					" rid in (select rid from Role where rname in ('%s','%s','%s','%s','%s','%s','%s') "
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = HibernateSessionFactory.getSession();
+			tx = s.beginTransaction();
+			
+			Message msg = new Message();
+			
+			msg.setFromUser(vehicleApproval.getInterruptPerson());
+			msg.setTime(new Date());
+			
+			String reason = vehicleApproval.getInterruptReason();
+			
+			User u = (User) s.get(User.class, vehicleApproval.getInterruptPerson());
+			vehicleApproval = (VehicleApproval) s.get(VehicleApproval.class,vehicleApproval.getId());
+			Contract c = (Contract) s.get(Contract.class, vehicleApproval.getContractId());
+			c.setState((short) -2);
+			s.saveOrUpdate(c);
+			
+			vehicleApproval.setState(-vehicleApproval.getState());
+			vehicleApproval.setInterruptTime(new Date());
+			vehicleApproval.setInterruptPerson(u.getUid());
+			vehicleApproval.setInterruptReason(reason);
+			s.saveOrUpdate(vehicleApproval);
+			
+			msg.setCarframeNum(c.getCarframeNum());
+			msg.setIdNum(c.getIdNum());
+			
+			if(vehicleApproval.getCheckType()==0){
+				msg.setType("开业审批中止");
+				if(StringUtils.isNotBlank(c.getCarNumOld())&&(c.getContractFrom()==null||c.getContractFrom()==0)){					
+					Query q_v = s.createQuery("from Vehicle where licenseNum = :carNum ");
+					q_v.setString("carNum", c.getCarNumOld().trim());
+					q_v.setMaxResults(1);
+					Vehicle v = (Vehicle) q_v.uniqueResult();
+					if(v!=null){
+						v.setReused(false);
+						s.saveOrUpdate(v);
+					}
+				}
+			}else{
+				msg.setType("废业审批中止");
+			}
+			
+			Driver d = (Driver) s.get(Driver.class, c.getIdNum());
+			
+			msg.setMsg(String.format("%tF %s发：\n"
+					+ "现有车%s(%s) 承包人 %s(%s) 因%s 中止审批，特此通知。", 
+					msg.getTime(),u.getUname(),
+					c.getCarNum(),c.getCarframeNum(),d.getName(),c.getIdNum(),reason));
+			
+			s.saveOrUpdate(msg);
+			
+			Query q_us = s.createQuery(String.format(
+					"from RelationUr where rid in (select rid from Role where rname in ('%s','%s','%s','%s','%s','%s','%s') ) "
 					, "分部经理","运营部经理","副总经理","保险员","财务负责人","财务经理","办公室主任"));
-		}else{
-			users = ObjectAccess.query(RelationUr.class, String.format(
-					" rid in (select rid from Role where rname in ('%s','%s','%s','%s','%s','%s','%s') "
-					, "分部经理","运营部经理","副总经理","保险员","财务负责人","财务经理","办公室主任"));
+			List<RelationUr> users = q_us.list();
+			
+			for (RelationUr relationUr : users) {
+				MessageToUser mu = new MessageToUser();
+				mu.setUid(relationUr.getUid());
+				mu.setMid(msg.getId());
+				mu.setAlreadyRead(false);
+				s.saveOrUpdate(mu);
+			}
+			
+			tx.commit();
+		}catch(HibernateException e){
+			e.printStackTrace();
+			if(tx!=null){
+				tx.rollback();
+			}
+			request.setAttribute("msgStr", "添加失败。原因是"+e.getMessage());
+			return SUCCESS;
+		}finally{
+			HibernateSessionFactory.closeSession();
 		}
-		
-		for (RelationUr relationUr : users) {
-			MessageToUser mu = new MessageToUser();
-			mu.setUid(relationUr.getUid());
-			mu.setMid(msg.getId());
-			mu.setAlreadyRead(false);
-			ObjectAccess.saveOrUpdate(mu);
-		}
-		
+		request.setAttribute("msgStr", "操作成功。");
 		return SUCCESS;
 	}
 	

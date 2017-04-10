@@ -202,7 +202,44 @@
            function tiao(){
            	window.parent.parent.miaodian();
            }
-
+		function btnClk(){
+			var carlist = $('input[name="batchPlan.contractIdList"]').val();
+			var startTime = $('input[name="batchPlan.startTime"]').val();
+			var endTime = $('input[name="batchPlan.endTime"]') .val();
+			var isToEnd = $('input[name="isToEnd"]').is(':checked');
+			var type = $('select[name="batchPlan.feeType"]').val();
+			var fee = $('input[name="batchPlan.fee"]').val();
+			if(carlist == undefined){
+				alert("未选择车辆");
+				return;
+			}
+			if(startTime == undefined || startTime == ""){
+				alert("未选择开始日期");
+				return;
+			}
+			if((endTime == undefined || endTime == "") && isToEnd == false){
+				alert("未选择结束日期");
+				return;
+			}
+			if(fee == undefined || fee == ""){
+				alert("未填写费用");
+				return;
+			}
+			if(fee < 0){
+				$('input[name="batchPlan.fee"]').val(-fee);
+				if(type == "plan_add_insurance"){
+					$('select[name="batchPlan.feeType"]').val("plan_sub_insurance");
+				}
+				if(type == "plan_add_contract"){
+					$('select[name="batchPlan.feeType"]').val("plan_sub_contract");
+				}
+				if(type == "plan_add_other"){
+					$('select[name="batchPlan.feeType"]').val("plan_sub_other");
+				}
+			}
+			$('#formx')[0].submit();
+		}
+	
     </script>
 </head>
 <body onload="tiao()">
@@ -274,12 +311,12 @@
                     </div>
                     <div class="field">
                         <select size="1" name="batchPlan.feeType" class="input">
-                            <option value="plan_add_insurance">保险费用上调</option>
-                            <option value="plan_sub_insurance">保险费用下降</option>
-                            <option value="plan_add_contract">合同费用上调</option>
-                            <option value="plan_sub_contract">合同费用下降</option>
-                            <option value="plan_add_other">其他费用上调</option>
-                            <option value="plan_sub_other">其他费用下降</option>
+                            <option value="plan_add_insurance">保险费用</option>
+                            <option value="plan_sub_insurance" style="display:none">保险费用下降</option>
+                            <option value="plan_add_contract">合同费用</option>
+                            <option value="plan_sub_contract" style="display:none">合同费用下降</option>
+                            <option value="plan_add_other">其他费用</option>
+                            <option value="plan_sub_other" style="display:none">其他费用下降</option>
                         </select>
                     </div>
                 </div>
@@ -304,7 +341,7 @@
                         <input  class="input" name="batchPlan.comment"/>
                     </div>
                 </div>
-                <input type="submit" value="提交" class="button bg-main"/>
+                <input type="button" value="提交" class="button bg-main" onclick="btnClk()"/>
             </div>
         </div>
         </div>

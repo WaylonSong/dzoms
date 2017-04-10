@@ -65,16 +65,6 @@ function dateToString(fmt, dateObject) {
 	return fmt;
 }
 
-String.prototype.startWith = function(str) {
-	if (str == null || str == "" || this.length == 0 || str.length > this.length)
-		return false;
-	if (this.substr(0, str.length) == str)
-		return true;
-	else
-		return false;
-	return true;
-};
-
 function getMonthAndDay(startdate, enddate) {  
     var month = 0;  
     var day = 0;  

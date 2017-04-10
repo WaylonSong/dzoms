@@ -504,21 +504,27 @@
 							</div>
 							<div class="block-content tab-container">
 								<table id="graph-data" class="graph">
-									<caption>2015XX分析</caption>
+									<caption>2017违章分析</caption>
 									<thead>
 										<tr>
 											<td></td>
-											<th scope="col">一月</th>
-											<th scope="col">二月</th>
-											<th scope="col">三月</th>
-											<th scope="col">四月</th>
-											<th scope="col">五月</th>
-											<th scope="col">六月</th>
+											<th scope="col">1月</th>
+											<th scope="col">2月</th>
+											<th scope="col">3月</th>
+											<th scope="col">4月</th>
+											<th scope="col">5月</th>
+											<th scope="col">6月</th>
+											<th scope="col">7月</th>
+											<th scope="col">8月</th>
+											<th scope="col">9月</th>
+											<th scope="col">10月</th>
+											<th scope="col">11月</th>
+											<th scope="col">12月</th>
 										</tr>
 									</thead>
 									<tbody>
 										<tr>
-											<th scope="row">Mary</th>
+											<th scope="row">一部</th>
 											<td>190</td>
 											<td>160</td>
 											<td>40</td>
@@ -527,7 +533,7 @@
 											<td>70</td>
 										</tr>
 										<tr>
-											<th scope="row">Tom</th>
+											<th scope="row">二部</th>
 											<td>3</td>
 											<td>40</td>
 											<td>30</td>
@@ -536,7 +542,7 @@
 											<td>49</td>
 										</tr>
 										<tr>
-											<th scope="row">Brad</th>
+											<th scope="row">三部</th>
 											<td>10</td>
 											<td>180</td>
 											<td>10</td>
@@ -544,7 +550,8 @@
 											<td>25</td>
 											<td>79</td>
 										</tr>
-										<tr>
+										
+										<!--<tr>
 											<th scope="row">Kate</th>
 											<td>40</td>
 											<td>80</td>
@@ -552,7 +559,7 @@
 											<td>25</td>
 											<td>15</td>
 											<td>119</td>
-										</tr>
+										</tr>-->
 									</tbody>
 								</table>
 
@@ -565,7 +572,7 @@
 						</div>
 					</div>
 				</div>
-
+    
 				<div class="grid_3">
 					<!--运营数据-->
 					<div class="block-border">
@@ -608,7 +615,7 @@
 								<tr>
 									<td>在籍车辆</td>
 									<%
-											String vehicle_count_hql = "select count(*) from Vehicle ";
+											String vehicle_count_hql = "select count(*) from Vehicle where state=1 or state=3 ";
 											request.setAttribute("vehicle_count_hql",vehicle_count_hql);
 										 %>
 										<td><s:property value="%{@com.dz.common.other.ObjectAccess@execute(#request.vehicle_count_hql)}"/></td>
@@ -636,7 +643,7 @@
 								<tr>
 									<td>在籍驾驶员</td>
 									<%
-											String driver_count_hql = "select count(*) from Driver ";
+											String driver_count_hql = "select count(*) from Driver where isInCar=true ";
 											request.setAttribute("driver_count_hql",driver_count_hql);
 										 %>
 										<td><s:property value="%{@com.dz.common.other.ObjectAccess@execute(#request.driver_count_hql)}"/></td>
@@ -645,7 +652,7 @@
 							</table>
 						</div>
 					</div>
-
+                    
 					<!--个人效绩-->
 					<div class="grid_12">
 						<div class="block-border">
@@ -671,6 +678,7 @@
 							</div>
 						</div>
 					</div>
+					<!--<p><a href="javascript:void(0);" id="notification-information" class="button" style="width: 150px; text-align: center;">Information Notification</a></p>-->
 					<!--日历-->
 					<!--<div class="block-border">
 					<div class="block-header">
@@ -782,8 +790,9 @@
 					</div>
 				</div>
             </div>-->
+            
 			</div>
-
+        
 		</div>
 		<!--! end of #container -->
 
@@ -1223,5 +1232,65 @@
 			.menuItem{ margin-left:-130px; } 
 		</style>
     <![endif]-->
+      <script type="text/javascript">
+
+var msgCount=0,approvalCount=0;
+
+function refreshMsgCount(){
+	$.post("/DZOMS/userMessageCount",{},function(data){
+		try{
+			msgCount = parseInt(data);
+		}catch(e){
+			msgCount = 0;
+		}
+//		$('#notification-information').click(function() {
+		if (msgCount!=0) {
+			$.jGrowl("<a href='/DZOMS/message.jsp' style='color:white' >你好！ 你有 <strong style='color:red'>"+msgCount+"条</strong>信息未阅读！. :-)<br>请尽快查看！</a>", { theme: 'information' });
+		}
+			
+//		});
+	});
+}
+
+var ck =0,ct=0;
+function setApprovalCount(){
+	if (ck >= 2&&ct>0) {
+//		$("#approval_count").text(ct);
+		$.jGrowl("<a href='/DZOMS/apply_manage/' style='color:white'>你好！ 你有 <strong style='color:red'>"+ct+"条</strong>审批未处理！. :-)<br>请尽快处理！</a>", { theme: 'information' });
+	}
+}
+
+function refreshApprovalCount(){
+	ck =0;
+	ct=0;
+	$.post("/DZOMS/common/getWaitDealCount",{waitType:'废业审批'},function(data){
+		try{
+			var c = parseInt(data);
+			ct+=c;
+		}catch(e){
+			
+		}
+		ck++;
+		setApprovalCount();
+	});
+	$.post("/DZOMS/common/getWaitDealCount",{waitType:'开业审批'},function(data){
+		try{
+			var c = parseInt(data);
+			ct+=c;
+		}catch(e){
+			
+		}
+		ck++;
+		setApprovalCount();
+	});
+}
+
+
+
+	$(document).ready(function() {
+		refreshMsgCount();
+		refreshApprovalCount();
+	});
+  </script>
 
 </html>

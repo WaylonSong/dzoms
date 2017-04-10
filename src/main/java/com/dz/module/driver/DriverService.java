@@ -69,6 +69,46 @@ public class DriverService {
 			for (int i = 0; i < families.size(); i++)
 				families.get(i).setIdNum(driver.getIdNum());
 		}
+		
+		driver.setShenqingren(d.getShenqingren());
+		driver.setLururen(d.getLururen());
+		driver.setBangonshifuzeren(d.getBangonshifuzeren());
+		driver.setCaiwufuzeren(d.getCaiwufuzeren());
+		driver.setBangonshifuzerenyijian(d.getBangonshifuzerenyijian());
+		driver.setCaiwufuzerenyijian(d.getCaiwufuzerenyijian());
+		driver.setFuwubaozhengjin(d.getFuwubaozhengjin());
+		driver.setApplyTime(d.getApplyTime());
+
+		driver.setBusinessApplyTime(d.getBusinessApplyTime());
+		driver.setBusinessApplyRegistrant(d.getBusinessApplyRegistrant());
+		driver.setBusinessApplyRegistTime(d.getBusinessApplyRegistTime());
+		driver.setBusinessReciveTime(d.getBusinessReciveTime());
+		driver.setBusinessReciveRegistrant(d.getBusinessReciveRegistrant());
+		driver.setBusinessReciveRegistTime(d.getBusinessReciveRegistTime());
+		driver.setBusinessApplyCancelTime(d.getBusinessApplyCancelTime());
+		driver.setBusinessApplyCancelRegistrant(d.getBusinessApplyCancelRegistrant());
+		driver.setBusinessApplyCancelRegistTime(d.getBusinessApplyCancelRegistTime());
+		driver.setBusinessReciveCancelTime(d.getBusinessReciveCancelTime());
+		driver.setBusinessReciveCancelRegistrant(d.getBusinessReciveCancelRegistrant());
+		driver.setBusinessReciveCancelRegistTime(d.getBusinessReciveCancelRegistTime());
+		driver.setBusinessApplyState(d.getBusinessApplyState());
+		driver.setBusinessApplyCancelState(d.getBusinessApplyCancelState());
+		
+		driver.setBusinessApplyCarframeNum(d.getBusinessApplyCarframeNum());
+		driver.setBusinessApplyDriverClass(d.getBusinessApplyDriverClass());
+		
+		driver.setCarframeNum(d.getCarframeNum());
+		driver.setIsInCar(d.getIsInCar());
+		driver.setDept(d.getDept());
+		driver.setHasBadRecord(d.getHasBadRecord());
+		driver.setBreakRecord(d.getBreakRecord());
+		driver.setAccidentRecord(d.getAccidentRecord());
+		driver.setInsertTime(d.getInsertTime());
+		driver.setIsQualified(d.getIsQualified());
+		driver.setIsContractorPassed(d.getIsContractorPassed());
+		//driver.setApplyLicenseNum(d.getApplyLicenseNum());
+		driver.setScore(d.getScore());
+		
 		return driverDao.driverUpdate(driver, families);
 	}
 	
@@ -170,13 +210,13 @@ public class DriverService {
 	}
 	
 	@Deprecated
-	public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle vehicle,Driver driver) {
-		return driverDao.selectDriverInCarByConditionCount(beginDate, endDate, vehicle, driver);
+	public int selectDriverInCarByConditionCount(Date beginDate,Date endDate,Vehicle vehicle,Driver driver, String operation, Boolean finished) {
+		return driverDao.selectDriverInCarByConditionCount(beginDate, endDate, vehicle, driver,operation,finished);
 	}
 	
 	@Deprecated
-	public List<Driverincar> selectDriverInCarByCondition(Page page,Date beginDate,Date endDate,Vehicle vehicle,Driver driver) {
-		return driverDao.selectDriverInCarByCondition(page, beginDate, endDate, vehicle, driver);
+	public List<Driverincar> selectDriverInCarByCondition(Page page,Date beginDate,Date endDate,Vehicle vehicle,Driver driver, String operation, Boolean finished) {
+		return driverDao.selectDriverInCarByCondition(page, beginDate, endDate, vehicle, driver,operation,finished);
 	}
 	
 	@Deprecated
@@ -197,13 +237,13 @@ public class DriverService {
 	}
 
 	public int selectDriverLeaveByConditionCount(Date beginDate, Date endDate,
-			Vehicle vehicle, Driver driver) {
-		return driverDao.selectDriverLeaveByConditionCount(beginDate, endDate, vehicle, driver);
+			Vehicle vehicle, Driver driver, Boolean finished, String operation) {
+		return driverDao.selectDriverLeaveByConditionCount(beginDate, endDate, vehicle, driver,finished,operation);
 	}
 
 	public List<Driverleave> selectDriverLeaveByCondition(Page page, Date beginDate,
-			Date endDate, Vehicle vehicle, Driver driver) {
-		return driverDao.selectDriverLeaveByCondition(page, beginDate, endDate, vehicle, driver);
+			Date endDate, Vehicle vehicle, Driver driver, Boolean finished, String operation) {
+		return driverDao.selectDriverLeaveByCondition(page, beginDate, endDate, vehicle, driver,finished,operation);
 	}
 	
 	int searchCount(Triplet<String, String, Object>... conditions) {

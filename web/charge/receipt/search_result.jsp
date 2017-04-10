@@ -1,13 +1,8 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.dz.module.charge.receipt.ReceiptRecord" %>
 <%@ page import="java.util.List" %>
-<%--
-  Created by IntelliJ IDEA.
-  User: doggy
-  Date: 15-12-28
-  Time: 下午11:43
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib uri="/struts-tags" prefix="s"%>
+
 <html>
 <head>
     <title></title>
@@ -52,62 +47,124 @@
                         }
                     }
         }
+        function printSale(){
+        	var startTime = $("#startTime").val();
+        	var endTime = $("#endTime").val();
+        	if(startTime == undefined || startTime==""){
+        		startTime = "2000/01/01";
+        	}
+        	if(endTime==undefined||endTime==""){
+        		endTime = "2150/01/01";
+        	}
+        	var condition = "condition=and+(happenTime+between+'"+startTime+"'+and+'"+endTime+"')+and+style%3d%27%e5%8f%91%e6%94%be%27";//+encodeURI(carlist)+")";
+    		var url = "/DZOMS/common/selectToList?className=com.dz.module.charge.receipt.ReceiptRecord&withoutPage=true&"+(condition)+"&url=%2fcharge%2freceipt%2fprint_sale.jsp";
+        	window.open(url,"发票发放流向记录",'width=800,height=600,resizable=yes,scrollbars=yes');
+        }
     </script>
 </head>
 <body>
 	<div>
    <div class="panel  margin-small" >
-          	<div class="panel-head">
-          		查询结果
-          	</div>
-              <div class="panel-body">
+        <div class="panel-head">
+          	    <div class="line">
+          	        	<div class="xm2">查询结果</div>
+          	        	<div style="float:right">
+           	<div class="button-toolbar">
+	            <div class="button-group">
+			  <button onclick="printSale()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
+			  打印发放记录</button>
+          </div>
+          </div>
+            </div>
+        </div>
+       </div>
+    <div class="panel-body">
+    <s:hidden name="startTime"></s:hidden>
+    <s:hidden name="endTime"></s:hidden>
 <table class="table table-bordered table-hover table-striped">
-  <tr>
+  <tr><!-- 车号，承包人，领购人，起止号，时刻，年份排列 -->
     <th>类别</th>
     <th>车号</th>
     <th>承包人</th>
     <th>领购人</th>
-    <th>日期</th>
-    <th>收据编号</th>
-    <th>张数</th>
-    <th>单价</th>
-    <th>进货数量</th>
-    <th>销售数量</th>
-    <th>库存</th>
-    <th>总金额</th>
+    <!-- <th>日期</th> -->
+    <!-- <th>收据编号</th> -->
+    <!-- <th>张数</th> -->
+    <!-- <th>单价</th> -->
+    <!-- <th>进货数量</th> -->
+    <!-- <th>销售数量</th> -->
+    <!-- <th>库存</th> -->
+    <!-- <th>总金额</th> -->
     <th>发票号段</th>
-    <th>记录人</th>
+    <!-- <th>记录人</th> -->
     <th>记录时间</th>
-    <th>操作</th>
+    <th>年份</th>
+    <s:if test="#session.roles.{?#this.rname=='发票作废权限'}.size>0">   	
+	       <th>操作</th>
+		</s:if>
+    
   </tr>
   <%Object o = request.getAttribute("records");%>
   <%if(o != null){%>
-    <%List<ReceiptRecord> rrs = (List)o;%>
+    <%List<ReceiptRecord> rrs = (List)o;
+    int inNumSum=0,outNumSum=0;
+    %>
     <%for(ReceiptRecord rr:rrs){%>
-      <%int inNum = 0;int outNum = 0;if(rr.getStyle().equals("销货")){
-        outNum = rr.getSoldNum();
+      <%int inNum = 0;int outNum = 0;
+      if(rr.getStyle().equals("发放")){
+        //outNum = rr.getSoldNum();
+        outNumSum+=rr.getEndNum()-rr.getStartNum()+1;
       }else{
-        inNum = rr.getInNum();
+        //inNum = rr.getInNum();
+        inNumSum+=rr.getEndNum()-rr.getStartNum()+1;
       }%>
       <tr>
         <td><%=rr.getStyle()%></td>
         <td><%=rr.getCarId()==null?"-":rr.getCarId()%></td>
         <td><%=rr.getRenter()==null?"-":rr.getRenter()%></td>
         <td><%=rr.getTaker()==null?"-":rr.getTaker()%></td>
-        <td><%=rr.getHappenTime()==null?"-":rr.getHappenTime()%></td>
-        <td><%=rr.getProveNum()==null?"-":rr.getProveNum()%></td>
-        <td><%=rr.getPaperNum()==0?"0":rr.getPaperNum()%></td>
-        <td><%=rr.getPrice()==null?"-":rr.getPrice()%></td>
-        <td><%=inNum%></td>
-        <td><%=outNum%></td>
-        <td><%=rr.getStorage()%></td>
-        <td><%=rr.getAllPrice()%></td>
+        <%-- <td><%=rr.getHappenTime()==null?"-":rr.getHappenTime()%></td> --%>
+        <%-- <td><%=rr.getProveNum()==null?"-":rr.getProveNum()%></td> --%>
+        <%-- <td><%=rr.getPaperNum()==0?"0":rr.getPaperNum()%></td> --%>
+        <%-- <td><%=rr.getPrice()==null?"-":rr.getPrice()%></td> --%>
+        <%-- <td><%=inNum%></td> --%>
+        <%-- <td><%=outNum%></td> --%>
+        <%-- <td><%=rr.getStorage()%></td> --%>
+        <%-- <td><%=rr.getAllPrice()%></td> --%>
         <td><%=rr.getStartNum()%> - <%=rr.getEndNum()%></td>
-        <td><%=rr.getRecorder()==null?"-":rr.getRecorder()%></td>
+        <%-- <td><%=rr.getRecorder()==null?"-":rr.getRecorder()%></td> --%>
         <td><%=rr.getRecordTime()==null?"-":rr.getRecordTime()%></td>
-        <td><a id="<%=rr.getId()%>|<%=rr.getStartNum()%>|<%=rr.getEndNum()%>|<%=rr.getStyle()%>" onclick="removex(this)">作废</a></td>
+        <td><%=rr.getYear()==0?"0":rr.getYear() %></td>
+        <s:if test="#session.roles.{?#this.rname=='发票作废权限'}.size>0">   	
+	       <td><a id="<%=rr.getId()%>|<%=rr.getStartNum()%>|<%=rr.getEndNum()%>|<%=rr.getStyle()%>" onclick="removex(this)">作废</a></td>
+		</s:if>
+        
       </tr>
     <%}%>
+    <tr>
+    <td>合计</td><td>进货：
+    <%inNumSum/=1000;
+    String txt="";
+    if(inNumSum>10){
+    	txt +=""+(inNumSum/10)+"箱";
+    }
+    if(inNumSum%10>0){
+    	txt +=""+(inNumSum%10)+"袋";
+    }
+     %>
+    <%= txt%>
+    </td><td>发放：
+     <%outNumSum/=1000;
+     String txt2="";
+    if(outNumSum>10){
+    	txt2 +=""+(outNumSum/10)+"箱";
+    }
+    if(outNumSum%10>0){
+    	txt2 +=""+(outNumSum%10)+"袋";
+    }
+     %>
+    <%= txt2%></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+    </tr>
   <%}%>
 </table>
 </div>

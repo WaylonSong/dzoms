@@ -13,5 +13,6 @@ public interface BankCardDao {
 	public List<BankCard> queryAllCard(Page page) throws HibernateException;
 	public int queryCardCount() throws HibernateException;
 	public BankCard getBankCardForPayByDriverId(String driverId, String carNum);
+	public BankCard getBankCardForPayByDriverIdWithoutCloseSession(String driverId, String carNum);
 	BankCard getBankCardForRecieveByDriverId(String driverId, String carNum);
 }	

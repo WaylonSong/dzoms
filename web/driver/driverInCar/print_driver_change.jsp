@@ -28,11 +28,31 @@
 <script src="/DZOMS/res/layer-v2.1/layer/layer.js"></script>
 <script src="/DZOMS/res/js/window.js"></script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
+
+<link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
+<script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
 <script>
 	 function refresh(){
         	document.driverBusinessApply.action = "/DZOMS/driver/driverInCar/driverUpPrintSelect";
         	document.driverBusinessApply.submit();
         }
+	 
+$(document).ready(function(){
+
+$("[name='vehicle.licenseNum']").bigAutocomplete({
+	url:"/DZOMS/select/vehicleByLicenseNum",
+	callback:function(){
+		refresh();
+	}
+});
+});
+
+$(document).ready(function(){
+	var licenseNum = $('[name="vehicle.licenseNum"]').val();
+	if (licenseNum.length==0) {
+		$('[name="vehicle.licenseNum"]').val("黑A");
+	}
+});
 </script>
 </head>
 <body>
@@ -65,34 +85,11 @@
                         车牌号
                     </label>
                 </div>
-                <s:hidden name="vehicle.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
-                <s:hidden name="carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
+                
                 <div class="field" >
-                <s:if test="%{vehicle.licenseNum!=null}">
-                	<s:textfield name="vehicle.licenseNum" cssClass="input" cssStyle="width:120px"/>
-                </s:if>
-                <s:else>
-                <%! List<String> vmstr; %>
-				<%  
-					ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());    
-  					VehicleService vms = ctx.getBean(VehicleService.class);
-  					
-  					List<Vehicle> vml = vms.selectAll();
-  					
-					vmstr = (List<String>)CollectionUtils.collect(vml, new Transformer(){
-  						@Override
-  						public Object transform(Object obj) {
-               				Vehicle vm = (Vehicle) obj;
-                			return vm.getLicenseNum();
-           				}
-  					});
-  					
-  					vmstr.add(0, "");
-  					
-  					request.setAttribute("vmstr",vmstr);
-  				%>
-                	<s:select list="#request.vmstr" cssClass="input" name="vehicle.licenseNum" onchange="refresh()"></s:select>
-                </s:else>
+                	<s:textfield name="vehicle.licenseNum" cssClass="input"/>
+                	<s:hidden name="driver.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
+                	<s:hidden name="vehicle.carframeNum" value="%{vehicle.carframeNum}"></s:hidden>
                 </div>
             </div>
     		</blockquote>

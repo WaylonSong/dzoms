@@ -1,4 +1,5 @@
 <%@taglib uri="/struts-tags" prefix="s"%>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
 <%@ page language="java" import="java.util.*,com.dz.module.user.User" pageEncoding="UTF-8"%>
 <%
 	String path = request.getContextPath();
@@ -6,6 +7,10 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+
+<m:permission role="驾驶员登记">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE html>
 <html lang="zh-cn">

@@ -53,7 +53,7 @@
     	<div class="panel">
     		
     		<div class="panel-head">查看消息详情</div>
-    		<s:set name="m" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.message.Message',#parameters.id)}"></s:set>
+    		<s:set name="m" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.message.Message',@java.lang.Integer@parseInt(#parameters.id))}"></s:set>
     		
     		<div class="panel-body">
     	<div class="form-group">
@@ -63,7 +63,7 @@
                 </label>
             </div>
             <div class="field">
-            	<s:textfield cssClass="input" theme="simple" value="%{m.type}" disabled="true"></s:textfield>
+            	<s:textfield cssClass="input" theme="simple" value="%{#m.type}" disabled="true"></s:textfield>
             </div>
        </div>
        <div class="form-group">
@@ -83,7 +83,7 @@
                 </label>
             </div>
             <div class="field">
-            	<s:textfield cssClass="input" theme="simple" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#m.carframeNum).name+'('+#m.carframeNum+')'}" disabled="true"></s:textfield>
+            	<s:textfield cssClass="input" theme="simple" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#m.carframeNum).licenseNum+'('+#m.carframeNum+')'}" disabled="true"></s:textfield>
             </div>
        </div>
        <div class="form-group">
@@ -105,7 +105,7 @@
             <div class="field">
             	<s:textfield cssClass="input" theme="simple" disabled="true">
             		<s:param name="value">
-            			<s:date name="m.time" format="yyyy/MM/dd HH:mm:ss"/>
+            			<s:date name="%{#m.time}" format="yyyy/MM/dd HH:mm:ss"/>
             		</s:param>
             	</s:textfield>
             </div>
@@ -117,7 +117,7 @@
                 </label>
             </div>
             <div class="field">
-            	<s:textarea cssClass="input" theme="simple" value="%{m.msg}" disabled="true"></s:textarea>
+            	<s:textarea cssClass="input" theme="simple" value="%{#m.msg}" disabled="true"></s:textarea>
             </div>
        </div>
     		</div>

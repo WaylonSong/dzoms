@@ -46,13 +46,24 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						$("[name='vehicleSele']").submit();
 			});
 			
-			$("#driver_name").bigAutocomplete({
-				url:"/DZOMS/select/driverById",
-				callback:refreshSearch
+			$("[name='vehicleSele']").find("input[type='radio']").change(function(){
+						$("[name='vehicleSele']").submit();
+						if ($("input[name='checkType']:checked").val()=="all") {
+							$("#approvalType").hide();
+							$("#abandondType").hide();
+						} else if ($("input[name='checkType']:checked").val()=="0") {
+							$("#approvalType").show();
+							$("#abandondType").hide();
+						} else{
+							$("#approvalType").hide();
+							$("#abandondType").show();
+						}
 			});
 			
-			$("#carframe_num").bigAutocomplete({
-				url:"/DZOMS/select/vehicleById",
+			$("[name='vehicleSele']").find("input[type='radio']").change();
+			
+			$("#driver_name").bigAutocomplete({
+				url:"/DZOMS/select/driverByName",
 				callback:refreshSearch
 			});
 			
@@ -60,6 +71,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				url:"/DZOMS/select/vehicleByLicenseNum",
 				callback:refreshSearch
 			});
+			
+			if($("#license_num").val().trim().length<7){
+				$("#license_num").val("黑A");
+			}
 			
 		});
 		
@@ -71,29 +86,51 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			var condition = " ";
 			var contractCondition = "from Contract where 1=1 ";
 			
+			var checkType = $("input[name='checkType']:checked").val();
+			if(checkType!='all'){
+				condition+= "and checkType='"+checkType+"' ";
+				
+				if (checkType=='0') {
+					contractCondition+=$("#approvalType").val();
+				} else{
+					condition+=$("#abandondType").val();
+				}
+				
+			}
+			
+			var in_date_begin = $("#in_date_begin").val();
+			if(in_date_begin.length>0){
+				condition+= "and approvalBranchDate>='"+in_date_begin+"' ";
+			}
+			
+			var in_date_end = $("#in_date_end").val();
+			if(in_date_begin.length>0){
+				condition+= "and approvalBranchDate<='"+in_date_end+"' ";
+			}
+			
 			if(dept.trim().length>0){
 				contractCondition += "and branchFirm='"+dept.trim()+"' ";
 			}
 			
 			if (dataAlready=='true') {
-				condition += "and state=8  ";
+				condition += "and state=8 ";
 			} else if(dataAlready=='false'){
-				condition += "and state!=8 ";
+				condition += "and state!=8 and state>0 ";
+			}else if(dataAlready=='interrupt'){
+				condition += "and state<0 ";
+			}else{
+				condition += "and state>0 ";
 			}
 			
 			if ($("#driver_name").val().trim().length>0) {
-				contractCondition += "and idNum='"+$("#driver_name").val().trim()+"' ";
-			}
-			
-			if ($("#carframe_num").val().trim().length>0) {
-				contractCondition += "and carframeNum='"+$("#carframe_num").val().trim()+"' ";
+				contractCondition += "and idNum in (select idNum from Driver where name='"+$("#driver_name").val().trim()+"') ";
 			}
 			
 			if ($("#license_num").val().trim().length>0) {
-				contractCondition += "and carNum='"+$("#license_num").val().trim()+"' ";
+				contractCondition += "and carNum like '%"+$("#license_num").val().trim()+"%' ";
 			}
 			
-			condition+="and contractId in (select id "+contractCondition+") ";
+			condition+="and contractId in (select id "+contractCondition+") order by approvalBranchDate desc ";
 			
 			$('[name="condition"]').val(condition);
 			return true;
@@ -103,7 +140,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
  <body> 
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
-                <li>车辆管理</li>
+                <li>审批管理</li>
                 <li>查询</li>
                 <li>审批状态查询</li>
     </ul>
@@ -126,24 +163,41 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
      
                 <blockquote class="panel-body">
                     <table class="table" style="border: 0px;">
-                        <!--<tr>
-                            <td>车辆购入日期</td>
-                            <td><input type="text" id="vehicle.in_date" name="vehicle.inDate" class="input datepick" /></td>
-                        </tr>
                         <tr>
-                            <td>车辆制造日期</td>
-                            <td><input type="text" id="vehicle.pd" name="vehicle.pd"  class="input datepick"/></td>
-
+                            <td width="15%">审批单创建日期</td>
+                            <td width="5%">从</td>
+                            <td width="15%"><input type="text" id="in_date_begin" class="input datepick" /></td>
+                            <td width="5%">到</td>
+                            <td width="15%"><input type="text" id="in_date_end" class="input datepick" /></td>
+                        		<td width="5%"><input type="button" value="清空" onclick="$('#in_date_begin').val('');$('#in_date_end').val('');" /></td>
+                            
+                           <td width="5%">类型</td>
+                            <td width="15%"><input type="radio" name="checkType" value="0"/>开业&nbsp;
+                            	<select id="approvalType">
+                            		<option value=" " selected="selected">全部</option>
+                            		<option value=" and contractFrom is null ">新车</option>
+                            		<option value=" and contractFrom is not null ">二手车</option>
+                            	</select>
+                            </td>
+														
+														<td width="15%"><input type="radio" name="checkType" value="1"/>废业&nbsp;
+															<select id="abandondType">
+																<option value=" " selected="selected">全部</option>
+																<option value=" and handleMatter=false ">废业</option>
+																<option value=" and handleMatter=true ">转包</option>
+															</select>
+														</td>
+														
+														<td><input type="radio" name="checkType" value="all" checked="checked"/>全部</td>
                         </tr>
-                          <tr>
-                            <td>承租人身份证号</td>
-                            <td><input type="text" id="vehicle.driver_id" name="vehicle.driverId" class="input" /></td>
-                        </tr>-->
+                       </table>
+                       <table class="table" style="border: 0px;">
                         <tr>
-                            <td style="border-top: 0px;">承租人身份证号</td>
-                            <td style="border-top: 0px;"><input type="text" id="driver_name" name="driverName" class="input"/></td>
+                          	<td width="15%">车牌号</td>
+                            <td width="20%"><input type="text" id="license_num" name="vehicle.licenseNum" class="input" /></td>
+                            <td width="15%">承租人姓名</td>
+                            <td width="10%"><input type="text" id="driver_name" name="driverName" class="input"/></td>
 
-                       
                             <td style="border-top: 0px;">归属部门</td>
                             <td style="border-top: 0px;"><select name="vehicle.dept" class="input" id="dept">
                             	<option></option>
@@ -151,34 +205,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
                             	<option>二部</option>
                             	<option>三部</option>
                             </select></td>
-                        
-                            <td style="border-top: 0px;">车架号</td>
-                            <td style="border-top: 0px;"><input type="text" id="carframe_num" name="vehicle.carframeNum" class="input" /></td>
-                        
-                            <td style="border-top: 0px;">车牌号</td>
-                            <td style="border-top: 0px;"><input type="text" id="license_num" name="vehicle.licenseNum" class="input" /></td>
 
 														<td style="border-top: 0px;">是否已完成</td>
                             <td style="border-top: 0px;">
                             <select id="dataAlready" class="input">
-                            	<option value="all"></option>
+                            	<option value="all">全部</option>
                             	<option value="true">是</option>
-                            	<option value="false">否</option>
+                            	<option value="false" selected="selected">否</option>
+                            	<option value="interrupt">已中止</option>
                             </select>
                             </td>
                         </tr>
-                        <!--<tr>
-                            <td>车辆型号</td>
-                            <td><input type="text" id="vehicle.car_mode" name="vehicle.carMode" class="input"/></td>
-                        </tr>
-                        <tr>
-                            <td class="tableleft">合格证编号</td>
-                            <td><input type="text" id="vehicle.certify_num" name="vehicle.certifyNum" class="input"/></td>
-                        </tr>
-                        <tr>
-                            <td class="tableleft">车牌号</td>
-                            <td><input type="text" id="vehicle.license_num" name="vehicle.licenseNum" class="input" /></td>
-                        </tr>-->
                     </table>
                 </blockquote>
             </div>
@@ -189,6 +226,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 
 </form>
+<script>
+$(".datepick").datetimepicker({
+	lang:"ch",           //语言选择中文
+	format:"Y/m/d",      //格式化日期
+	timepicker:false,    //关闭时间选项
+	yearStart:2000,     //设置最小年份
+	yearEnd:2100,        //设置最大年份
+	//todayButton:false    //关闭选择今天按钮
+	onClose:function(){
+		$("[name='vehicleSele']").submit();
+	}
+});
+</script>
 <div>
     <iframe name="result_form" width="100%" height="800px" id="result_form" scrolling="no">
 
@@ -196,33 +246,5 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 </div>
 
-<script type="text/javascript" src="/DZOMS/res/js/DateTimeHelper.js" ></script>
 </body>
- <script src="/DZOMS/res/js/apps.js"></script>
-    <script>
-    	function iFrameHeight() {
-	try{
-var ifm= document.getElementById("result_form");   
-var subWeb = document.frames ? document.frames["result_form"].document : ifm.contentDocument;   
-if(ifm != null && subWeb != null) {
-   ifm.height = subWeb.body.scrollHeight+200;
-}   }catch(e){}
-}    
-
-$(document).ready(function(){
-	window.setInterval('iFrameHeight();',1000);
-});
-    $(document).ready(function() {
-    	try{
-    		 App.init();
-    	}catch(e){
-    		//TODO handle the exception
-    	}
-    	
-       
-        // $(".xdsoft_datetimepicker.xdsoft_noselect").show();
-        // $("#ri-li").append($(".xdsoft_datetimepicker.xdsoft_noselect"));
-
-    });
-    </script>
 </html>

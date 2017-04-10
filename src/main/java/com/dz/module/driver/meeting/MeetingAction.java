@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -173,8 +174,6 @@ public class MeetingAction extends BaseAction {
 		return SUCCESS;
 	}
 	
-	
-	
 	public String searchMeeting(){
 		int currentPage = 0;
 		if (request.getParameter("currentPage") != null
@@ -206,7 +205,7 @@ public class MeetingAction extends BaseAction {
 		
 		Triplet<String, String, Object> dept_need = Triplet.with("idNum", "in (select idNum from Driver where dept is not null ) and 1=", (Object)1);
 		
-		checkList = meetingService.selectMeetingCheck(meetingId,dept_need);
+		checkList = meetingService.selectMeetingCheck(meeting.getId(),dept_need);
 		
 		if(nowPage==null||nowPage==0) nowPage=1;
 		
@@ -260,6 +259,8 @@ public class MeetingAction extends BaseAction {
 	 * @throws IOException
 	 */
 	public void checkByNet() throws IOException{
+		User user = ObjectAccess.query(User.class, "uname='"+uname+"'").get(0);
+		session.setAttribute("user", user);
 		String result = m_manmalCheck();
 		JSONObject json = new JSONObject();
 		if(result.equals(SUCCESS)){
@@ -276,6 +277,8 @@ public class MeetingAction extends BaseAction {
 		out.close();
 	}
 	
+	private String uname;
+		
 	@SuppressWarnings("deprecation")
 	private String m_manmalCheck(){
 		MeetingCheck meetingCheck = meetingService.selectMeetingCheck(meetingId, idNum);
@@ -291,12 +294,36 @@ public class MeetingAction extends BaseAction {
 
 		
 		Date checkBegin = TimeComm.convertDate(meetingCheck.getNeedCheckTime()),checkEndDate = TimeComm.convertDate(meetingCheck.getNeedCheckTime());
-		checkBegin.setHours(13);
+		checkBegin.setHours(12);
+		checkBegin.setMinutes(0);
 		checkEndDate.setHours(17);
 		checkEndDate.setMinutes(30);
+
 		
 		Driver d = (Driver) ObjectAccess.getObject("com.dz.module.driver.Driver",idNum);
 		Meeting m = (Meeting) ObjectAccess.getObject("com.dz.module.driver.meeting.Meeting",meetingId);
+		
+		Date checkMostBegin;
+		long mostBegin=Long.MAX_VALUE;
+		
+//		System.out.println("MeetingAction.m_manmalCheck(),"+m.getMeetingTimeL1()+","+m.getMeetingTimeL2()+","+m.getMeetingTimeL3());
+		
+		if(m.getMeetingTimeL1()!=null){
+			mostBegin = Math.min(mostBegin, m.getMeetingTimeL1().getTime());
+		}
+		
+		if(m.getMeetingTimeL2()!=null){
+			mostBegin = Math.min(mostBegin, m.getMeetingTimeL2().getTime());
+		}
+		
+		if(m.getMeetingTimeL3()!=null){
+			mostBegin = Math.min(mostBegin, m.getMeetingTimeL3().getTime());
+		}
+		
+		checkMostBegin = new Date(mostBegin);
+		checkMostBegin.setHours(12);
+		checkMostBegin.setMinutes(0);
+		
 		String dept = d.getDept();
 		Date buhuiDate = null;
 		switch(dept){
@@ -311,25 +338,75 @@ public class MeetingAction extends BaseAction {
 			break;
 		}
 		
-		if(!meetingCheck.isBuhui()){
+		if (buhuiDate==null) {
+			Calendar bh = Calendar.getInstance();
+			bh.setTime(checkBegin);
+			bh.add(Calendar.MONTH, 1);
+			buhuiDate=bh.getTime();
+		}
+		
+		if(org.apache.commons.lang3.StringUtils.contains(checkClass, "补会")||
+				org.apache.commons.lang3.StringUtils.contains(checkClass, "收卡")||
+				org.apache.commons.lang3.StringUtils.contains(checkClass, "特殊情况")){
+			//该种情况下不需要验证时间
+			
+		}else if(!meetingCheck.isBuhui()){
 			Date checkEnd = new Date(checkTime.getTime());
 			checkEnd.setHours(17);
 			checkEnd.setMinutes(30);
 			
-			if(checkBegin.after(checkTime)||checkTime.after(buhuiDate)||checkTime.after(checkEnd)){
-				System.out.println(checkBegin);
-				System.out.println(checkTime);
-				System.out.println(buhuiDate);
-				System.out.println(checkEnd);
-				System.out.println(checkBegin.after(checkTime));
-				System.out.println(checkTime.after(buhuiDate));
-				System.out.println(checkTime.after(checkEnd));
+			if(checkMostBegin.after(checkTime)||checkTime.after(buhuiDate)||checkTime.after(checkEnd)){	
+//				System.out.println(checkMostBegin);
+//				System.out.println(checkBegin);
+//				System.out.println(checkTime);
+//				System.out.println(buhuiDate);
+//				System.out.println(checkEnd);
+//				System.out.println(checkMostBegin.after(checkTime));
+//				System.out.println(checkBegin.after(checkTime));
+//				System.out.println(checkTime.after(buhuiDate));
+//				System.out.println(checkTime.after(checkEnd));
 				errorMsg = "该驾驶员不在签到时限内。";
 				return ERROR;
 			}else{
-				if(checkTime.after(checkEndDate)&&checkClass.equals("正常")){
-					meetingCheck.setCheckClass("未按规定日期参加例会");
+				if(checkBegin.after(checkTime)){
+					checkClass="未按规定日期参加例会";
 				}
+
+				if(checkTime.after(checkEndDate)&&checkClass.equals("正常")){
+					checkClass="未按规定日期参加例会";
+					
+				}else if(checkClass.equals("正常")){
+					Date time_span = new Date(checkTime.getTime());
+					time_span.setHours(13);
+					time_span.setMinutes(5);
+					
+					Date time_span_end = new Date(checkTime.getTime());
+					time_span_end.setHours(14);
+					time_span_end.setMinutes(0);
+					
+					if(checkTime.after(time_span) && time_span.before(time_span_end)){
+						checkClass="迟到";
+					}
+					
+					time_span.setHours(14);
+					time_span.setMinutes(35);
+					time_span_end.setHours(15);
+					time_span_end.setMinutes(30);
+					
+					if(checkTime.after(time_span) && time_span.before(time_span_end)){
+						checkClass="迟到";
+					}
+					
+					time_span.setHours(16);
+					time_span.setMinutes(5);
+					time_span_end.setHours(17);
+					time_span_end.setMinutes(30);
+					
+					if(checkTime.after(time_span) && time_span.before(time_span_end)){
+						checkClass="迟到";
+					}
+				}
+				
 			}
 		}else{
 			buhuiDate.setHours(23);
@@ -340,6 +417,8 @@ public class MeetingAction extends BaseAction {
 				errorMsg = "该驾驶员不在签到时限内。";
 				return ERROR;
 			}
+			
+			checkClass="补会";
 		}
 		
 		meetingCheck.setIsChecked(true);
@@ -383,6 +462,27 @@ public class MeetingAction extends BaseAction {
 		
 		meetingService.updateMeetingCheck(meetingCheck);
 		return SUCCESS;
+	}
+	
+	public void clearCheck() throws IOException{
+		MeetingCheck check = meetingService.selectMeetingCheck(meetingId, idNum);
+		if(check!=null){
+			check.setIsChecked(false);
+			check.setCheckTime(null);
+			check.setCheckMethod(null);
+			check.setManmalCheckPerson(null);
+			check.setManmalCheckTime(null);
+			check.setCheckClass(null);
+			ObjectAccess.saveOrUpdate(check);
+		}
+		JSONObject json = new JSONObject();
+		json.put("result", true);
+		
+		HttpServletResponse response = ServletActionContext.getResponse();
+		PrintWriter out = response.getWriter();
+		out.print(json.toString());
+		out.flush();
+		out.close();
 	}
 	
 	private File fileCheck;
@@ -596,6 +696,13 @@ public class MeetingAction extends BaseAction {
 	public void setNowPage(Integer nowPage) {
 		this.nowPage = nowPage;
 	}
-	
+
+	public String getUname() {
+		return uname;
+	}
+
+	public void setUname(String uname) {
+		this.uname = uname;
+	}
 	
 }

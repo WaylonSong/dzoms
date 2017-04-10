@@ -106,35 +106,42 @@
 	</div>
 	
 
-    <%List<BankRecord> records = (List<BankRecord>)request.getAttribute("bankRecords");%>
+    <%List<BankRecord> records = (List<BankRecord>)request.getAttribute("bankRecords");
+    int space=0;%>
     <%if(records != null){%>
     <div class="panel">
         <div class="panel-head">
-            <strong>查询结果</strong>
+            <strong>查询结果</strong><span style="color:red" id="tip">(有<%=space%>条无银行卡！)</span>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" style="overflow:auto;height: 800px;">
             <table class="table table-bordered">
                 <tr>
+                	<th>序号</th>
                     <th>车牌号</th>
                     <th>司机</th>
                     <th>银行帐号</th>
                     <th>应收款</th>
                 </tr>
                 <%BigDecimal bd = new BigDecimal(0.00);%>
+                <%int index=1;%>
                 <%for(BankRecord record:records){%>
                 <%bd = bd.add(record.getMoney());%>
                 <tr>
+                	<td><%=index++%></td>
                     <td><%=record.getLicenseNum()%></td>
                     <td><%=record.getDriverName()%></td>
                     <%Map<String,BankCard> bcs = record.getBankCards();%>
                     <td>
                         <select>
                             <%if(bcs.containsKey("hrb")){%>
-                            <option><%=bcs.get("hrb").getCardNumber()%></option>
-                            <%}%>
-                            <%if(bcs.containsKey("other")){%>
+                            <option><%=bcs.get("hrb").getCardNumber()%>
+                            
+                            </option>
+                            <%}else if(bcs.containsKey("other")){%>
                             <option><%=bcs.get("other").getCardNumber()%></option>
-                            <%}%>
+                            <%}else{
+                            space ++ ;
+                            }%>
                         </select>
                     </td>
                     <td><%=record.getMoney()%></td>
@@ -144,24 +151,34 @@
                     <th>合计</th>
                     <th> - </th>
                     <th> - </th>
+                    <th> - </th>
                     <th><%=bd%></th>
                 </tr>
             </table>
+            
         </div>
-        <div class="line">
+       <!-- <div class="line">
             <div class="xm4 xm4-move">
                 <a href="javascript:void beforePage();" class="button">上一页</a>
                 <input type="text" id="ps" onblur="toPage();" class="input input-auto" size="3">
                 <a href="javascript:void nextPage();" class="button">下一页</a>
             </div>
 
-        </div>
+        </div>-->
     </div>
     <%}%>
+    
+    
 
 </body>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
+<script>
+$(document).ready(function(){
+	$("#tip").text("(有<%=space%>条无银行卡！)");
+});
+</script>
 
+<%--
 <form action="/DZOMS/charge/exportBankFile" method="post" id="formx">
     <s:hidden value="%{department}" name="department"/>
     <s:hidden value="%{time}" name="time"/>
@@ -204,6 +221,7 @@
     });
 
 </script>
+--%>
 <script>
     $('.datetimepicker').simpleCanleder();
 </script>

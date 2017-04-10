@@ -22,11 +22,181 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
     <script src="/DZOMS/res/js/admin.js"></script>
     <script type="text/javascript" src="/DZOMS/res/js/itemtool.js" ></script>
     <script type="text/javascript" src="/DZOMS/res/js/TableList.js" ></script>
-    <script type="text/javascript" src="/DZOMS/res/js/itemtool.js" ></script>
+    <script type="text/javascript" src="/DZOMS/res/js/jquery.json.js" ></script>
     <script>
+    	
+    var slist;
     	 $(document).ready(function(){
-        	getTableList("groupPraise.praiseType", ["praiseClass1","praiseClass2","praiseClass3", "groupPraise.praiseClass"]); //投诉项目
-        });
+//      	getTableList("groupPraise.praiseType", ["praiseClass1","praiseClass2","praiseClass3", "groupPraise.praiseClass"]); //投诉项目
+//      setSingleList('groupPraise.praiseType',['praiseClass1','praiseClass2','praiseClass3','groupPraise.praiseClass','grade'],['第一级','第二级','第三级','第四级','分值'])
+        	$("#praiseClass1").focusin(function(){
+        		$.post('/DZOMS/item_select',{'item.key':'praiseType4'},function(data){
+					var dat = $.parseJSON(data);
+					list = dat.list[0]["com.dz.common.itemtool.ItemTool"];
+					
+					if(list == undefined){
+						list =[];
+					}else if(list["id"] != undefined){
+						list = [list];
+					}
+					
+					var l1=[];
+					for (var i = 0; i < list.length; i++) {
+						var jsonStr = list[i]["value"];
+						var json = $.parseJSON(jsonStr);
+						
+						if (!l1.contains(json['praiseClass1'])) {
+							console.info(json['praiseClass1']);
+							l1.push(json['praiseClass1']);
+						}
+					}
+					
+					console.info(l1.length);
+					
+					if (l1.length+1!=$("#praiseClass1 option").length) {
+						$("#praiseClass1 option").remove();
+						$("#praiseClass1").append("<option></option>");
+						for(var j=0;j<l1.length;j++){
+							$("#praiseClass1").append("<option value='"+l1[j]+"'>" + l1[j] + "</option>");
+						}
+					}
+				});
+        	});
+        	
+        	$("#praiseClass2").focusin(function(){
+        		$.post('/DZOMS/item_select',{'item.key':'praiseType4'},function(data){
+					var dat = $.parseJSON(data);
+					list = dat.list[0]["com.dz.common.itemtool.ItemTool"];
+					
+					if(list == undefined){
+						list =[];
+					}else if(list["id"] != undefined){
+						list = [list];
+					}
+					
+					var l1=[];
+					var praiseClass1 = $("#praiseClass1").val();
+					for (var i = 0; i < list.length; i++) {
+						var jsonStr = list[i]["value"];
+						var json = $.parseJSON(jsonStr);
+						
+						if (json['praiseClass1']==praiseClass1) {
+							if (!l1.contains(json['praiseClass2'])) {
+								l1.push(json['praiseClass2']);
+							}
+						}
+					}
+					
+					
+//					if (l1.length+1!=$("#praiseClass2 option").length) {
+						$("#praiseClass2 option").remove();
+						$("#praiseClass2").append("<option></option>");
+						for(var j=0;j<l1.length;j++){
+							$("#praiseClass2").append("<option value='"+l1[j]+"'>" + l1[j] + "</option>");
+						}
+//					}
+				});
+        	});
+        	
+        	$("#praiseClass3").focusin(function(){
+        		$.post('/DZOMS/item_select',{'item.key':'praiseType4'},function(data){
+					var dat = $.parseJSON(data);
+					list = dat.list[0]["com.dz.common.itemtool.ItemTool"];
+					
+					if(list == undefined){
+						list =[];
+					}else if(list["id"] != undefined){
+						list = [list];
+					}
+					
+					var l1=[];
+					var praiseClass1 = $("#praiseClass1").val();
+					var praiseClass2 = $("#praiseClass2").val();
+					for (var i = 0; i < list.length; i++) {
+						var jsonStr = list[i]["value"];
+						var json = $.parseJSON(jsonStr);
+						
+						if (json['praiseClass1']==praiseClass1 && json['praiseClass2']==praiseClass2) {
+							if (!l1.contains(json['praiseClass3'])) {
+								l1.push(json['praiseClass3']);
+							}
+						}
+					}
+					
+					
+//					if (l1.length+1!=$("#praiseClass3 option").length) {
+						$("#praiseClass3 option").remove();
+						$("#praiseClass3").append("<option></option>");
+						for(var j=0;j<l1.length;j++){
+							$("#praiseClass3").append("<option value='"+l1[j]+"'>" + l1[j] + "</option>");
+						}
+//					}
+				});
+        	});
+        	
+        	$("#praiseClass4").focusin(function(){
+        		$.post('/DZOMS/item_select',{'item.key':'praiseType4'},function(data){
+					var dat = $.parseJSON(data);
+					list = dat.list[0]["com.dz.common.itemtool.ItemTool"];
+					
+					if(list == undefined){
+						list =[];
+					}else if(list["id"] != undefined){
+						list = [list];
+					}
+					
+					slist=list;
+					
+					var l1=[];
+					var praiseClass1 = $("#praiseClass1").val();
+					var praiseClass2 = $("#praiseClass2").val();
+					var praiseClass3 = $("#praiseClass3").val();
+					for (var i = 0; i < list.length; i++) {
+						var jsonStr = list[i]["value"];
+						var json = $.parseJSON(jsonStr);
+						
+						if (json['praiseClass1']==praiseClass1 && json['praiseClass2']==praiseClass2 && json['praiseClass3']==praiseClass3) {
+							if (!l1.contains(json['praiseClass4'])) {
+								l1.push(json['praiseClass4']);
+							}
+						}
+					}
+					
+					
+//					if (l1.length+1!=$("#praiseClass4 option").length) {
+						$("#praiseClass4 option").remove();
+						$("#praiseClass4").append("<option></option>");
+						for(var j=0;j<l1.length;j++){
+							$("#praiseClass4").append("<option value='"+l1[j]+"'>" + l1[j] + "</option>");
+						}
+//					}
+				});
+        	});
+        	
+        	$("#praiseClass4").change(function(){
+        		if ($("#praiseClass4").val().length>0) {
+        			var praiseClass1 = $("#praiseClass1").val();
+					var praiseClass2 = $("#praiseClass2").val();
+					var praiseClass3 = $("#praiseClass3").val();
+					var praiseClass4 = $("#praiseClass4").val();
+					
+//					console.info(slist);
+					for (var i = 0; i < slist.length; i++) {
+						var jsonStr = slist[i]["value"];
+						var json = $.parseJSON(jsonStr);
+						
+						if (json['praiseClass1']==praiseClass1 && json['praiseClass2']==praiseClass2 && json['praiseClass3']==praiseClass3 && json['praiseClass4']==praiseClass4) {
+							$("#grade").val(json['grade']);
+							
+							$("#praiseClassVal").val(jsonStr);
+//							console.info(json);
+							break;
+						}
+					}
+        		}
+        	});
+    	 
+    	 });
         
         var $tableHead = $('<tr><th style="width:5%;">选择</th>'+
     							'<th style="width:15%;">车牌号</th>'+
@@ -115,13 +285,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
             </tr>
             <tr>
                 <td style="text-align: right;"><strong>表扬类型</strong></td>
-                <td> <select class="input"  name="praiseClass1" style="max-width: 200px;"></select></td>
-                <td> <select class="input"  name="praiseClass2"  style="max-width: 200px;"></select></td>
-                <td> <select class="input"  name="praiseClass3"  style="max-width: 200px;"></select></td>
-                <td> <select class="input"  name="groupPraise.praiseClass"  style="max-width: 200px;"></select></td>
-                <td><a class="icon-wrench" href="javascript:setTableList('groupPraise.praiseType',4)"></a></td>
+                <td> <select class="input"  id="praiseClass1" style="max-width: 200px;"></select></td>
+                <td> <select class="input"  id="praiseClass2"  style="max-width: 200px;"></select></td>
+                <td> <select class="input"  id="praiseClass3"  style="max-width: 200px;"></select></td>
+                <td> <select class="input"  id="praiseClass4"  style="max-width: 200px;"></select>
+                	<input type="hidden" name="groupPraise.praiseClass" id="praiseClassVal" />
+                </td>
+                <td><a class="icon icon-wrench" href="javascript:setSingleList('praiseType4',['praiseClass1','praiseClass2','praiseClass3','praiseClass4','grade'],['第一级','第二级','第三级','第四级','分值'])"></a>
+                	<!--<a class="icon-wrench" href="javascript:setTableList('groupPraise.praiseType',4)"></a>--></td>
                 <td style="text-align: right;"><strong>分值</strong></td>
-                <td><input class="input input-auto float-left" size="5" name="groupPraise.grade"/></td>
+                <td><input class="input input-auto float-left" size="5" id="grade" name="groupPraise.grade"/></td>
             </tr>
             <tr>
                 <td style="text-align: right;"><strong>表扬内容</strong></td>

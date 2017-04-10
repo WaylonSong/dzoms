@@ -9,6 +9,10 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="合同新增">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 <!DOCTYPE html>
 <html>
 <head lang="en">
@@ -70,14 +74,14 @@
         		//TODO handle the exception
         	}*/
         	
-        	if($("#enddate").val().trim().length==0){
+        	//if($("#enddate").val().trim().length==0){
         		var arr = $("#startdate").val().split("/");
         		var date = new Date();
 				date.setFullYear(parseInt(arr[0])+8,arr[1]-1,arr[2]);
 				date = new Date(date.getTime()-24*60*60*1000);
         		//var enddate = ""+(parseInt(arr[0])+8)+"/"+arr[1]+"/"+arr[2];
         		$("#enddate").val(date.format("yyyy/MM/dd"));
-        	}
+        	//}
         	dateRefresh();
         }
 
@@ -263,6 +267,7 @@ function geneRentPlan(){
 	for(var i=0;i<months;i++) rentDays.push(0);
 	
 	var planListArr=[];
+	var hasContractBegin=false,hasContractEnd=false;
 	$("#rentList option").each(function(){
 		var begin = $(this).find("input[name='beginTime']").val();
 		var end = $(this).find("input[name='endTime']").val();
@@ -270,7 +275,20 @@ function geneRentPlan(){
 		var comment = $(this).find("input[name='comment']").val();
 		
 		planListArr.push({"begin":begin,"end":end,"money":money,"comment":comment});
+		
+//		if($("#startdate").val()==begin){
+//			hasContractBegin=true;
+//		}
+//		
+//		if($("#enddate").val()==end){
+//			hasContractEnd=true;
+//		}
 	});
+	
+//	if (!((hasContractBegin||confirm('合同开始日期'+$('#startdate').val()+'不在约定中，是否继续？'))&&
+//		(hasContractEnd||confirm('合同结束日期'+$('#enddate').val()+'不在约定中，是否继续？'))) ){
+//		return false;
+//	}
 	
 	$("input[name='planList']").val($.toJSON(planListArr));
 	
@@ -747,7 +765,7 @@ function geneRentPlan(){
                             </label>
                         </div>
                         <div class="field">
-                        	<s:textfield cssClass="input " name="contract.discountDays" readonly="true"></s:textfield>
+                        	<s:textfield cssClass="input " name="contract.discountDays" value ="4" readonly="true"></s:textfield>
                         </div>
                     </div>
 
@@ -1168,7 +1186,23 @@ function beforeSubmit(){
 		$('#submit-button').click();
 	}
 }
-button_bind(".submitbutton","确定提交?","beforeSubmit()");
+
+function getInfo(){
+	var info = '<p>请确认本次输入的信息：</p>';
+	info += '<p>合同开始日期：'+$("#startdate").val()+'&nbsp;&nbsp;合同终止日期：'+$("#enddate").val()+'&nbsp;&nbsp;</p>';
+	$("#rentList option").each(function(index){
+		var begin = $(this).find("input[name='beginTime']").val();
+		var end = $(this).find("input[name='endTime']").val();
+		var money = $(this).find("input[name='rentAmount']").val();
+		var comment = $(this).find("input[name='comment']").val();
+		info += '<p>约定'+(index+1)+':&nbsp;&nbsp;开始日期：'+begin+':&nbsp;&nbsp;终止日期：'+end+':&nbsp;&nbsp;金额：'+money+'&nbsp;&nbsp;</p>';
+	});
+	
+	return info;
+}
+
+//button_bind(".submitbutton","确定提交?","beforeSubmit()");
+button_bind_html(".submitbutton",getInfo,"beforeSubmit()");
 
 $(function(){
 		$showdialogs=function(e){
@@ -1177,6 +1211,7 @@ $(function(){
 		var data=e.attr("data-url");
 		var mask=e.attr("data-mask");
 		var width=e.attr("data-width");
+		var functionName = e.attr("data-function");
 		var detail="";
 		var masklayout=$('<div class="dialog-mask"></div>');
 		if(width==null){width="80%";}
@@ -1194,6 +1229,11 @@ $(function(){
 		$("body").append(win);
 		var x=parseInt($(window).width()-win.outerWidth())/2;
 		var y=e.offset().top - win.outerHeight()/2;
+		
+		if(functionName!=undefined&&functionName!=null){
+			var info = eval(functionName+"()");
+			win.find(".dialog").find('.dialog-body').html(info);
+		}
 		
 		if (y<=10){y="10"}
 		win.css({"left":x,"top":y});

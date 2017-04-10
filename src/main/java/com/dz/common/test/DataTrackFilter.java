@@ -1,7 +1,7 @@
 package com.dz.common.test;
 
 import java.io.IOException;
-import java.util.Enumeration;
+import java.io.PrintWriter;
 import java.util.Map;
 
 import javax.servlet.Filter;
@@ -13,6 +13,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -33,7 +34,23 @@ public class DataTrackFilter implements Filter{
 		HttpServletResponse response = (HttpServletResponse) tresponse;
 		
 		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		
 		String url = request.getServletPath();
+		
+		if(!StringUtils.startsWithAny(url, new String[]{"/res","/login","/user","/uploadFileTo","/isExist","/download","/charge/receipt","/driver/meeting/check","/driver/driverShowApplyCheckPrint"})
+				&&!url.trim().equals("/")){
+			if(request.getSession().getAttribute("user")==null){
+				response.setStatus(401);
+				response.setContentType("text/html;charset=utf-8");
+				PrintWriter out = response.getWriter();
+				out.print("您尚未登陆，请登录后访问！");
+				out.flush();
+				out.close();
+				return;
+			}
+		}
+		
 		System.out.println("Track begin......");
 		System.out.println(url);
 		Map<String,String[]> maps = request.getParameterMap();
@@ -44,10 +61,7 @@ public class DataTrackFilter implements Filter{
 		
 		ctx = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext()); 
 		
-		
 		nextFilter.doFilter(request, response);
-		
-		response.setCharacterEncoding("utf-8");
 	}
 
 	public void destroy() {

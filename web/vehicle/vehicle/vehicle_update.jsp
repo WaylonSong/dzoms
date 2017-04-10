@@ -65,14 +65,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="tableleft">车牌号</td>
 					<td><s:textfield id="vehicle.license_num" name="vehicle.licenseNum" /></td>
 				</tr>
-								<tr>
+				<tr>
 					<td class="tableleft"></td>
 					<td colspan="3" align="right">
 						<input type="submit" class="btn btn-primary" value="提交">
-						&nbsp;&nbsp;
-						
-						<button type="button" class="btn btn-success" name="backid"
-							id="backid" onclick="location.href='/DZOMS/vehicle/AbandonApproval/judge.jsp'">取消</button>
 					</td>
 				</tr>
 			</table>

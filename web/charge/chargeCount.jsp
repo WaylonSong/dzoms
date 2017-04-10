@@ -27,7 +27,7 @@
   <script src="/DZOMS/res/js/respond.js"></script>
   <link rel="stylesheet" href="/DZOMS/res/css/admin.css">
 </head>
-<body>
+<body style="height:600px; overflow:auto">
 <div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
                 <li>财务管理</li>

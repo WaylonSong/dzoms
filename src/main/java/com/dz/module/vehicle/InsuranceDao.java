@@ -16,6 +16,6 @@ public interface InsuranceDao {
 	List<Insurance> selectAll();
 	List<Insurance> selectByVehicle(Vehicle vehicle);
 	List<Insurance> selectByDriver(Driver driver);
-	public int selectByConditionCount(Insurance insurance);
-	public List<Insurance> selectByCondition(Page page, Insurance insurance);
+	public int selectByConditionCount(Insurance insurance, Vehicle vehicle);
+	public List<Insurance> selectByCondition(Page page, Insurance insurance, Vehicle vehicle);
 }

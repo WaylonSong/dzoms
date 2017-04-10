@@ -40,19 +40,36 @@ var beforeSubmit = function(){
 			var dept = $('#dept').val();
 			var beginDate = $('#beginDate').val();
 			var endDate = $('#endDate').val();
+			var licenseNum = $('#licenseNum').val();
+			var place = $('#place').val();
+			var act = $('#act').val();
 			
-			var condition = " ";
+			var condition = " from ElectricHistory h,Vehicle v where h.carframeNum=v.carframeNum ";
 			
 			if(dept.trim().length>0){
-				condition += "and carframeNum in (select carframeNum from Vehicle where dept='"+dept.trim()+"') ";
+				condition += "and v.dept='"+dept.trim()+"' ";
 			}
 						
 			if(beginDate.trim().length>0){
-				condition += "and date >= '"+beginDate.trim()+"' ";
+				condition += "and h.date >= '"+beginDate.trim()+"' ";
 			}
 			if(endDate.trim().length>0){
-				condition += "and date <= '"+endDate.trim()+"' ";
+				condition += "and h.date <= '"+endDate.trim()+"' ";
 			}
+			
+			if (licenseNum.trim().length>0) {
+				condition+="and v.licenseNum like '%"+licenseNum+"%' ";
+			}
+			
+			if (place.trim().length>0) {
+				condition+="and h.area like '%"+place+"%' ";
+			}
+			
+			if (act.trim().length>0) {
+				condition+="and h.act like '%"+act+"%' ";
+			}
+			
+			condition += " order by v.dept,v.licenseNum,h.date "
 			
 			$('[name="condition"]').val(condition);
 			return true;
@@ -68,9 +85,9 @@ var beforeSubmit = function(){
     </ul>
 </div>
  
-<form method="post" class="form-inline" id="search_form" action="/DZOMS/common/selectToList" target="result_form" onsubmit="beforeSubmit()">
+<form method="post" class="form-inline" id="search_form" action="/DZOMS/common/selectToList2" target="result_form" onsubmit="beforeSubmit()">
 		<input type="hidden" name="url" value="/vehicle/electric/fetch_search_result.jsp" />
-		<input type="hidden" name="className" value="com.dz.module.vehicle.electric.ElectricHistory"/>
+		<input type="hidden" name="column" value="h"/>
 		<input type="hidden" name="condition" />
    <div class="line">
    		<div class="panel  margin-small" >
@@ -93,9 +110,19 @@ var beforeSubmit = function(){
                             </select>
                             </td>
                             <td style="border-top: 0px;">日期范围</td>
-                            <td class="time-order"><input class="datepick" id="beginDate" /></td>
+                            <td class="time-order"><input class="datepick input" id="beginDate" /></td>
                             <td class="time-order">到</td>
-                            <td class="time-order"><input class="datepick" id="endDate" /></td>
+                            <td class="time-order"><input class="datepick input" id="endDate" /></td>
+                        	</tr>
+                        	<tr>
+                        		<td style="border-top: 0px;">车牌号</td>
+                        		<td class="time-order"><input class="input" id="licenseNum" value="黑A"/></td>
+                        		<td style="border-top: 0px;">违章地点</td>
+                        		<td class="time-order"><input class="input" id="place" /></td>
+                        		<td style="border-top: 0px;">违章事项</td>
+                        		<td class="time-order"><input class="input" id="act" /></td>
+                        		<td><input type="submit" class="input" value="查询"></td>
+                        		<td><input type="reset" class="input" value="清空"></td>
                         </tr>
                     </table>
                 </blockquote>

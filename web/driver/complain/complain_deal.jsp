@@ -45,10 +45,17 @@
 	
 	$(document).ready(function(){
 		var complainObject = $("#complainObject").val();
-		getFathersValue(complainObject,function(str){
-			$("#complainObject_show").val(str);
-		});
+		var json = $.parseJSON(complainObject);
+		var str = json["complainObject2"]+":"+json["complain.complainObject"];
+		$("#complainObject_show").val(str);
 	});
+	
+	function lookfile(){
+		//alert($("#filename").val());
+        if( $("#filename").val()!=undefined){
+            window.open($("#filename").val(),"图片预览",'resizable=no,scrollbars=no');
+        }
+    }
 </script>
 </head>
 <body>
@@ -105,7 +112,7 @@
                     </td>
                     <s:set name="t_driver" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#t_vehicle.driverId)}"></s:set>
                     <td class="tableleft">承租人</td>
-                    <td><s:textfield  class="input" name="idNum" value="%{#t_driver.idNum}"/></td>
+                    <td><s:textfield  class="input" name="idNum" value="%{#t_driver.name}"/></td>
                     <td class="tableleft">电话</td>
                     <td><s:textfield  class="input" name="telephone" value="%{#t_driver.phoneNum1}"/></td>
                     <td class="tableleft">分公司归属</td>
@@ -124,7 +131,42 @@
                     <td class="tableleft">发票号</td>
                     <td><s:textfield cssClass="input" name="complain.ticketNumber"/></td>
                 </tr>
-                
+                <tr>
+                	<td>相关照片</td>
+                	<td colspan="7">
+                       <div  style="width: 100%">
+           							 <div class="float-left" style="width: 80px; text-align: right;">
+           							 	<strong>添加文件:</strong>
+           							 </div>
+            							<div class="float-left">
+                							<select  id="filename" size="5" style="width: 400px;border: 1px solid rgb(221, 221, 221); border-image: none;"  class="float-left">
+                								<%@page import="com.opensymphony.xwork2.util.*,com.dz.module.driver.complain.*,java.io.*,com.dz.common.other.*" %>
+                								<%
+                									ValueStack vs = (ValueStack) request.getAttribute("struts.valueStack");
+                									Complain complain = (Complain) vs.findValue("complain");
+                									String filepath = System.getProperty("com.dz.root")+"/data/driver/complain/"+complain.getId();
+                									
+                									File[] files = FileAccessUtil.list(filepath);
+                									if(files!=null)
+                									for(File file : files){
+                								%>
+                								<option value="/DZOMS/data/driver/complain/<%=complain.getId()%>/<%=file.getName()%>"><%=file.getName() %></option>
+                								<%} %>
+                							</select>
+                						</div>
+                	
+            					</div>
+            					  <div class="margin-small">
+                                   <div class="margin-small">
+<!--                                         <a id="add" class="button input-file" href="javascript:addfile();">添加</a>
+-->                                    
+                                         <a id="look" class="button input-file" href="javascript:lookfile();">查看</a>
+                                    
+<!--                                         <a  class="button input-file" href="javascript:void(0);" onclick="delefile()">删除</a>
+-->                                     </div>
+                              </div>
+                    </td>
+                </tr>
                 <tr>
                     <td>投诉内容</td>
                     <td colspan="7">
@@ -154,8 +196,6 @@
                     <td><s:textfield cssClass="input" name="complain.confirmTime" readonly="readonly" /></td>
                 </tr>
 <%
-ValueStack vs = (ValueStack) request.getAttribute("struts.valueStack");
-Complain complain = (Complain)vs.findValue("complain");
 Vehicle vehicle = ObjectAccess.getObject(Vehicle.class, complain.getVehicleId());
 Calendar c = Calendar.getInstance();
 c.add(Calendar.MONTH, -1);
@@ -163,16 +203,33 @@ List<Driverincar> list=null;
 if(vehicle==null){
 	list=new ArrayList<Driverincar>();
 }else{
-	String hql = "carframeNum='"+vehicle.getCarframeNum()+"' and opeTime>=STR_TO_DATE('"+String.format("%tF",c.getTime())+"','%Y-%m-%d') and operation='证照申请'";      		
+	String hql = "carframeNum='"+vehicle.getCarframeNum()+"' and operation='证照注销' and opeTime>=STR_TO_DATE('"+String.format("%tF",c.getTime())+"','%Y-%m-%d')";      		
 	list = ObjectAccess.query(Driverincar.class, hql);
 }
 
 Map<String,String> dl = new TreeMap<String,String>();
 
+Driver d=null;
 for(Driverincar di:list){
-	Driver d = ObjectAccess.getObject(Driver.class, di.getIdNumber());
+	d = ObjectAccess.getObject(Driver.class, di.getIdNumber());
 	dl.put(d.getIdNum(), d.getName());
 }
+
+if(vehicle.getFirstDriver()!=null)
+d = ObjectAccess.getObject(Driver.class, vehicle.getFirstDriver());
+if(d!=null)
+	dl.put(d.getIdNum(), d.getName());
+
+if(vehicle.getSecondDriver()!=null)
+d = ObjectAccess.getObject(Driver.class, vehicle.getSecondDriver());
+if(d!=null)
+	dl.put(d.getIdNum(), d.getName());
+
+if(vehicle.getThirdDriver()!=null)
+d = ObjectAccess.getObject(Driver.class, vehicle.getThirdDriver());
+if(d!=null)
+	dl.put(d.getIdNum(), d.getName());
+
 
 request.setAttribute("dl", dl);
 %>

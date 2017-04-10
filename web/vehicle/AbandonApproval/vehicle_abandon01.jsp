@@ -1,15 +1,22 @@
 <%@taglib uri="/struts-tags" prefix="s"%>
 <%@page import="com.dz.common.other.TimeComm"%>
 <%@page import="com.dz.module.vehicle.VehicleApproval"%>
+<%@page import="com.opensymphony.xwork2.util.*" %>
+<%@ page import="java.util.*" %>
 <%@ page language="java" import="java.util.*,com.dz.module.user.User, 
-	com.dz.module.contract.BankCard"
+	com.dz.module.contract.*"
 	pageEncoding="UTF-8"%>
 <%
 	String path = request.getContextPath();
 	String basePath = request.getScheme() + "://"
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
+	User user = (User) session.getAttribute("user");
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="废业发起">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 
 <!DOCTYPE html>
 <html lang="zh-cn">
@@ -53,11 +60,27 @@ $(document).ready(function(){
 });
 
 var beforeSubmit = function(){
+	if($('#vehicleNum').val().length!=7){
+		alert("请输入正确的车牌号！");
+		return false;
+	}
+	
 	$("[name='contract.abandonRequest']").val($("#abandonRequest").val());
+	return true;
 };
 
 	$(document).ready(function(){
 		showFeiye();
+		
+		if($("#lastMonth").val().length==0){
+			if( $('input[name="contract.contractBeginDate"]').val().length>0 &&
+				$('input[name="contract.contractEndDate"]').val().length>0){
+				var arr1 = $('input[name="contract.contractBeginDate"]').val().split('/');
+				var arr2 = $('input[name="contract.contractEndDate"]').val().split('/');
+				var ms = (arr2[0]-arr1[0])*12 + (arr2[1]-arr1[1]);
+				$("#lastMonth").val(ms);
+			}
+		}
 	});
 	
 	function showFeiye(){
@@ -84,6 +107,7 @@ var beforeSubmit = function(){
 		<ul class="bread text-main" style="font-size: larger;"> 
                 <li>审批</li>
                 <li>车辆审批</li>
+                <li>生成废业</li>
     </ul>
 </div>
 
@@ -97,7 +121,23 @@ var beforeSubmit = function(){
 				<tr>
 					<td style="width: 10%" class="tableleft">所属部门</td>
 					<td>
-						<s:select name="contract.branchFirm" list="{'一部','二部','三部'}"></s:select>
+								<%
+                            		String position = user.getPosition();
+                            		String dept="";
+                            		
+                            		if(position==null)
+                            			dept="";
+                            		else if(position.contains("一"))
+                            			dept = "一部";
+                            		else if(position.contains("二"))
+                            			dept = "二部";
+                            		else if(position.contains("三"))
+                            			dept = "三部";
+                            		
+                            		request.setAttribute("dp",dept);
+                            	%>
+                            	<s:select name="contract.branchFirm" value="%{#request.dp}" list="{'一部','二部','三部'}"></s:select>
+						<%--<s:select name="contract.branchFirm" list="{'一部','二部','三部'}"></s:select> --%>
 					</td>
 
 					<td class="tableleft">车牌号</td>
@@ -143,20 +183,18 @@ var beforeSubmit = function(){
 					<td><s:textfield  name="contract.contractBeginDate" />至
 						<s:textfield  name="contract.contractEndDate" />
 					</td>
+					
+					<td class="tableleft feiye">合同到期剩余月数</td>
+					<td class="feiye">
+						<input id="lastMonth"></input>
+					</td>
 				</tr>
 				<tr>
-					<td class="tableleft">运营时长</td>
-					<%java.util.Date date = new java.util.Date();
-					request.setAttribute("nowDate",date);
-					%>
-					<td>
-						<s:textfield  id="operateDuration" value="%{@com.dz.common.other.TimeComm@subDate(contract.contractBeginDate,@org.apache.commons.lang.ObjectUtils@min(contract.contractEndDate,#request.nowDate))}" /></td>
-
 					<td class="tableleft">办理事项</td>
-					<td><input type="radio" name="vehicleApproval.handleMatter" value="false" checked="checked" onclick="showFeiye()" />废业
-						<input type="radio" name="vehicleApproval.handleMatter" value="true" onclick="hideFeiye()" />解除</td>
-				</tr>
-				<tr class="">
+					<td><input type="radio" name="vehicleApproval.handleMatter" value="false" checked="checked" onclick="showFeiye()" /><span style="color: red;" >废业—更新车</span>
+						<input type="radio" name="vehicleApproval.handleMatter" value="true" onclick="hideFeiye()" /><span style="color: red;" >解除—转包车</span></td>
+				<!-- </tr>
+				<tr class=""> -->
 					<td class="tableleft feiye">废业原因</td>
 					<td class="feiye">
 						<s:textfield name="contract.abandonReason" value="合同终止"></s:textfield>
@@ -183,6 +221,7 @@ var beforeSubmit = function(){
 					<td class="tableleft">分部经理意见</td>
 					<td colspan="3">
 						<textarea class="input-xlarge"
+							id="branchManagerRemark"
 							name="vehicleApproval.branchManagerRemark" rows="3"
 							style="width:100%"></textarea>
 					</td>
@@ -190,6 +229,7 @@ var beforeSubmit = function(){
 				<tr>
 					<td class="tableleft"></td>
 					<td colspan="3" style="text-align:right;">
+						<input type="button" value="同意" class="btn btn-primary" onclick="approvalApply('#branchManagerRemark');">
 						<input type="submit" class="btn btn-primary" value="提交">
 						<button type="button" class="btn btn-success" name="backid"
 							id="backid" onclick="location.href='/DZOMS/vehicle/AbandonApproval/judge.jsp'">取消</button>

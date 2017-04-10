@@ -434,8 +434,10 @@ public class ComplainDaoImpl implements ComplainDao {
 	}
 
 	@Override
-	public int selectAllByStatesCount(Date beginDate, Date endDate,
+	public int selectAllByStatesCount(Complain complain,Date beginDate, Date endDate,String dept,
 			Short[] states) {
+		
+//		System.out.println("ComplainDaoImpl.selectAllByStatesCount(),"+complain);
 		Session session = null;
 		try{
 			session = HibernateSessionFactory.getSession();
@@ -450,6 +452,22 @@ public class ComplainDaoImpl implements ComplainDao {
 				hql+=" and c.complainTime <= :endDate";
 			}
 			
+			if(!StringUtils.isEmpty(dept)){
+				hql+=" and c.vehicleId in (select carframeNum from Vehicle where dept like :dept) ";
+			}
+			
+			if (complain!=null) {
+				if(!StringUtils.isEmpty(complain.getComplainClass())){
+					hql+=" and c.complainClass like :complainClass";
+				}
+				
+				if(!StringUtils.isEmpty(complain.getComplainObject())){
+					hql+=" and c.complainObject like :complainObject";
+				}
+			}
+			
+			System.out.println(hql);
+			
 			Query query = session.createQuery(hql);
 			
 			if(beginDate!=null){
@@ -459,7 +477,24 @@ public class ComplainDaoImpl implements ComplainDao {
 			if(endDate!=null){
 				query.setDate("endDate", endDate);
 			}
+			
+			if(!StringUtils.isEmpty(dept)){
+				query.setString("dept", "%"+dept+"%");
+			}
+			
+			
 			query.setParameterList("states", states);
+			
+			if (complain!=null) {
+				if(!StringUtils.isEmpty(complain.getComplainClass())){
+					query.setString("complainClass", "%"+complain.getComplainClass()+"%");
+				}
+				
+				if(!StringUtils.isEmpty(complain.getComplainObject())){
+					query.setString("complainObject", "%"+complain.getComplainObject()+"%");
+				}
+			}
+			
 			//Query query = session.createQuery("select count(*) from Complain c where c.alreadyDeal is null or alreadyDeal = '否'");
 			return Integer.parseInt(query.uniqueResult().toString());
 		}catch(HibernateException e) {
@@ -471,13 +506,13 @@ public class ComplainDaoImpl implements ComplainDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Complain> selectAllByStates(Page page, Date beginDate,
-			Date endDate, Short[] states) {
+	public List<Complain> selectAllByStates(Complain complain,Page page, Date beginDate,
+			Date endDate,String dept, Short[] states,String order) {
 		Session session = null;
 		try{
 			session = HibernateSessionFactory.getSession();
 			
-			String hql = "from Complain c where c.state in (:states)";
+			String hql = "select c from Complain c,Vehicle v where c.state in (:states)";
 			
 			if(beginDate!=null){
 				hql+=" and c.complainTime >= :beginDate";
@@ -485,6 +520,28 @@ public class ComplainDaoImpl implements ComplainDao {
 			
 			if(endDate!=null){
 				hql+=" and c.complainTime <= :endDate";
+			}
+			
+			if(!StringUtils.isEmpty(dept)){
+				hql+=" and c.vehicleId in (select carframeNum from Vehicle where dept like :dept) ";
+			}
+			
+			if (complain!=null) {
+				if(StringUtils.isNotEmpty(complain.getComplainClass())){
+					hql+=" and c.complainClass like :complainClass";
+				}
+				
+				if(StringUtils.isNotEmpty(complain.getComplainObject())){
+					hql+=" and c.complainObject like :complainObject";
+				}
+			}
+			
+			hql += " and c.vehicleId=v.carframeNum ";
+			
+			if(StringUtils.equals(order, "complainTime")){
+				hql += " order by c.complainTime ";
+			}else{
+				hql += " order by v.licenseNum ";
 			}
 			
 			Query query = session.createQuery(hql);
@@ -497,8 +554,21 @@ public class ComplainDaoImpl implements ComplainDao {
 				query.setDate("endDate", endDate);
 			}
 			
-			query.setParameterList("states", states);
+			if(!StringUtils.isEmpty(dept)){
+				query.setString("dept", "%"+dept+"%");
+			}
 			
+			query.setParameterList("states", states);
+
+			if (complain!=null) {
+				if(StringUtils.isNotEmpty(complain.getComplainClass())){
+					query.setString("complainClass","%"+ complain.getComplainClass()+"%");
+				}
+				
+				if(StringUtils.isNotEmpty(complain.getComplainObject())){
+					query.setString("complainObject","%"+  complain.getComplainObject()+"%");
+				}
+			}
 			//Query query = session.createQuery("from Complain c where c.alreadyDeal is null or alreadyDeal = '否'");
 			query.setMaxResults(page.getEveryPage());
 			query.setFirstResult(page.getBeginIndex());

@@ -36,6 +36,9 @@ $(document).ready(function(){
 			
 			$("#search_form").submit();
 		});
+		function carFocus(){
+			$('input[name="bankCard.carNum"]').val("黑A");
+		}
 </script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 	
@@ -93,7 +96,7 @@ $(document).ready(function(){
 						<div class="form-group">
 							<div class="label"><label>车牌号</label></div>
 							<div class="field">
-								<input type="text" name="bankCard.carNum" class="input input-auto" size="22" value="黑A"/>
+								<input type="text" name="bankCard.carNum" class="input input-auto" size="22" value="黑A" onfocus="carFocus()"/>
 							</div>
 						</div>
 					</td>
@@ -122,7 +125,7 @@ $(document).ready(function(){
 </div>
 		
 		<div>
-    <iframe name="result_form" width="100%" height="800px" scrolling="no">
+    <iframe name="result_form" width="100%" height="1500px" scrolling="no">
 
     </iframe>
 

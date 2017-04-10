@@ -43,8 +43,9 @@ $(document).ready(function(){
 <body>
 	<div class="adminmin-bread" style="width: 100%;">
 		<ul class="bread text-main" style="font-size: larger;"> 
-                <li>财务管理</li>
-                <li>财务对账表</li>
+                <li>驾驶员管理</li>
+                <li>例会</li>
+                <li>例会查询</li>
     </ul>
     </div>
     <div class="line">

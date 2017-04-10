@@ -28,9 +28,12 @@
   <script>
     function deleteC(x){
       var chargePlanId = $(x).attr("id");
-      $.post('/DZOMS/charge/deleteChargePlan',{"chargePlan.id":chargePlanId},function(data){
-        $("#form").submit();
-      });
+      var r=confirm("确定删除该条记录？");
+      if(r==true){
+      	$.post('/DZOMS/charge/deleteChargePlan',{"chargePlan.id":chargePlanId},function(data){
+        	document.form.submit();
+     	  });
+      }
     }
   </script>
     <script>
@@ -48,6 +51,9 @@
           $("#currentMonth3").html("<strong>"+"三部:"+"</strong>"+data["ItemTool"]);
         });
       });
+      function carFocus(){
+      	$("input[name='licenseNum']").val("黑A");
+      }
   </script>
 </head>
 <body>
@@ -78,7 +84,7 @@
                         </label>
                     </div>
                     <div class="field">
-                        <s:textfield name="licenseNum" cssClass="input" value="黑A%{licenseNum}"/>
+                        <s:textfield name="licenseNum" cssClass="input" value="%{licenseNum}" onfocus="carFocus()"/>
                     </div>
                 </div>
 
@@ -134,7 +140,7 @@
                     <td><%=plan.getFee()%></td>
                     <td><%=plan.getInTime()%></td>
                     <td><%=plan.getRegister()%></td>
-                    <td><%=plan.getIsClear()?"無操作":"<a onclick='deleteC(this);' id='"+plan.getId()+"'>删除</a>"%></td>
+                    <td><%=plan.getIsClear()?"无操作":"<a onclick='deleteC(this);' id='"+plan.getId()+"'>删除</a>"%></td>
                 </tr>
                 <%}%>
             </table>

@@ -83,6 +83,26 @@ function showImage(obj){
    	reader.readAsDataURL(file[0]);
 }
 
+function showImage2($file){
+   	var file = $file[0].files;
+   	
+   	if(file==undefined){
+   		alert("文件不存在。");
+   		return;
+   	}
+   	
+   	var reader = new FileReader();
+   	reader.onload=function(){
+   		var path = this.result;
+   		
+   		var ImgObj = new Image(); //判断图片是否存在  
+		ImgObj.src = path;
+   		window.open(path,"图片预览",'width='+(ImgObj.width+10)+',height='+(ImgObj.height+10)+',resizable=no,scrollbars=no');
+   		
+   	};
+   	reader.readAsDataURL(file[0]);
+}
+
 function showImageNew(obj){
    	var $this = $(obj);
    	var file = $this.find("input").val();
@@ -125,14 +145,16 @@ function showImagePic(obj){
 }
 
 var button_bind_len=0;
-function button_bind(seletor,msg,fnName){
+function button_bind_html(seletor,innerHtml,fnName){
 	var $butOK = $('<button class="button bg-green dialog-close but-ok" onclick="'+fnName+'">确认</button>');
 	var $innerDiv = $('<div class="dialog-foot"></div>')
 				.append('<button class="button dialog-close">取消</button>')
 				.append($butOK);
+	var $dialogbody = $('<div class="dialog-body"></div>')
+				.html(innerHtml);
 	var $div = $('<div class="dialog"></div>')
 		.addClass('button_bind'+button_bind_len)
-		.append('<div class="dialog-body"><h3><strong>'+msg+'</strong></h3></div>')
+		.append($dialogbody)
 		.append($innerDiv);
 	var $bind_div = $('<div id="button_bind'+button_bind_len+'"></div>').append($div);
 	$("body").append($bind_div);
@@ -140,7 +162,14 @@ function button_bind(seletor,msg,fnName){
 	$(seletor).addClass("dialogs");
 	$(seletor).attr('data-toggle','click');
 	$(seletor).attr('data-target','#button_bind'+button_bind_len);
+	if(innerHtml instanceof Function){
+		$(seletor).attr('data-function',innerHtml.getName());
+	}
 	button_bind_len++;
+}
+
+function button_bind(seletor,msg,fnName){
+	button_bind_html(seletor,'<h3><strong>'+msg+'</strong></h3>',fnName);
 }
 
 function button_bind_url(seletor,url){	

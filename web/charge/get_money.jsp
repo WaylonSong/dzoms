@@ -32,8 +32,9 @@
             insurance = Math.min(insurance,account);
             oil = Math.min(oil,account);
             if(money > 0){
-                if(type == "sub_insurance" && money <= insurance) return true;
-                if(type == "sub_oil" && money <= oil) return true;
+                /* if(type == "sub_insurance" && money <= insurance) return true;
+                if(type == "sub_oil" && money <= oil) return true; */
+                if(money <= account) return true;
             }
             alert("金额错误");
             return false;
@@ -90,6 +91,9 @@
           $("#currentMonth3").html("<strong>"+"三部:"+"</strong>"+data["ItemTool"]);
         });
       });
+      function carFocus(){
+      	$("#licenseNum").val("黑A");
+      }
   </script>
     <style>
         .label{
@@ -128,7 +132,7 @@
                     </label>
                 </div>
                 <div class="field">
-                    <s:textfield cssClass="input"   value="黑A%{licenseNum}" name="licenseNum" placeholder="车牌号" id="licenseNum"/>
+                    <s:textfield cssClass="input"   value="%{licenseNum}" name="licenseNum" placeholder="车牌号" id="licenseNum" onfocus="carFocus()"/>
                 </div>
             </div>
             <div class="form-group">
@@ -150,8 +154,10 @@
                 <div class="field">
 
                     <select class="input" name="chargePlan.feeType" id="type">
-                        <option value="sub_insurance">保险赔款转出</option>
-                        <option value="sub_oil">油补转出</option>
+                        <!-- <option value="sub_insurance">保险赔款转出</option> -->
+                        <!-- <option value="sub_oil">油补转出</option> -->
+                        <option value="sub_other">保险赔款转出</option>
+                        <option value="sub_other">油补转出</option>
                     </select>
                 </div>
             </div>

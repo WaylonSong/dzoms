@@ -36,6 +36,14 @@ $(document).ready(function(){
 			
 			$("#search_form").submit();
 		});
+
+//function optionChange(){
+//	if ($("#finished option:selected").val()=='all') {
+//		$("#finished").attr("name","");
+//	} else{
+//		$("#finished").attr("name","finished");
+//	}
+//}
 </script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 	
@@ -74,6 +82,23 @@ $(document).ready(function(){
                     
 					<td class="tableleft" style="border-top: 0px;">车牌号</td>
 					<td style="border-top: 0px;"><input type="text"  value="黑A"  name="vehicle.licenseNum" class="input"/></td>
+					
+					<td class="tableleft" style="border-top: 0px;">事项</td>
+					<td style="border-top: 0px;">
+						<select class="input" name="operation">
+							<option value="证照" selected="selected">全部</option>
+							<option value="证照申请">证照申请</option>
+							<option value="证照注销">证照注销</option>
+						</select>
+					</td>
+					
+					<td class="tableleft" style="border-top: 0px;">状态</td>
+					<td style="border-top: 0px;">
+						<select class="input" name="finished">
+							<option value="false">未办结</option>
+							<option value="true" selected="selected">已办结</option>
+						</select>
+					</td>
 				</tr>
 			</table>
 		</form>
@@ -81,7 +106,7 @@ $(document).ready(function(){
 </div>
 </div>
 <div>
-    <iframe name="result_form" width="100%" height="800px" id="result_form" scrolling="no">
+    <iframe name="result_form" width="100%" height="1800px" id="result_form" scrolling="no">
 
     </iframe>
 </div>

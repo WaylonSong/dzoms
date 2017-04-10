@@ -19,8 +19,6 @@ import javax.persistence.UniqueConstraint;
 public class BusinessLicense implements java.io.Serializable {
 
 	// Fields
-
-	private Integer id;
 	private String licenseNum;
 	private Date beginDate;
 	private Date endDate;
@@ -43,19 +41,8 @@ public class BusinessLicense implements java.io.Serializable {
 		this.registDate = registDate;
 	}
 
-	// Property accessors
 	@Id
-	@GeneratedValue(strategy = IDENTITY)
-	@Column(name = "id", unique = true, nullable = false)
-	public Integer getId() {
-		return this.id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	@Column(name = "license_num", unique = true, length = 30)
+	@Column(name = "license_num", unique = true, length = 30,nullable=false)
 	public String getLicenseNum() {
 		return this.licenseNum;
 	}

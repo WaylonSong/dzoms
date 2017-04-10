@@ -1,19 +1,18 @@
 package com.dz.common.ocr;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HostParams;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -23,13 +22,19 @@ import com.dz.module.vehicle.Vehicle;
 
 public class OcrAnaylse {
 	
-	private static final String OCR_BASE = "F:\\result";
-	private static final String YZM_PATH = "F:\\result\\raw\\yzm";
+	private static final String OCR_BASE = "E:\\result";
+	private static final String YZM_PATH = "E:\\result\\raw\\yzm";
 	private static List<Vehicle> vl = null;
 	private static int count = 0 ,errcount = 0;
 
 	public static void main(String[] args) {
-		init();
+		if(args.length>0){
+			init(args[0]);
+		}else{
+			init();
+		}
+
+		System.out.println("count="+vl.size());
 		
 		while(check()){
 			if(count+errcount>=60000){
@@ -49,10 +54,19 @@ public class OcrAnaylse {
 		System.out.println("errcount="+errcount);
 	}
 	
+	private static void init(String string) {
+		// TODO Auto-generated method stub
+		vl = ObjectAccess.query(Vehicle.class, String.format(" carframeNum not in (select carframeNum from ElectricFromHtml where fetchTime >'%s')",string));
+	}
+
 	private static void init(){
 		//vl = new ArrayList<Vehicle>();
+		Calendar cl = Calendar.getInstance();
+		cl.add(Calendar.DATE, -1);
 		
-		vl = ObjectAccess.query(Vehicle.class, " carframeNum not in (select carframeNum from ElectricFromHtml where fetchTime >'2016-07-21')");
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		vl = ObjectAccess.query(Vehicle.class, String.format(" carframeNum not in (select carframeNum from ElectricFromHtml where fetchTime >'%s')",df.format(cl.getTime())));
 		//vl.add(new Vehicle("LFPH3ACB0F1D33866","黑ATS915"));
 		//vl.add(new Vehicle("LFV2A11G0A3145507","黑ATE330"));
 		//vl.add(new Vehicle("LFV2A11G0A3145524","黑ATD821"));
@@ -104,18 +118,29 @@ public class OcrAnaylse {
 	        
 	        ImageExe.exec(yzmFile, ocrBase);
 	        
-	        String yzmStr = OcrKing.ocr(ocrBase+"/"+yzmFile.getName()+".tif");
+	        String yzmStr = null;
+	        
+	        try{
+	        	yzmStr = OcrKing.ocr(ocrBase+"/"+yzmFile.getName()+".tif");
+	        }catch(OcrTimesOutOfStackException e){
+	        	errcount+=60000;
+	        	return;
+	        }
 	        
 	        //System.out.println(yzmStr);
 	        
 	        PostMethod postMethod = new PostMethod("http://www.hljjj.gov.cn:8081/Home/getWfcx");
 	        postMethod.addParameter("hpzl", "02");
 	        postMethod.addParameter("dy", new String("黑".getBytes(),"ISO-8859-1"));
+	        
+//	        System.out.println("OcrAnaylse.fecth(),line 117,yzm="+yzmStr);
+	        
+	        
 	        postMethod.addParameter("yzm", yzmStr);
 	        postMethod.addParameter("xzqh", "A"); //车牌 区号 A
 	        postMethod.addParameter("hphm", StringUtils.right(vehicle.getLicenseNum(), 5));// 车牌号 不含地区号
 	        postMethod.addParameter("clsbdh", vehicle.getCarframeNum()); //车架号
-	        postMethod.addParameter("jkbj", "0");
+	        postMethod.addParameter("jkbj", "%");
 	        postMethod.addParameter("ts", ""+new Date().getTime());
 	        
 	        List <Header> headers = new ArrayList <Header>(); 
@@ -140,20 +165,24 @@ public class OcrAnaylse {
 	        	StringBuffer sb = new StringBuffer();
 		        int l;
 		        byte[] tmp = new byte[65536];
-		       // System.out.println();
+
 		        while ((l = input2.read(tmp)) > 0) {
 		        	sb.append(new String(tmp,0,l,"utf-8"));
 		        }
 		        String ss = sb.toString();
 		        
+//		        System.out.println(count+ss);
+		        
 		        String[] sarr = ss.split(",");
 		        if(!StringUtils.contains(sarr[0], "0")){
+		        	if(StringUtils.contains(ss, "号牌号码或车辆识别代号填写错误")){
+				        System.out.println(count+" "+vehicle.getCarframeNum()+" "+vehicle.getLicenseNum()+" "+ss);
+				        count++;
+				    }
 		        	errcount++;
 		        	postMethod.releaseConnection();
 		        	return;
 		        }
-		        
-		        System.out.println(ss);
 		        
 		        //String itemStr = StringUtils.remove(sarr[1], '"');
 		        int item = StringUtils.countMatches(sarr[2], "tr") / 2 - 1;
@@ -166,17 +195,13 @@ public class OcrAnaylse {
 		        if(item==0){
 		        	ObjectAccess.saveOrUpdate(elec);
 		        	System.out.println("该车无违章记录！");
-		        	errcount++;
-		        	count++;
-		        	postMethod.releaseConnection();
-		        	return;
+		        }else{
+		        	 elec.setFetchResult(ss.trim());
+		        	 ObjectAccess.saveOrUpdate(elec);
 		        }
 		        
-		        //System.out.println(ss);
-		       elec.setFetchResult(ss.trim());
-		       ObjectAccess.saveOrUpdate(elec);
 		       count++ ;
-		       errcount++;
+		       System.out.println(count);
 	        }
 
 	        postMethod.releaseConnection();

@@ -1,9 +1,11 @@
 <%@page import="com.dz.common.other.ObjectAccess"%>
 <%@page import="com.dz.module.vehicle.Vehicle"%>
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@page import="com.dz.module.user.User"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+User user = (User) session.getAttribute("user");
 %>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -53,7 +55,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			
 			$("#carframe_num").bigAutocomplete({
 				url:"/DZOMS/select/vehicleById",
-				callback:refreshSearch
+				callback:refreshSearch,
+				doubleClick:true
+//				doubleClickDefault:'LFV'
 			});
 			
 			$("#license_num").bigAutocomplete({
@@ -65,6 +69,21 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				url:"/DZOMS/select/vehicleByEngineNum",
 				callback:refreshSearch
 			});
+			
+			<%
+        String position = user.getPosition();
+                            		String dept="";
+                            		
+                            		if(position==null)
+                            			dept="";
+                            		else if(position.contains("一"))
+                            			dept = "一部";
+                            		else if(position.contains("二"))
+                            			dept = "二部";
+                            		else if(position.contains("三"))
+                            			dept = "三部";
+      %>
+      $('select[name="vehicle.dept"]').val("<%=dept%>");
 			
 		});
 	</script>
@@ -179,6 +198,5 @@ $(document).ready(function(){
         // $(".xdsoft_datetimepicker.xdsoft_noselect").show();
         // $("#ri-li").append($(".xdsoft_datetimepicker.xdsoft_noselect"));
 
-    });
     </script>
 </html>

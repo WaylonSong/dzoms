@@ -31,14 +31,23 @@
       var licenseNum = $("#licenseNum").val();
       var startTime = $("#startTime").val();
       var endTime = $("#endTime").val();
-      if(licenseNum != undefined && licenseNum !="" && startTime != undefined && startTime != "" && endTime!=undefined && endTime!=""){
+      if(licenseNum != undefined && licenseNum !="" && startTime != undefined && startTime != "" && endTime!=undefined ){
         $(".licenseNum").val(licenseNum);
         $(".startTime").val(startTime);
         $(".endTime").val(endTime);
+        if ($('input[name="isToEnd"]').is(":checked")) {
+        	$('input[name="useContractEnd"]').val("true");
+        } else{
+        	$('input[name="useContractEnd"]').val("false");
+        }
         $("#form1").submit();
-        $("#form2").submit();
       }
     }
+    
+    function postNext(){
+    	$("#form2").submit();
+    }
+    
     $(document).ready(function(){
       showAll();
     });
@@ -69,6 +78,26 @@
               url:"/DZOMS/select/VehicleBylicenseNum"
           });
       });
+      function btnClk(){
+		var type = $('select[name="batchPlan.feeType"]').val();
+		var fee = $('input[name="batchPlan.fee"]').val();
+		if(fee < 0){
+			$('input[name="batchPlan.fee"]').val(-fee);
+			if(type == "plan_add_insurance"){
+				$('select[name="batchPlan.feeType"]').val("plan_sub_insurance");
+			}
+			if(type == "plan_add_contract"){
+				$('select[name="batchPlan.feeType"]').val("plan_sub_contract");
+			}
+			if(type == "plan_add_other"){
+				$('select[name="batchPlan.feeType"]').val("plan_sub_other");
+			}
+		}
+		$('#formx')[0].submit();
+      }
+      function carFocus(){
+      	$("#licenseNum").val("黑A");
+      }
   </script>
 
 </head>
@@ -98,7 +127,7 @@
                         </label>
                     </div>
                     <div class="field">
-                        <s:textfield cssClass="input"  name="licenseNum" placeholder="车牌号" id="licenseNum" value="%{licenseNum == null ?'黑A':licenseNum}" onblur="showdept()"/>
+                        <s:textfield cssClass="input"  name="licenseNum" placeholder="车牌号" id="licenseNum" value="%{licenseNum == null ?'黑A':licenseNum}" onblur="showdept()" onfocus="carFocus()"/>
                     </div>
                 </div>
 
@@ -131,7 +160,7 @@
                         </label>
                     </div>
                     <div class="field">
-                        <input type="checkbox" name="isToEnd">
+                        <input type="checkbox" name="isToEnd" onchange="showAll()">
                     </div>
                 </div>
 
@@ -143,12 +172,12 @@
                     </div>
                     <div class="field">
                         <select size="1" name="batchPlan.feeType">
-                            <option value="plan_add_insurance">保险费用上调</option>
-                            <option value="plan_sub_insurance">保险费用下降</option>
-                            <option value="plan_add_contract">合同费用上调</option>
-                            <option value="plan_sub_contract">合同费用下降</option>
-                            <option value="plan_add_other">其他费用上调</option>
-                            <option value="plan_sub_other">其他费用下降</option>
+                            <option value="plan_add_insurance">保险费用</option>
+                            <option value="plan_sub_insurance" style="display:none">保险费用下降</option>
+                            <option value="plan_add_contract">合同费用</option>
+                            <option value="plan_sub_contract" style="display:none">合同费用下降</option>
+                            <option value="plan_add_other">其他费用</option>
+                            <option value="plan_sub_other" style="display:none">其他费用下降</option>
                         </select>
                     </div>
                 </div>
@@ -179,7 +208,7 @@
                     </div>
                 </div>
                 <input type="hidden" name="batchPlan.register" value="<%=((User)session.getAttribute("user")).getUname()%>"/>
-                <input type="submit" value="提交" class="button bg-green"/>
+                <input type="submit" value="提交" class="button bg-green" onclick="btnClk()"/>
             </div>
         </div>
     </form>
@@ -195,11 +224,12 @@
           		台账
           	</div>
           	<div class="panel-body">
-            <iframe id="checkshow" name="checkshow" width="100%"></iframe>
+            <iframe id="checkshow" name="checkshow" width="100%" onload="postNext()"></iframe>
             <form id="form1" action="/DZOMS/charge/singleCarAndMuiltyMonthCheckShow" target="checkshow" method="post">
                 <input type="hidden" name="licenseNum" class="licenseNum">
                 <input type="hidden" name="timePass.startTime" class="startTime">
                 <input type="hidden" name="timePass.endTime" class="endTime">
+                <input type="hidden" name="useContractEnd" />
             </form>
         </div>
     </div>

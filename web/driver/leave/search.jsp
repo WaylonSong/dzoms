@@ -30,12 +30,27 @@
 
 <script>
 $(document).ready(function(){
-			$("#search_form").find("input").change(function(){
-				$("#search_form").submit();
-			});
+	$("#search_form").find("input,select").change(function(){
+		$("#search_form").submit();
+	});
 			
+	$("#search_form").submit();
+	
+	$(".datepick").datetimepicker({
+		lang:"ch",           //语言选择中文
+		format:"Y/m/d",      //格式化日期
+		timepicker:false,    //关闭时间选项
+		yearStart:2000,     //设置最小年份
+		yearEnd:2100,        //设置最大年份
+		//todayButton:false    //关闭选择今天按钮
+		onClose:function(){
 			$("#search_form").submit();
-		});
+		}
+	});
+});
+
+
+
 </script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 	
@@ -69,6 +84,23 @@ $(document).ready(function(){
                     
 					<td class="tableleft" style="border-top: 0px;">车牌号</td>
 					<td style="border-top: 0px;"><input type="text"  value="黑A"   name="vehicle.licenseNum" class="input"/></td>
+					
+					<td class="tableleft" style="border-top: 0px;">状态</td>
+					<td style="border-top: 0px;">
+						<select name="finished" class="input">
+							<option value="true">已审批</option>
+							<option value="false" selected="selected">未审批</option>
+						</select>
+					</td>
+					
+					<td class="tableleft" style="border-top: 0px;">类别</td>
+					<td style="border-top: 0px;">
+						<select name="operation" class="input">
+							<option value=""  selected="selected">全部</option>
+							<option value="待岗">待岗</option>
+							<option value="上岗">上岗</option>
+						</select>
+					</td>
 				</tr>
 			</table>
 		</form>
@@ -82,32 +114,4 @@ $(document).ready(function(){
 </div>
     <script type="text/javascript" src="/DZOMS/res/js/DateTimeHelper.js" ></script>
 </body>
-
- <script src="/DZOMS/res/js/apps.js"></script>
-    <script>
-    	function iFrameHeight() {
-	try{
-var ifm= document.getElementById("result_form");   
-var subWeb = document.frames ? document.frames["result_form"].document : ifm.contentDocument;   
-if(ifm != null && subWeb != null) {
-   ifm.height = subWeb.body.scrollHeight+200;
-}   }catch(e){}
-}    
-
-$(document).ready(function(){
-	window.setInterval('iFrameHeight();',3600);
-});
-    $(document).ready(function() {
-    	try{
-    		 App.init();
-    	}catch(e){
-    		//TODO handle the exception
-    	}
-    	
-       
-        // $(".xdsoft_datetimepicker.xdsoft_noselect").show();
-        // $("#ri-li").append($(".xdsoft_datetimepicker.xdsoft_noselect"));
-
-    });
-    </script>
 </html>

@@ -43,20 +43,11 @@ Page pg = (Page)request.getAttribute("page");
                 $("."+selects[i]).show();
             }
         }
-
-        function call_update(val){
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+val;
-            //alert(url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
-            //$(window.top.document,"#main").attr("src",url);
-        }
-
+        
         function _update(){
-            var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+           var selected_val = $("input[name='cbx']:checked").val();
+            var url = "/DZOMS/vehicle/trade_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2ftrade_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
@@ -122,13 +113,8 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               		<s:if test="#session.roles.{?#this.rname=='经营权修改权限'}.size>0"> 
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 			                              </s:if>
-		                                    <button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
-			                                                            导出</button>
-			                                  <button  onclick="_toPrint()" type="button" class="button icon-print text-green" style="line-height: 6px;">
-			                                                            打印</button>
-                                     </div>
                                 </div>
           	        	</div>
           	        </div>
@@ -144,9 +130,9 @@ Page pg = (Page)request.getAttribute("page");
 <th class="businessLicenseNum selected_able">经营权证号</th>
 <th class="businessLicenseBeginDate selected_able">起始日期</th>
 <th class="businessLicenseEndDate selected_able">终止日期</th>
-<th class="businessLicenseComment selected_able">备注</th>
 <th class="businessLicenseRegister selected_able">登记人</th>
 <th class="businessLicenseRegistDate selected_able">登记时间</th>
+<th class="businessLicenseComment selected_able">备注</th>
                     </tr>
                     <s:if test="%{#request.vehicle!=null}">
         
@@ -160,9 +146,10 @@ Page pg = (Page)request.getAttribute("page");
 <td class="businessLicenseNum selected_able"><s:property value="%{#bl.licenseNum}"/></td>
 <td class="businessLicenseBeginDate selected_able"><s:property value="%{#bl.beginDate}"/></td>
 <td class="businessLicenseEndDate selected_able"><s:property value="%{#bl.endDate}"/></td>
-<td class="businessLicenseComment selected_able"><s:property value="%{#v.businessLicenseComment}"/></td>
+
 <td class="businessLicenseRegister selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#bl.register).uname}"/></td>
 <td class="businessLicenseRegistDate selected_able"><s:property value="%{#bl.registDate}"/></td>
+<td class="businessLicenseComment selected_able"><s:property value="%{#v.businessLicenseComment}"/></td>
  </tr>
                     </s:iterator>
                 </table>
@@ -214,9 +201,10 @@ Page pg = (Page)request.getAttribute("page");
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseNum" checked="checked"><span class="icon icon-check text-green"></span>经营权证号</label>
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseBeginDate" checked="checked"><span class="icon icon-check text-green"></span>起始日期</label>
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseEndDate" checked="checked"><span class="icon icon-check text-green"></span>终止日期</label>
-<label class="button active"><input type="checkbox" name="sbx" value="businessLicenseComment" checked="checked"><span class="icon icon-check text-green"></span>备注</label>
+
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseRegister" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
 <label class="button active"><input type="checkbox" name="sbx" value="businessLicenseRegistDate" checked="checked"><span class="icon icon-check text-green"></span>登记时间</label>
+<label class="button active"><input type="checkbox" name="sbx" value="businessLicenseComment" checked="checked"><span class="icon icon-check text-green"></span>备注</label>
             </div>
           </div>
 </div>

@@ -20,6 +20,9 @@
             <th>结束时间</th>
             <th>费用类型</th>
             <th>费用</th>
+            <th>录入时间</th>
+            <th>录入人</th>
+            <th>备注</th>
         </tr>
         <s:if test="#request.bps != null">
             <s:iterator value="#request.bps" var="bp">
@@ -28,6 +31,9 @@
                     <td><s:property value="#bp.endTime"/></td>
                     <td><s:property value="#bp.feeType"/></td>
                     <td><s:property value="#bp.fee"/></td>
+                    <td><s:property value="#bp.inTime"/></td>
+                    <td><s:property value="#bp.register"/></td>
+                    <td><s:property value="#bp.comment"/></td>
                 </tr>
             </s:iterator>
         </s:if>

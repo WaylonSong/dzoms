@@ -17,7 +17,11 @@
   <script src="/DZOMS/res/js/pintuer.js"></script>
   <script src="/DZOMS/res/js/respond.js"></script>
   <link rel="stylesheet" href="/DZOMS/res/css/admin.css">
-    
+  <script>
+      function carFocus(){
+      	$("input[name='licenseNum']").val("黑A");
+      }
+  </script>
 </head>
 <body>
 	<div class="adminmin-bread" style="width: 100%;">
@@ -28,7 +32,7 @@
 </div>
 <div class="line">
 	<form action="/DZOMS/charge/planDetailOneCar"  target="show" method="post" class="form-inline">
-        <label style="margin-left: 40px;">车牌号</label><input type="text" class="input" value="黑A" name="licenseNum">
+        <label style="margin-left: 40px;">车牌号</label><input type="text" class="input" value="黑A" name="licenseNum" onfocus="carFocus()">
         <label>开始年月</label><input type="text" class="input datetimepicker" name="timePass.startTime">
         <label>结束年月</label><input type="text" class="input datetimepicker" name="timePass.endTime">
         <input type="submit" value="提交" class="button bg-main">

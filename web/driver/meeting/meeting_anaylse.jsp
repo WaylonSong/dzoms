@@ -34,25 +34,30 @@
 <script src="/DZOMS/res/js/respond.js"> </script> 
 <script type="text/javascript" src="/DZOMS/res/js/itemtool.js"></script> 
 <script src="/DZOMS/res/js/admin.js"> </script> 
+<link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
+<script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
+	
 <script>
 
 
 </script>
 
+
 <style>
 	.label {
-		width: 80 px;
-		text-align: right;
+		width: 80px;
+		text-align:right;
 	}
 	.form-group {
-		width: 300 px;
-		margin-top: 5 px;
+		width: 300px;
+		margin-top: 5px;
 	}
 	.changecolor {
 		background-color: #0099CC;
 	}
 							
-</style>
+</style>					
+
 </head>
 
 <body>
@@ -74,10 +79,10 @@
 Triplet<String, String, Object> condition_dept1 = Triplet.with("idNum", "in (select idNum from Driver where isInCar=true and  carframeNum in (select carframeNum from Vehicle where dept='一部')) and 1=",(Object)1);
 Triplet<String, String, Object> condition_dept2 = Triplet.with("idNum", "in (select idNum from Driver where isInCar=true and  carframeNum in (select carframeNum from Vehicle where dept='二部')) and 1=",(Object)1);
 Triplet<String, String, Object> condition_dept3 = Triplet.with("idNum", "in (select idNum from Driver where isInCar=true and  carframeNum in (select carframeNum from Vehicle where dept='三部')) and 1=",(Object)1);
-Triplet<String, String, Object> conditon_spacial = Triplet.with("checkClass", "=",(Object) "特殊情况未参加例会");
+Triplet<String, String, Object> conditon_spacial = Triplet.with("checkClass", "like",(Object) "%特殊情况%");
 Triplet<String, String, Object> conditon_checked = Triplet.with("isChecked", "=",(Object)true);
-Triplet<String, String, Object> conditon_not_dangri = Triplet.with("checkClass", "!=",(Object)"未按规定日期参加例会");
-Triplet<String, String, Object> conditon_not_spacial = Triplet.with("checkClass", "!=",(Object)"特殊情况未参加例会");
+Triplet<String, String, Object> conditon_not_dangri = Triplet.with("checkClass", "not like",(Object)"%未按规定日期参加例会%");
+Triplet<String, String, Object> conditon_not_spacial = Triplet.with("checkClass", "not like",(Object)"%特殊情况%");
 Triplet<String, String, Object> dept_need = Triplet.with("idNum", "in (select idNum from Driver where dept is not null ) and 1=", (Object)1);
  %>
 			<s:if test="%{meeting.meetingTimeL1!=null}">
@@ -482,6 +487,178 @@ Triplet<String, String, Object> dept_need = Triplet.with("idNum", "in (select id
 				</tr>
 		</table>
 	</div>
+	
+	<div style="width: 100%;">
+		<form class="form-inline" style="width: 100%;">
+		<div class="panel  margin-small" >
+          	<div class="panel-head">
+          		例会详情
+          	</div>
+          	<div class="panel-body">
+				<div class="form-group">
+					<div class="label">
+						<label>例会名称 </label> 
+					</div> 
+					<div class="field">
+						<s:textfield cssClass="input input-auto" size="20" name="meeting.meetingName" />
+					</div> 
+				</div> 
+				<div class="form-group">
+					<div class="label">
+						<label>录入人 </label> 
+					</div> 
+					<div class="field">
+						<s:textfield cssClass="input" type="text" readonly="readonly" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',meeting.registrant).uname}"></s:textfield>
+					</div> 
+				</div> 
+				<div class="form-group">
+					<div class="label">
+						<label>录入时间 </label> 
+					</div> 
+					<div class="field">
+						<s:textfield cssClass="input" readonly="readonly" name="meeting.registTime" />
+					</div> 
+				</div>
+		<br>
+        
+			<div style="margin-top: 5px;">
+				<div style="width: 600px; ">
+					<div class="float-left" style="width: 80px; text-align: right;">
+						<strong> 例会内容 </strong> 
+					</div> 
+					<div class="field">
+						<s:textarea cssStyle="width: 500px;" rows="5" class="input" placeholder="多行文本" name="meeting.meetingContext">
+						</s:textarea> 
+					</div> 
+				</div>
+			</div>
+		<br>
+			<div>
+				<div style="height: 120px;">
+					 <div class="float-left" style="width: 80px; text-align: right;">
+				         <strong> 文件 </strong> 
+			         </div> 
+			    <div>
+			 	<s:select list="fileList" size="5" cssStyle="width: 400px;" cssClass="float-left"></s:select>
+			     </div> 
+				</div>
+			   
+	       </div>
+		<br>
+	</div> 
+	</div>
+	</form>
+	</div>
+	<div>
+		<script>
+			function search(){
+				var condition = " and meetingId=<s:property value="%{meeting.id}"/> ";
+				if($("#licenseNum").val().trim().length>0){
+					condition+= " and idNum in (select idNum from Driver where carframeNum in (select carframeNum from Vehicle where licenseNum like '%"+$("#licenseNum").val().trim()+"%'  ) ) ";
+				}
+				
+				if($("#name").val().trim().length>0){
+					condition+= " and idNum in (select idNum from Driver where name like '%"+$("#name").val().trim()+"%' ) ";
+				}
+				
+				condition += $("#dept").val();
+				condition += $("#isChecked").val();
+				condition += $("#checkMethod").val();
+				
+				$("input[name='condition']").val(condition);
+				
+				$("#search_form").submit();
+			}
+			
+			$(document).ready(function(){
+				search();
+				
+				$("#search_form select").change(search);
+				
+				$("#licenseNum").bigAutocomplete({
+					url:"/DZOMS/select/VehicleBylicenseNum",
+					condition:" 1=1 order by licenseNum ",
+					doubleClick:true,
+					doubleClickDefault:'黑A',
+					callback:search
+				});
+				
+				$("#name").bigAutocomplete({
+					url:"/DZOMS/select/DriverByname",
+					condition:" 1=1 order by name ",
+					callback:search
+				});
+				
+			});
+		</script>
+		<form method="post" class="form-inline" id="search_form" action="/DZOMS/common/selectToList" target="defframe">
+		<input type="hidden" name="url" value="/driver/meeting/meeting_anaylse_result.jsp" />
+		<input type="hidden" name="className" value="com.dz.module.driver.meeting.MeetingCheck"/>
+		<input type="hidden" name="condition" />
+		   <div class="line">
+		   		<div class="panel  margin-small" >
+		          	<div class="panel-head">
+		          		查询条件
+		          	</div>
+		        <div class="panel-body">
+		        	<div class="line">
+		        		<div class="xm12 padding">
+		                <blockquote class="panel-body">
+		                    <table class="table" style="border: 0px;">
+		                        <tr>
+		                            <td style="border-top: 0px;">归属部门</td>
+		                            <td style="border-top: 0px;">
+		                            <select id="dept" class="input">
+		                            	<option value=" " selected="selected">全部</option>
+		                            	<option value=" and idNum in (select idNum from Driver where dept='一部') ">一部</option>
+		                            	<option value=" and idNum in (select idNum from Driver where dept='二部') ">二部</option>
+		                            	<option value=" and idNum in (select idNum from Driver where dept='三部') ">三部</option>
+		                            </select>
+		                            </td>
+		                            
+		                            <td style="border-top: 0px;">车牌号</td>
+		                            <td style="border-top: 0px;">
+		                            <input id="licenseNum" class="input" />
+		                            </td>
+		                            
+		                            <td style="border-top: 0px;">姓名</td>
+		                            <td style="border-top: 0px;">
+		                            <input id="name" class="input" />
+		                            </td>
+		                            
+		                            <td style="border-top: 0px;">是否签到</td>
+		                            <td style="border-top: 0px;">
+		                            <select id="isChecked" class="input">
+		                            	<option value=" " selected="selected">全部</option>
+		                            	<option value=" and isChecked=true ">是</option>
+		                            	<option value=" and (isChecked is null or isChecked=false) ">否</option>
+		                            </select>
+		                            </td>
+		                            
+		                            <td style="border-top: 0px;">签到方式</td>
+		                            <td style="border-top: 0px;">
+		                            <select id="checkMethod" class="input">
+		                            	<option value=" " selected="selected">全部</option>
+		                            	<option value=" and checkMethod like '%指纹%' ">指纹</option>
+		                            	<option value=" and checkMethod like '%手动%' ">手动</option>
+		                            </select>
+		                            </td>
+		                            <td><input type="button" value="查询" onclick="search();"/></td>
+		                        </tr>
+		                        
+		                    </table>
+		                </blockquote>
+		            </div>
+		        </div>
+		      </div>
+		    </div>
+		  </div>
+			
+		</form>
+	</div>
+	<iframe id="defframe" name="defframe" style="width: 100%;height: 800px;" >
+	</iframe>
+	
 </div>
 </body> 
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"> </script>

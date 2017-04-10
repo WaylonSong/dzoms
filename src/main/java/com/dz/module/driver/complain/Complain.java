@@ -27,7 +27,7 @@ public class Complain implements java.io.Serializable {
 	private String vehicleId;
 	private String complainClass;
 	private String complainType;
-	private Integer complainObject;
+	private String complainObject;
 	private String complainFromOut;
 	private String complainFromIn;
 	private Integer complainFile;
@@ -61,7 +61,7 @@ public class Complain implements java.io.Serializable {
 
 	/** full constructor */
 	public Complain(String vehicleId, String complainClass,
-			String complainType, Integer complainObject,
+			String complainType, String complainObject,
 			String complainFromOut, String complainFromIn,
 			Integer complainFile, String complainPersonName,
 			String complainPersonSex, String complainPersonPhone,
@@ -140,11 +140,11 @@ public class Complain implements java.io.Serializable {
 	}
 
 	@Column(name = "complain_object")
-	public Integer getComplainObject() {
+	public String getComplainObject() {
 		return this.complainObject;
 	}
 
-	public void setComplainObject(Integer complainObject) {
+	public void setComplainObject(String complainObject) {
 		this.complainObject = complainObject;
 	}
 
@@ -211,7 +211,7 @@ public class Complain implements java.io.Serializable {
 		this.complainContext = complainContext;
 	}
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "complain_time", length = 0)
 	public Date getComplainTime() {
 		return this.complainTime;
@@ -333,7 +333,7 @@ public class Complain implements java.io.Serializable {
 		this.visitBackPerson = visitBackPerson;
 	}
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "finish_time", length = 0)
 	public Date getFinishTime() {
 		return this.finishTime;
@@ -375,4 +375,26 @@ public class Complain implements java.io.Serializable {
 		this.attachDetail = attachDetail;
 	}
 
+	@Override
+	public String toString() {
+		return "Complain [id=" + id + ", vehicleId=" + vehicleId
+				+ ", complainClass=" + complainClass + ", complainType="
+				+ complainType + ", complainObject=" + complainObject
+				+ ", complainFromOut=" + complainFromOut + ", complainFromIn="
+				+ complainFromIn + ", complainFile=" + complainFile
+				+ ", complainPersonName=" + complainPersonName
+				+ ", complainPersonSex=" + complainPersonSex
+				+ ", complainPersonPhone=" + complainPersonPhone
+				+ ", complainContext=" + complainContext + ", complainTime="
+				+ complainTime + ", ticketNumber=" + ticketNumber
+				+ ", registrant=" + registrant + ", registTime=" + registTime
+				+ ", dealReault=" + dealReault + ", grade=" + grade
+				+ ", confirmTime=" + confirmTime + ", confirmPerson="
+				+ confirmPerson + ", dealTime=" + dealTime + ", dealPerson="
+				+ dealPerson + ", visitBackResult=" + visitBackResult
+				+ ", visitBackTime=" + visitBackTime + ", visitBackPerson="
+				+ visitBackPerson + ", finishTime=" + finishTime
+				+ ", finishPerson=" + finishPerson + ", state=" + state
+				+ ", attachDetail=" + attachDetail + "]";
+	}
 }

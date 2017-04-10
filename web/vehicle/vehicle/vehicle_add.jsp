@@ -1,10 +1,11 @@
 <%@taglib uri="/struts-tags" prefix="s"%>
-<%@ page language="java" import="com.dz.module.user.User,com.dz.module.vehicle.VehicleMode,com.dz.module.vehicle.VehicleModeService" pageEncoding="UTF-8"%>
+<%@ page language="java" import="com.dz.module.user.User,com.dz.module.vehicle.*" pageEncoding="UTF-8"%>
 <%@page import="org.apache.commons.collections.CollectionUtils"%>
 <%@page import="org.apache.commons.collections.Transformer" %>
 <%@page import="org.springframework.context.ApplicationContext" %>
 <%@ page import="org.springframework.web.context.support.WebApplicationContextUtils" %>
 <%@ page import="java.util.List" %>
+<%@page import="com.dz.common.other.*" %>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
@@ -104,6 +105,8 @@ $(document).ready(function(){
 	$("[name='vehicle.certifyNum']").change(function(){
 		$("[name='vehicle.certifyNum']").val($(this).val());
 	});
+	
+	$("#left-area [name='vehicleMode.licenseDate']").val($("#right-area [name='vehicle.pd']").val());
 				
 });
 
@@ -473,7 +476,7 @@ $(document).ready(function(){
             	 		<div class="label float-left" style="width: 80px;"><label>车辆型号:</label></div>
             	 		<div class="field"  style="width: 200px;">
             	 			<s:select  theme="simple" name="vehicle.carMode" list="#request.vmstr" onchange="showInfo()" cssClass="input" data-validate="required:必填"></s:select>
-            	 			<a class="icon icon-wrench"></a><span style="color:red;">*</span>
+            	 			<!--<a class="icon icon-wrench"></a>--><span style="color:red;">*</span>
             	 		</div>
             	 	</div>
             	 	<div class="form-group"  style="width: 210px;">
@@ -611,6 +614,67 @@ $(document).ready(function(){
        </div>
    </div>
 </div>
+
+<div class="line">
+<%
+	List<Vehicle> list = ObjectAccess.query(Vehicle.class, " state=-1 ");
+	request.setAttribute("list", list);
+%>
+<s:if test="%{#request.list!=null&&#request.list.size()>0}">
+<table class="table table-striped table-bordered table-hover">
+<tr>
+    <th class="carframeNum selected_able">车架号</th>
+    <th class="engineNum selected_able">发动机号</th>
+    <th class="carMode selected_able">车辆型号</th>
+    <th class="inDate selected_able">购入日期</th>
+    <th class="certifyNum selected_able">合格证编号</th>
+    <th class="dept selected_able">归属部门</th>
+    <th class="pd selected_able">车辆制造日期</th>
+    <th class="driverId selected_able">承租人身份证号</th>
+    <th class="driverName selected_able">承租人</th>
+    <th class="licenseNum selected_able">车牌号</th>
+	<th class="modify selected_able">修改</th>
+	<th class="delete selected_able">删除</th>
+</tr>
+<s:iterator value="%{#request.list}" var="v">       
+<tr>
+ <td class="carframeNum selected_able"><s:property value="%{#v.carframeNum }"/></td>
+ <td class="engineNum selected_able"><s:property value="%{#v.engineNum}"/></td>
+ <td class="carMode selected_able"><s:property value="%{#v.carMode}"/></td>
+ <td class="inDate selected_able"><s:property value="%{#v.inDate}"/></td>
+ <td class="certifyNum selected_able"><s:property value="%{#v.certifyNum}"/></td>
+ <td class="dept selected_able"><s:property value="%{#v.dept}"/></td>
+ <td class="pd selected_able"><s:property value="%{#v.pd}"/></td>
+ <td class="driverId selected_able"><s:property value="%{#v.driverId}"/></td>
+ <td class="driverName selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.driverId).name}"/></td>
+ <td class="licenseNum selected_able"><s:property value="%{#v.licenseNum}"/></td>
+ <td class="modify selected_able"><a href="javascript:modifyV('<s:property value="%{#v.carframeNum}"/>')">修改</a></td>
+ <td class="delete selected_able"><a href="javascript:deleteV('<s:property value="%{#v.carframeNum}"/>')">删除</a></td>
+</tr>
+</s:iterator>
+</table>
+
+	<div class="xm9-move xm2">
+		<form action="/DZOMS/vehicle/vehicleRelook" method="post">
+			<input type="hidden" name="url" value="/vehicle/vehicle/vehicle_add.jsp"/>
+			<input type="submit" value="全部通过" class="button bg-green" />
+		</form>
+	</div>
+	</s:if>
+</div>
+
+<form action="/DZOMS/vehicle/vehicleDelete" method="post">
+	<input type="hidden" name="url" value="/vehicle/vehicle/vehicle_add.jsp"/>
+	<input type="hidden" name="vehicle.carframeNum" />
+	<input type="submit" style="display: none;" id="del_but" />
+</form>
+
+<form action="/DZOMS/vehicle/vehicleShow" method="post">
+	<input type="hidden" name="url" value="/vehicle/vehicle/vehicle_add.jsp"/>
+	<input type="hidden" name="vehicle.carframeNum" />
+	<input type="submit" style="display: none;" id="modify_but" />
+</form>
+
 <script>
 $('.datepick').datetimepicker({
 	lang:"ch",           //语言选择中文
@@ -622,15 +686,26 @@ $('.datepick').datetimepicker({
 	onSelectDate:function(){
 		$("#left-area [name='vehicle.inDate']").val($("#right-area [name='vehicle.inDate']").val());
 		$("#left-area [name='vehicle.pd']").val($("#right-area [name='vehicle.pd']").val());
+		$("#left-area [name='vehicleMode.licenseDate']").val($("#right-area [name='vehicle.pd']").val());
 	}
 });
 </script>
 <script>
 	button_bind(".submitbutton","确定提交?","$('#submitbutton').click();");
+	function deleteV(cid){
+		$('input[name="vehicle.carframeNum"]').val(cid);
+		if (confirm("确认删除车架号为"+cid+"的车辆？")) {
+			$("#del_but").click();
+		}
+	}
+	
+	function modifyV(cid){
+		$('input[name="vehicle.carframeNum"]').val(cid);
+		$("#modify_but").click();
+	}
 </script>
 
 </div>
-
 
 </body>
 </html>

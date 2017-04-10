@@ -8,6 +8,10 @@
 			+ request.getServerName() + ":" + request.getServerPort()
 			+ path + "/";
 %>
+<%@taglib uri="http://www.hit.edu.cn/permission" prefix="m" %>
+<m:permission role="合同新增,合同查询,合同修改权限" any="true">
+<jsp:forward page="/common/forbid.jsp"></jsp:forward>
+</m:permission>
 <!doctype html>
 <html lang="zh-cn">
 <head>
@@ -41,6 +45,11 @@ $(document).ready(function(){
 			
 			$("#search_form").submit();
 		});
+		
+function clearAll(){
+	$("#search_form").find("input[type='text']").val("");
+	$("#search_form").find("input[name='carNum']").val("黑A");
+}
 </script>
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 <!--<style>
@@ -146,6 +155,9 @@ $(document).ready(function(){
 							</div>
           		       </div>
           		       
+          		       <div class="form-group">
+          		       	<input type="button" value="清空条件" onclick="clearAll()"/>
+          		       </div>
           		       <div class="form-group">
           		       	<input type="submit" value="查询" />
           		       </div>

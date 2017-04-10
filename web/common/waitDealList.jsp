@@ -64,7 +64,7 @@
           	
           		
           	</div>
-          	<div class="panel-body">
+          	<div class="panel-body" style="height: 500px; overflow: scroll;">
                 	<table id="wait_deal" class="table table-striped table-hover table-bordered">
                 		<tr>
                 			<th>待办类别</th><th>消息</th><th>事项</th>

@@ -30,6 +30,7 @@ Page pg = (Page)request.getAttribute("page");
 <script>
 	$(document).ready(function(){
 		$("#show_div").find("input").change(resetClass);
+		resetClass();
 	});
 	
 	function resetClass(){
@@ -76,6 +77,29 @@ Page pg = (Page)request.getAttribute("page");
 		//window.open(url,"投诉修改",'width=800,height=600,resizable=yes,scrollbars=yes');
 	}
 	
+	function _delete(){
+		var selected_val = $("input[name='cbx']:checked").val();
+		if(selected_val==undefined){
+			alert('您没有选择任何一条数据');
+			return;
+		}
+		
+		var state = $("input[name='cbx']:checked").parents("tr").attr("state");
+		
+		if (state!=0) {
+			alert('该数据已经过确认，不可修改。');
+			return;
+		}
+		
+		if(!confirm("确认删除该项？")){
+			return;
+		}
+		
+		var url = "/DZOMS/driver/complain/deleteComplain?complain.id="+selected_val;
+
+		window.parent.location = url;
+	}
+	
 	function _attach(){
 		var selected_val = $("input[name='cbx']:checked").val();
 		if(selected_val==undefined){
@@ -104,10 +128,20 @@ Page pg = (Page)request.getAttribute("page");
 	
 	function _toPrint(){
 		var selected_val = $("input[name='cbx']:checked").val();
-		if(selected_val==undefined)
-		alert('您没有选择任何一条数据');
-		var url = "/DZOMS/driver/driverPreprint?driver.idNum="+selected_val;
-		window.open(url,"驾驶员打印",'width=800,height=600,resizable=yes,scrollbars=yes');
+		if(selected_val==undefined){
+			alert('您没有选择任何一条数据');
+			return;
+		}
+		
+		var state = $("input[name='cbx']:checked").parents("tr").attr("state");
+		if (state!=4) {
+			alert('该项投诉未完结，不可进行打印。');
+			return;
+		}
+		
+		var url = "/DZOMS/driver/complain/complainPreprint?complain.id="+selected_val;
+		
+		window.open(url,"投诉打印",'width=800,height=600,resizable=yes,scrollbars=yes');
 	}
 	
 		function toBeforePage(){
@@ -165,12 +199,14 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
 			                                                            修改</button>
+			                           <button onclick="_delete()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
+			                                                            删除</button>
 			                                  <button onclick="_attach()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
 			                                                            补充登记</button>
-		                                    <!--<button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
+		                                    <button onclick="_toExcel()" type="button" class="button icon-file-excel-o text-blue" style="line-height: 6px;">
 			                                                            导出</button>
 			                                  <button  onclick="_toPrint()" type="button" class="button icon-print text-green" style="line-height: 6px;">
-			                                                            打印</button>-->
+			                                                            打印</button>
                                      </div>
                                 </div>
           	        	</div>
@@ -188,6 +224,17 @@ Page pg = (Page)request.getAttribute("page");
             <th class="complainClass selected_able">投诉类别                    </th>
             <th class="complainType    selected_able">投诉类型		              </th>
             <th class="licenseNum       selected_able">车牌号                      </th>
+            
+            <th class="driverId selected_able">承租人</th>
+            <th class="driverPhone selected_able">联系电话</th>
+            
+            <th class="idNum selected_able">驾驶员</th>
+            <th class="phoneNum selected_able">联系电话</th>
+            <th class="driverClass selected_able">驾驶员属性</th>
+            
+            <th class="dept selected_able">部门</th>
+            
+            <th class="complainObject2       selected_able">违规条款                   </th>
             <th class="complainObject       selected_able">违规项目                    </th>
             <th class="registrant        selected_able">登记人                      </th>
             <th class="registTime    selected_able">登记日期                    </th>
@@ -210,11 +257,26 @@ Page pg = (Page)request.getAttribute("page");
                     <s:iterator value="%{#request.list}" var="v">
                         <tr state="<s:property value="%{#v.state}"/>">
                             <td><input type="radio" name="cbx" value="<s:property value="%{#v.id}"/>" ></td>
-<td class="complainTime selected_able"><s:property value="%{#v.complainTime}"/></td>
+<td class="complainTime selected_able">
+			<s:date name="%{#v.complainTime}" format="yyyy/MM/dd HH:mm:ss"/></td>
 <td class="complainClass selected_able"><s:property value="%{#v.complainClass}"/></td>
 <td class="complainType selected_able"><s:property value="%{#v.complainType}"/></td>
-<td class="licenseNum selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#v.vehicleId).licenseNum}"/></td>
-<td class="complainObject selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getFathersValueString(#v.complainObject)}"/></td>
+<s:set name="car" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.vehicle.Vehicle',#v.vehicleId)}"></s:set>
+<td class="licenseNum selected_able"><s:property value="%{#car.licenseNum}"/></td>
+<s:set name="owner" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#car.driverId)}"></s:set>
+<td class="driverId selected_able"><s:property value="%{#owner.name}"/></td>
+<td class="driverPhone selected_able"><s:property value="%{#owner.phoneNum1}"/></td>
+            
+<s:set name="d" value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.driver.Driver',#v.dealReault)}"></s:set>
+<td class="idNum selected_able"><s:property value="%{#d.name}"/></td>
+<td class="phoneNum selected_able"><s:property value="%{#d.phoneNum1}"/></td>
+<td class="driverClass selected_able"><s:property value="%{#d.driverClass}"/></td>
+            
+<td class="dept selected_able"><s:property value="%{#car.dept}"/></td>
+            
+<td class="complainObject2 selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.complainObject,'complainObject2')}"/></td>
+
+<td class="complainObject selected_able"><s:property value="%{@com.dz.common.tablelist.TableListService@getValueOfJson(#v.complainObject,'complain.complainObject')}"/></td>
 <td class="registrant selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.registrant).uname}"/></td>
 <td class="registTime selected_able"><s:property value="%{#v.registTime}"/></td>
 <td class="state selected_able">
@@ -248,7 +310,7 @@ Page pg = (Page)request.getAttribute("page");
 <td class="visitBackTime selected_able"><s:property value="%{#v.visitBackTime}"/></td>
 <td class="visitBackResult selected_able"><s:property value="%{#v.visitBackResult}"/></td>
 <td class="finishPerson selected_able"><s:property value="%{@com.dz.common.other.ObjectAccess@getObject('com.dz.module.user.User',#v.finishPerson).uname}"/></td>
-<td class="finishTime selected_able"><s:property value="%{#v.finishTime}"/></td>
+<td class="finishTime selected_able"><s:date name="%{#v.finishTime}" format="yyyy/MM/dd HH:mm:ss"/></td>
                         </tr>
                     </s:iterator>
 				
@@ -275,6 +337,9 @@ Page pg = (Page)request.getAttribute("page");
                   <ul class="pagination">
                     <li><a href="javascript:toNextPage()">下一页</a></li>
                   </ul>
+                  <ul class="pagination">
+                    <li>共<%=pg.getTotalCount()%>条</li>
+                  </ul>
                   
             		</div>
             	</div>
@@ -297,21 +362,28 @@ Page pg = (Page)request.getAttribute("page");
 		<label class="button active"><input type="checkbox" name="sbx" value="complainClass" checked="checked"><span class="icon icon-check text-green"></span>投诉类别</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="complainType" checked="checked"><span class="icon icon-check text-green"></span>投诉类型</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="licenseNum" checked="checked"><span class="icon icon-check text-green"></span>车牌号</label>
+		<label class="button active"><input type="checkbox" name="sbx" value="driverId" checked="checked"><span class="icon icon-check text-green"></span>承租人</label>
+<label class="button active"><input type="checkbox" name="sbx" value="driverPhone" checked="checked"><span class="icon icon-check text-green"></span>联系电话</label>
+<label class="button active"><input type="checkbox" name="sbx" value="idNum" checked="checked"><span class="icon icon-check text-green"></span>驾驶员</label>
+<label class="button active"><input type="checkbox" name="sbx" value="phoneNum" checked="checked"><span class="icon icon-check text-green"></span>联系电话</label>
+<label class="button active"><input type="checkbox" name="sbx" value="driverClass" checked="checked"><span class="icon icon-check text-green"></span>驾驶员属性</label>
+<label class="button active"><input type="checkbox" name="sbx" value="dept" checked="checked"><span class="icon icon-check text-green"></span>部门</label>
+<label class="button active"><input type="checkbox" name="sbx" value="complainObject2" checked="checked"><span class="icon icon-check text-green"></span>违规条款</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="complainObject" checked="checked"><span class="icon icon-check text-green"></span>违规项目</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="registrant" checked="checked"><span class="icon icon-check text-green"></span>登记人</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="registTime" checked="checked"><span class="icon icon-check text-green"></span>登记日期</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="state" checked="checked"><span class="icon icon-check text-green"></span>当前状态</label>
 		<label class="button active"><input type="checkbox" name="sbx" value="isTrue" checked="checked"><span class="icon icon-check text-green"></span>是否属实</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="confirmPerson" checked="checked"><span class="icon icon-check text-green"></span>确认人</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="confirmTime" checked="checked"><span class="icon icon-check text-green"></span>确认时间</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="dealPerson" checked="checked"><span class="icon icon-check text-green"></span>落实人</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="dealTime" checked="checked"><span class="icon icon-check text-green"></span>落实时间</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="dealReault" checked="checked"><span class="icon icon-check text-green"></span>处理情况</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="visitBackPerson" checked="checked"><span class="icon icon-check text-green"></span>回访人</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="visitBackTime" checked="checked"><span class="icon icon-check text-green"></span>回访时间</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="visitBackResult" checked="checked"><span class="icon icon-check text-green"></span>回访结果</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="finishPerson" checked="checked"><span class="icon icon-check text-green"></span>完结处理人</label>
-		<label class="button active"><input type="checkbox" name="sbx" value="finishTime" checked="checked"><span class="icon icon-check text-green"></span>完结时间</label>
+		<label class="button "><input type="checkbox" name="sbx" value="confirmPerson"><span class="icon icon-check text-green"></span>确认人</label>
+		<label class="button "><input type="checkbox" name="sbx" value="confirmTime" ><span class="icon icon-check text-green"></span>确认时间</label>
+		<label class="button "><input type="checkbox" name="sbx" value="dealPerson" ><span class="icon icon-check text-green"></span>落实人</label>
+		<label class="button "><input type="checkbox" name="sbx" value="dealTime" ><span class="icon icon-check text-green"></span>落实时间</label>
+		<label class="button "><input type="checkbox" name="sbx" value="dealReault" ><span class="icon icon-check text-green"></span>处理情况</label>
+		<label class="button "><input type="checkbox" name="sbx" value="visitBackPerson" ><span class="icon icon-check text-green"></span>回访人</label>
+		<label class="button "><input type="checkbox" name="sbx" value="visitBackTime" ><span class="icon icon-check text-green"></span>回访时间</label>
+		<label class="button "><input type="checkbox" name="sbx" value="visitBackResult" ><span class="icon icon-check text-green"></span>回访结果</label>
+		<label class="button "><input type="checkbox" name="sbx" value="finishPerson" ><span class="icon icon-check text-green"></span>完结处理人</label>
+		<label class="button "><input type="checkbox" name="sbx" value="finishTime" ><span class="icon icon-check text-green"></span>完结时间</label>
             </div>
 
         </div>

@@ -92,6 +92,12 @@
 			return fBound;
 	  	};
 	}
+	if (!Function.prototype.getName) {
+		Function.prototype.getName = function(){
+    		return this.name || this.toString().match(/function\s*([^(]*)\(/)[1];
+		}
+	}
+	
 	
 	/*
 	 * String ES5 extend
@@ -99,6 +105,24 @@
 	if(!String.prototype.trim) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+|\s+$/g,'');
+		};
+	}
+	
+	if(!String.prototype.startWith) {
+		String.prototype.startWith = function(str) {
+			if (str == null || str == "" || this.length == 0 || str.length > this.length)
+				return false;
+			if (this.substr(0, str.length) == str)
+				return true;
+			else
+				return false;
+			return true;
+		};
+	}
+	
+	if(!String.prototype.contains) {
+		String.prototype.contains = function(str) {
+			return this.indexOf(str)!=-1;
 		};
 	}
 	
@@ -233,6 +257,17 @@
 		}
 		return previous;
 	  };
+	}
+	
+	if (typeof Array.prototype.contains != "function") {
+		Array.prototype.contains = function(item){
+		   for (var i = 0; i < this.length; i++) {
+		   	if(this[i]==item){
+		   		return true;
+		   	}
+		   }
+		   return false;
+		};
 	}
 	
 	if (typeof Date.prototype.format != "function") {

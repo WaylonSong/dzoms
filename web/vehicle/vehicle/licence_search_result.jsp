@@ -44,26 +44,15 @@ Page pg = (Page)request.getAttribute("page");
             }
         }
 
-        function call_update(val){
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+val;
-            //alert(url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
-            //$(window.top.document,"#main").attr("src",url);
-        }
-
         function _update(){
             var selected_val = $("input[name='cbx']:checked").val();
-            var url = "/DZOMS/vehicle/vehiclePreupdate?vehicle.carframeNum="+selected_val;
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
-            window.open(url,"车辆修改",'width=800,height=600,resizable=yes,scrollbars=yes');
+            var url = "/DZOMS/vehicle/licence_revoke?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2flicence_add.jsp";
+            window.parent.location.href=url;
         }
         
         function _detail(){
         	 var selected_val = $("input[name='cbx']:checked").val();
             var url = "/DZOMS/vehicle/vehicleShow?vehicle.carframeNum="+selected_val+"&url=%2fvehicle%2fvehicle%2flicence_show.jsp";
-            //	alert(url);
-            //$(window.top.document,"#main").attr("src",url);
             window.open(url,"车辆牌照信息查看",'width=800,height=600,resizable=yes,scrollbars=yes');
         }
 
@@ -122,7 +111,7 @@ Page pg = (Page)request.getAttribute("page");
 	                               		查看</button>
 	                               		<s:if test="#session.roles.{?#this.rname=='牌照修改权限'}.size>0">  
 	                                    	<button onclick="_update()" type="button" class="button icon-pencil text-green" style="line-height: 6px;">
-			                                                            修改</button>
+			                                                            状态回退</button>
 		                                </s:if>
                                      </div>
                                 </div>
@@ -134,7 +123,7 @@ Page pg = (Page)request.getAttribute("page");
 
                     <tr>
                         <th>选择</th>
-                        <th class="carframeNum			selected_able">车架号			</th>
+<th class="carframeNum			selected_able">车架号			</th>
 <th class="licenseRegNum		selected_able">登记证书号		</th>
 <th class="licenseNumRegDate	selected_able">行驶证注册日期	</th>
 <th class="isNewLicense			selected_able">领取方式			</th>

@@ -114,8 +114,6 @@ public class DataImport {
 		vehicleDao = ctx.getBean(VehicleDao.class);
 		contractService = ctx.getBean(ContractService.class);
 		vehicleApprovalService = ctx.getBean(VehicleApprovalService.class);
-		
-		
 	}
 	
 	
@@ -828,7 +826,7 @@ public class DataImport {
 				 
 				 session.saveOrUpdate(b);
 				 v.setBusinessLicenseComment(r.get备注());
-				 v.setBusinessLicenseId(b.getId());
+				 v.setBusinessLicenseId(b.getLicenseNum());
 				 session.saveOrUpdate(v);
 
 				 tx.commit();

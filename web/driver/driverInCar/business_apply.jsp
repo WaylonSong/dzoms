@@ -33,6 +33,7 @@
 <script src="/DZOMS/res/js/jquery.datetimepicker.js"></script>
 <script src="/DZOMS/res/layer-v2.1/layer/layer.js"></script>
 <script src="/DZOMS/res/js/window.js"></script>
+<script type="text/javascript" src="/DZOMS/res/js/fileUpload.js" ></script>
 <link rel="stylesheet" href="/DZOMS/res/css/jquery.bigautocomplete.css" />
 <script type="text/javascript" src="/DZOMS/res/js/jquery.bigautocomplete.js" ></script>
 <script>
@@ -65,6 +66,7 @@ function checkAll(){
 var clsMap = {
 	"主驾":"firstDriver",
 	"副驾":"secondDriver",
+	"三驾":"thirdDriver",
 	"临驾":"tempDriver"
 };
 
@@ -106,7 +108,7 @@ function checkIt(){
 $(document).ready(function(){
 	$('[name="driver.idNum"]').bigAutocomplete({
 		url:"/DZOMS/select/driverById",
-		condition:" status=3 and ((businessApplyCancelState=1 and businessApplyState=2) or (businessApplyCancelState=0 and businessApplyState=0) or (businessApplyState=null))",
+		condition:" status=3 and ((businessApplyCancelState=1 and businessApplyState=2) or (businessApplyCancelState=0 and businessApplyState=0) or (businessApplyState is null))",
 		callback:checkAll
 	});
 
@@ -131,35 +133,29 @@ $("[name='vehicle.licenseNum']").bigAutocomplete({
 
 </script>
     <script>
-        function loadpicture(files){
-            if(files.length>0){
-                var file = files[0];
-                var reader = new FileReader();
-                reader.onload = function(){
-
-                    $("#headimg")[0].src=this.result;
-                };
-                reader.readAsDataURL(file);
-            }
-//            var txt = $(".oldimg").val();
-//            alert(txt);
-//            $("#headimg")[0].src=;
-        }
         function deleheadimg(){
             $("#headimg")[0].src="/DZOMS/res/image/driverhead.png";
-            $("#oldimg").remove();
-            $(".input-file1").html('装入<input type="file" onchange="loadpicture(this.files)" id="oldimg">');
+            $("#oldimg").val("");
+        }
+        
+        function deleheadimg1(){
+            $("#headimg1")[0].src="/DZOMS/res/image/driverhead.png";
+            $("#readyimg1").val("");
         }
         
     </script>
     <style>
+    	
         .label{
-            width: 140px;
+            width: 130px;
             text-align: right;
         }
         .field{
         	width: 200px;
         }
+        .form-group{
+    		width: 340px;
+    	}
     </style>
 </head>
 <body>
@@ -184,27 +180,49 @@ $("[name='vehicle.licenseNum']").bigAutocomplete({
 	    <div class="panel-body">
 	    	<div class="line">
 	    	   <div class="xm2">
-	    	   	<div class="padding">
-	    	<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('data/driver/'+#driver.idNum+'/photo.jpg')=true}">
-	    	    <img src="/DZOMS/data/driver/<s:property value="driver.idNum"/>/photo.jpg" class="radius img-responsive" style="width: 150px;height: 150px;">
-	    	</s:if>
-	    	<s:else>
-	    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" style="width: 150px;height:150px;">
-	    	</s:else>
-        	<strong>人车照片</strong>
-        	<div>
-        		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;">
-        	</div>
-            <br/>
-            <div class="container">
-                <a class="button input-file bg-green input-file1">
-                    装入<input type="file" name="drive_vehicle_photo" onchange="loadpicture(this.files)" id="oldimg">
-                </a>
-                 <a class="button input-file delebutton1" data-width="50%" data-mask="1">清空</a>
-            </div>
-        </div>
+			    	   	<div class="padding">
+					    	<!--<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('data/driver/'+#driver.idNum+'/photo.jpg')=true}">
+					    	    <img src="/DZOMS/data/driver/<s:property value="driver.idNum"/>/photo.jpg" class="radius img-responsive" style="width: 150px;height: 150px;">
+					    	</s:if>
+					    	<s:else>
+					    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" style="width: 150px;height:150px;">
+					    	</s:else>-->
+					    	<strong>驾驶员照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+driver.idNum+'/photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{driver.idNum}'/>/photo.jpg" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg1"  style="width: 150px;height:150px;">
+    	</s:else>
+				        		
+				        	</div>
+				            <br/>
+				            <div class="container">
+				                <a class="button input-file input-file1">
+				                    装入<input class="dz-file" id="readyimg1" name="drive_photo" data-target=".input-file1" sessuss-function="loadThePicture('#readyimg1','#headimg1');">
+				                </a>
+				                 <a class="button input-file delebutton2" data-width="50%" data-mask="1">清空</a>
+				            </div>
+				        	<strong>人车照片</strong>
+				        	<div>
+		<s:if test="%{@com.dz.common.other.FileAccessUtil@exist('/data/driver/'+driver.idNum+'/drive_vehicle_photo.jpg')}">
+			<img src="/DZOMS/data/driver/<s:property value='%{driver.idNum}'/>/drive_vehicle_photo.jpg" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;">
+    	</s:if>
+    	<s:else>
+    		<img src="/DZOMS/res/image/driverhead.png" class="radius img-responsive" id="headimg"  style="width: 150px;height:150px;">
+    	</s:else>
+				        	</div>
+				            <br/>
+				            <div class="container">
+				                <a class="button input-file bg-green input-file2">
+				                    装入<input class="dz-file" id="oldimg" name="drive_vehicle_photo" data-target=".input-file2" sessuss-function="loadThePicture('#oldimg','#headimg');">
+				                </a>
+				                 <a class="button input-file delebutton1" data-width="50%" data-mask="1">清空</a>
+				            </div>
+		                 </div>
 	    	   	
-	</div>
+	            </div>
 	    <div class="xm8">
 	    	<div class="form-group">
                 <div class="label padding">
@@ -380,6 +398,7 @@ $("[name='vehicle.licenseNum']").bigAutocomplete({
                     	<option></option>
                     	<option>主驾</option>
                     	<option>副驾</option>
+                    	<option>三驾</option>
                     	<option>临驾</option>
                     </select>
                 </div>
@@ -491,6 +510,7 @@ $(function(){
 //	del_but_bind('.delebutton1',deleheadimg);
 //	del_but_bind('.delebutton2',deledriverfile)
 	button_bind(".delebutton1","确认删除？","deleheadimg()");
+	button_bind(".delebutton2","确认删除？","deleheadimg1()");
 	
 	/*add_but_bind('.submitbutton',function(){
 		driverAdd.submit();
